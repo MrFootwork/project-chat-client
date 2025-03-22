@@ -1,9 +1,7 @@
 import { Button } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
 
-type Props = {};
-
-const LandingPage = (props: Props) => {
+const LandingPage = () => {
   const navigate = useNavigate();
   const handleLoginClick = () => {
     navigate('/login'); // Replace '/login' with your desired route

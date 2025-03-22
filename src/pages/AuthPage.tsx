@@ -5,11 +5,10 @@ import axios from 'axios';
 import config from '../../config';
 import { Button, Group, PasswordInput, TextInput } from '@mantine/core';
 
-type Props = {};
 const API_URL = config.API_URL;
 
-const AuthPage = (props: Props) => {
-  const { user, setUser, token, setToken } = useContext(AuthContext);
+const AuthPage = () => {
+  const { user, setUser, setToken } = useContext(AuthContext);
 
   const form = useForm({
     mode: 'uncontrolled',

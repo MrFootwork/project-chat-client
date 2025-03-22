@@ -14,6 +14,7 @@ type AuthContextType = {
   setUser: React.Dispatch<React.SetStateAction<UserContext>>;
   token: TokenContext;
   setToken: React.Dispatch<React.SetStateAction<TokenContext>>;
+  validateToken: () => Promise<void>;
 };
 
 const AuthContext = React.createContext<AuthContextType>({
@@ -22,6 +23,7 @@ const AuthContext = React.createContext<AuthContextType>({
   setUser: () => {},
   token: null,
   setToken: () => {},
+  validateToken: async () => {},
 });
 
 function AuthWrapper({ children }: { children: ReactNode }) {
@@ -30,6 +32,11 @@ function AuthWrapper({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    console.log('validating token');
+    validateToken();
+  }, []);
+
+  async function validateToken() {
     setToken(window.localStorage.getItem('chatToken'));
 
     axios
@@ -40,11 +47,17 @@ function AuthWrapper({ children }: { children: ReactNode }) {
       })
       .then(({ data }) => setUser(data))
       .catch(error => console.error(error))
-      .finally(() => setLoading(false));
-  }, []);
+      .finally(() => {
+        setTimeout(() => {
+          setLoading(false);
+        }, 750);
+      });
+  }
 
   return (
-    <AuthContext.Provider value={{ loading, user, setUser, token, setToken }}>
+    <AuthContext.Provider
+      value={{ loading, user, setUser, token, setToken, validateToken }}
+    >
       {children}
     </AuthContext.Provider>
   );

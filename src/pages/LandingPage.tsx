@@ -1,11 +1,16 @@
 import { Button } from '@mantine/core';
+import { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../contexts/AuthWrapper';
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
+
   const handleLoginClick = () => {
-    navigate('/login'); // Replace '/login' with your desired route
+    navigate('/auth');
   };
+
   return (
     <div>
       <header>
@@ -13,7 +18,7 @@ const LandingPage = () => {
       </header>
       <section>
         <Button variant='filled' onClick={handleLoginClick}>
-          Login
+          {user ? 'Browse Chat Rooms' : 'Login'}
         </Button>
       </section>
     </div>

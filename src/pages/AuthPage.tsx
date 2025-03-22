@@ -1,14 +1,20 @@
-import { useContext } from 'react';
+import { useContext, useEffect } from 'react';
 import { AuthContext } from '../contexts/AuthWrapper';
 import { useForm } from '@mantine/form';
 import axios from 'axios';
 import config from '../../config';
 import { Button, Group, PasswordInput, TextInput } from '@mantine/core';
+import { useNavigate } from 'react-router-dom';
 
 const API_URL = config.API_URL;
 
 const AuthPage = () => {
   const { user, setUser, setToken } = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (user) navigate('/chat');
+  }, [user]);
 
   const form = useForm({
     mode: 'uncontrolled',
@@ -37,7 +43,7 @@ const AuthPage = () => {
         Authorization: `Bearer ${data.jwt}`,
       },
     });
-    console.log('User Client data: ', response.data);
+    console.log('User Client data ~ response: ', response);
     setUser(response.data);
     // FIXME Connect to socket
   };

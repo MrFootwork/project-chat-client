@@ -1,35 +1,36 @@
 // import reactLogo from './assets/react.svg'
 // import viteLogo from '/vite.svg'
-import { useEffect, useState } from 'react';
 import './App.css';
-import axios from 'axios';
-import { Book } from './types/book';
+
+import config from '../config';
+import { Route, Routes } from 'react-router-dom';
+import LandingPage from './pages/LandingPage';
+import AuthPage from './pages/AuthPage';
+
+const API_URL = config.API_URL;
 
 function App() {
-  const [books, setBooks] = useState<Book[]>([]);
-
-  useEffect(() => {
-    axios
-      .get('https://project-chat-server.onrender.com/api/books')
-      // .get('http://localhost:5005/api/books')
-      .then(res => {
-        console.log(res.data);
-        setBooks(res.data);
-      })
-      .catch(err => {
-        console.log(err);
-      });
-  }, []);
+  // useEffect(() => {
+  //   axios
+  //     .get('https://project-chat-server.onrender.com/api/users')
+  //     // .get('http://localhost:5005/api/books')
+  //     .then(res => {
+  //       console.log(res.data);
+  //       setUsers(res.data);
+  //     })
+  //     .catch(err => {
+  //       console.log(err);
+  //     });
+  // }, []);
 
   return (
     <>
-      <ul>
-        {books.map(book => (
-          <li key={book.id}>
-            <strong>{book.title}</strong> by {book.authorName} ({book.year})
-          </li>
-        ))}
-      </ul>
+      <div> {`Test ${API_URL}`} </div>
+
+      <Routes>
+        <Route path='/' element={<LandingPage />} />
+        <Route path='/login' element={<AuthPage />} />
+      </Routes>
     </>
   );
 }

@@ -4,13 +4,14 @@ import { useNavigate } from 'react-router-dom';
 import { RoomsContext } from '../contexts/RoomsWrapper';
 import './ChatPage.css';
 import { Room } from '../types/room';
+import Messenger from '../components/Messenger';
 
 const ChatPage = () => {
   const { user, validateToken } = useContext(AuthContext);
   const { rooms } = useContext(RoomsContext);
   const navigate = useNavigate();
 
-  const [currentRoom, setCurrentRoom] = useState<Room>();
+  const [currentRoom, setCurrentRoom] = useState<Room | null>(null);
 
   useEffect(() => {
     validateToken();
@@ -18,7 +19,8 @@ const ChatPage = () => {
   }, []);
 
   function selectRoom(roomId: string) {
-    const selectedRoom = rooms?.filter(room => room.id === roomId)?.[0];
+    const selectedRoom = rooms?.filter(room => room.id === roomId)?.[0] || null;
+    if (!selectRoom) console.warn('Could not select a room.');
     setCurrentRoom(selectedRoom);
   }
 
@@ -41,8 +43,7 @@ const ChatPage = () => {
       </nav>
 
       <section className='messenger-container'>
-        <p>Here are the messages.</p>
-        {currentRoom ? <>{currentRoom.name}</> : 'Choose a room!'}
+        <Messenger room={currentRoom} />
       </section>
     </div>
   );

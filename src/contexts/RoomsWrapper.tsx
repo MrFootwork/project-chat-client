@@ -21,7 +21,10 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
   }, [user]);
 
   async function fetchRooms() {
-    const fetchedRooms = await axios.get(API_URL + '/api/rooms', {
+    const fetchedRooms = await axios.get(API_URL + '/api/rooms/all', {
+      // TESTING for now fetch all rooms
+      // Should be only the user's rooms in the end.
+      // const fetchedRooms = await axios.get(API_URL + '/api/rooms', {
       withCredentials: true,
       headers: {
         Authorization: `Bearer ${token}`,

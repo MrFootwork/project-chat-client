@@ -33,62 +33,84 @@ const AuthContext = React.createContext<AuthContextType>({
 function AuthWrapper({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserContext>(null);
   const [token, setToken] = useState<TokenContext>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
     validateToken();
   }, []);
 
   async function logout() {
-    const data = await axios.post(API_URL + '/auth/logout', undefined, {
-      withCredentials: true,
-    });
+    try {
+      const response = await axios.post(API_URL + '/auth/logout', undefined, {
+        withCredentials: true,
+      });
 
-    console.log('LOGOUT RESPONSE: ', data);
+      if (response.statusText !== 'OK')
+        throw new Error("Server didn't respond to logout");
 
-    // Logout
-    setUser(null);
-    setToken(null);
-    window.localStorage.removeItem('chatToken');
+      // Logout
+      setUser(null);
+      setToken(null);
+      window.localStorage.removeItem('chatToken');
+    } catch (error) {
+      throw new Error("Couldn't logout");
+    }
   }
 
   async function login(credentials: { email: string; password: string }) {
-    console.log(`🚀 ~ login ~ loginData:`, credentials);
     const { email, password } = credentials;
+    setLoading(true);
 
-    // get token and store it
-    const { data } = await axios.post(API_URL + '/auth/login', {
-      email,
-      password,
-    });
-    setToken(data.jwt);
-    window.localStorage.setItem('chatToken', data.jwt);
+    try {
+      // get token and store it
+      const { data } = await axios.post(API_URL + '/auth/login', {
+        email,
+        password,
+      });
 
-    // get user data and store it
-    const response = await axios.get(API_URL + '/api/users/me', {
-      withCredentials: true,
-      headers: {
-        Authorization: `Bearer ${data.jwt}`,
-      },
-    });
-    setUser(response.data);
-    // FIXME Connect to socket
+      if (!data) return;
+
+      setToken(data.jwt);
+      window.localStorage.setItem('chatToken', data.jwt);
+
+      // get user and store it
+      await storeUserData(data.jwt);
+
+      // FIXME Connect to socket
+    } catch (error) {
+      throw new Error("Couldn't login");
+    }
   }
 
   async function validateToken() {
-    setToken(window.localStorage.getItem('chatToken'));
+    const token = window.localStorage.getItem('chatToken');
 
-    axios
-      .get(API_URL + '/api/users/me', {
-        headers: {
-          Authorization: `Bearer ${window.localStorage.getItem('chatToken')}`,
-        },
-      })
-      .then(({ data }) => setUser(data))
-      .catch(error => console.error(error))
-      .finally(() => {
-        setLoading(false);
+    if (!token) {
+      console.warn('No token in local storage');
+      return;
+    }
+
+    setToken(token);
+
+    try {
+      await storeUserData(token);
+    } catch (error) {
+      throw new Error("Couldn't validate token.");
+    }
+  }
+
+  async function storeUserData(token: string) {
+    try {
+      const response = await axios.get(API_URL + '/api/users/me', {
+        withCredentials: true,
+        headers: { Authorization: `Bearer ${token}` },
       });
+      setUser(response.data);
+    } catch (error) {
+      throw new Error(`Failed to fetch user: ${error}`);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

@@ -8,13 +8,14 @@ import LandingPage from './pages/LandingPage';
 import AuthPage from './pages/AuthPage';
 import ChatPage from './pages/ChatPage';
 import ProtectedRoutes from './utils/ProtectedRoutes';
+import NavBar from './components/NavBar';
 
 const API_URL = config.API_URL;
 
 function App() {
   return (
     <>
-      <div> {`Test ${API_URL}`} </div>
+      <NavBar />
 
       <Routes>
         <Route path='/' element={<LandingPage />} />

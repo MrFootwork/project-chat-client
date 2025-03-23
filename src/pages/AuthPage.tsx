@@ -1,15 +1,11 @@
 import { useContext, useEffect } from 'react';
 import { AuthContext } from '../contexts/AuthWrapper';
 import { useForm } from '@mantine/form';
-import axios from 'axios';
-import config from '../../config';
 import { Button, Group, PasswordInput, TextInput } from '@mantine/core';
 import { useNavigate } from 'react-router-dom';
 
-const API_URL = config.API_URL;
-
 const AuthPage = () => {
-  const { user, setUser, setToken } = useContext(AuthContext);
+  const { user, login } = useContext(AuthContext);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,22 +25,7 @@ const AuthPage = () => {
   });
 
   const handleSubmit = async (values: typeof form.values) => {
-    // console.log(values);
-    const { data } = await axios.post(API_URL + '/auth/login', {
-      email: values.email,
-      password: values.password,
-    });
-    // console.log(data);
-    setToken(data.jwt);
-    window.localStorage.setItem('chatToken', data.jwt);
-    const response = await axios.get(API_URL + '/api/users/me', {
-      withCredentials: true,
-      headers: {
-        Authorization: `Bearer ${data.jwt}`,
-      },
-    });
-    console.log('User Client data ~ response: ', response);
-    setUser(response.data);
+    login(values);
     // FIXME Connect to socket
   };
 

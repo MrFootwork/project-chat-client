@@ -14,3 +14,10 @@ body {
 button {
   cursor: pointer;
 }
+
+:root {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+  /* Widths, Heights, Spaceing, Borders */
+  --navbar-height: 3rem;
+}

@@ -36,12 +36,11 @@ function AuthWrapper({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    console.log('validating token');
     validateToken();
   }, []);
 
   async function logout() {
-    const data = await axios.post(config.API_URL + '/auth/logout', undefined, {
+    const data = await axios.post(API_URL + '/auth/logout', undefined, {
       withCredentials: true,
     });
 
@@ -88,9 +87,7 @@ function AuthWrapper({ children }: { children: ReactNode }) {
       .then(({ data }) => setUser(data))
       .catch(error => console.error(error))
       .finally(() => {
-        setTimeout(() => {
-          setLoading(false);
-        }, 750);
+        setLoading(false);
       });
   }
 

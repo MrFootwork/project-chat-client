@@ -1,0 +1,24 @@
+.chat-page-container {
+  background-color: aquamarine;
+
+  display: flex;
+  height: calc(100vh - var(--navbar-height));
+}
+
+.rooms-container {
+  background-color: beige;
+
+  display: flex;
+  flex-direction: column;
+
+  height: 100%;
+  width: clamp(18rem, 30vw, 60rem);
+}
+
+.messenger-container {
+  background-color: powderblue;
+
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}

@@ -1,8 +1,9 @@
 import { Button } from '@mantine/core';
 import './NavBar.css';
-import { useContext, useEffect } from 'react';
+import { useContext } from 'react';
 import { AuthContext } from '../contexts/AuthWrapper';
 import { useLocation, useNavigate } from 'react-router-dom';
+import config from '../../config';
 
 const NavBar = () => {
   const { user, logout } = useContext(AuthContext);
@@ -16,13 +17,10 @@ const NavBar = () => {
     if (!user) navigate('/auth');
   }
 
-  useEffect(() => {
-    console.log('PARAMS: ', location.pathname);
-  }, []);
-
   return (
     <nav className='navbar-container'>
       <h1>Navbar</h1>
+      <p>{config.API_URL}</p>
 
       {isOnAuthPage ? (
         ''

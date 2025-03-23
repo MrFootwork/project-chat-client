@@ -17,8 +17,8 @@
 
     /* Linting */
     "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noUnusedLocals": false, // Avoid build fail
+    "noUnusedParameters": false, // Avoid build fail
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },

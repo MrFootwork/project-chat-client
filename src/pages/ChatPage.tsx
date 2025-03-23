@@ -28,7 +28,8 @@ const ChatPage = () => {
         <header>
           <h1>ChatPage</h1>
         </header>
-        <ol>
+
+        <ol className='room-button-container'>
           {rooms?.map(room => {
             return (
               <li key={room.id}>
@@ -41,7 +42,7 @@ const ChatPage = () => {
 
       <section className='messenger-container'>
         <p>Here are the messages.</p>
-        {currentRoom ? <>{currentRoom.name}</> : ''}
+        {currentRoom ? <>{currentRoom.name}</> : 'Choose a room!'}
       </section>
     </div>
   );

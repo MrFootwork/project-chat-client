@@ -1,22 +1,29 @@
-import { useContext, useEffect, useState } from 'react';
-import { AuthContext } from '../contexts/AuthWrapper';
-import { useNavigate } from 'react-router-dom';
-import { RoomsContext } from '../contexts/RoomsWrapper';
 import './ChatPage.css';
-import { Room } from '../types/room';
+import { useContext, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+import { AuthContext } from '../contexts/AuthWrapper';
+import { RoomsContext } from '../contexts/RoomsWrapper';
+import { SocketContext } from '../contexts/SocketWrapper';
+
 import Messenger from '../components/Messenger';
 
+import { Room } from '../types/room';
+
 const ChatPage = () => {
-  const { user, validateToken } = useContext(AuthContext);
-  const { rooms } = useContext(RoomsContext);
   const navigate = useNavigate();
 
-  const [currentRoom, setCurrentRoom] = useState<Room | null>(null);
+  // Auth
+  const { user, validateToken, token } = useContext(AuthContext);
 
   useEffect(() => {
     validateToken();
     if (!user) navigate('/');
   }, []);
+
+  // Room
+  const { rooms } = useContext(RoomsContext);
+  const [currentRoom, setCurrentRoom] = useState<Room | null>(null);
 
   function selectRoom(roomId: string) {
     const selectedRoom = rooms?.filter(room => room.id === roomId)?.[0] || null;

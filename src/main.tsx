@@ -7,6 +7,7 @@ import { MantineProvider } from '@mantine/core';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthWrapper } from './contexts/AuthWrapper.tsx';
 import { RoomsWrapper } from './contexts/RoomsWrapper.tsx';
+import { SocketWrapper } from './contexts/SocketWrapper.tsx';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -14,7 +15,9 @@ createRoot(document.getElementById('root')!).render(
       <MantineProvider>
         <AuthWrapper>
           <RoomsWrapper>
-            <App />
+            <SocketWrapper>
+              <App />
+            </SocketWrapper>
           </RoomsWrapper>
         </AuthWrapper>
       </MantineProvider>

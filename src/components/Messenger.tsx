@@ -1,7 +1,4 @@
-import { Button, Textarea } from '@mantine/core';
-import { Room } from '../types/room';
 import './Messenger.css';
-import { useForm } from '@mantine/form';
 import {
   KeyboardEvent,
   memo,
@@ -10,7 +7,13 @@ import {
   useRef,
   useState,
 } from 'react';
+import { Button, Textarea } from '@mantine/core';
 import { SocketContext } from '../contexts/SocketWrapper';
+
+import { useForm } from '@mantine/form';
+import MessageCard from './MessageCard';
+
+import { Room } from '../types/room';
 
 type Props = {
   room: Room | null;
@@ -77,7 +80,13 @@ const Messenger = (props: Props) => {
         <p>Here are the messages.</p>
         {props.room ? <>{props.room.name}</> : 'Choose a room!'}
         <ol>
-          {messages.length ? messages.map(message => <li>{message}</li>) : ''}
+          {messages.length
+            ? messages.map(message => (
+                <li>
+                  <MessageCard message={message} />
+                </li>
+              ))
+            : ''}
           <div ref={messagesEndRef} />
         </ol>
       </div>

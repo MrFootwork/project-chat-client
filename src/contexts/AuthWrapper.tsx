@@ -1,5 +1,5 @@
 import axios from 'axios';
-import React, { useState, useEffect, ReactNode } from 'react';
+import React, { useState, useEffect, ReactNode, useContext } from 'react';
 import { User } from '../types/user';
 import config from '../../config';
 
@@ -52,6 +52,7 @@ function AuthWrapper({ children }: { children: ReactNode }) {
       setUser(null);
       setToken(null);
       window.localStorage.removeItem('chatToken');
+      console.log('Logged out');
     } catch (error) {
       throw new Error("Couldn't logout");
     }

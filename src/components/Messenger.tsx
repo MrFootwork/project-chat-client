@@ -1,4 +1,6 @@
 import './Messenger.css';
+import { Room } from '../types/room';
+
 import {
   KeyboardEvent,
   memo,
@@ -8,25 +10,25 @@ import {
   useState,
 } from 'react';
 import { Button, Textarea } from '@mantine/core';
-import { SocketContext } from '../contexts/SocketWrapper';
-
 import { useForm } from '@mantine/form';
 import MessageCard from './MessageCard';
 
-import { Room } from '../types/room';
+import { SocketContext } from '../contexts/SocketWrapper';
+import { RoomsContext } from '../contexts/RoomsWrapper';
 
 type Props = {
   room: Room | null;
 };
 
 const Messenger = (props: Props) => {
+  // States and Refs
   const { socket } = useContext(SocketContext);
-
-  // Messages
   const [messages, setMessages] = useState<string[]>([]);
-  const messagesEndRef = useRef<HTMLDivElement | null>(null); // Create a ref for the bottom of the messages
+  const { currentRoom } = useContext(RoomsContext);
 
   // Scroll to the bottom whenever messages change
+  const messagesEndRef = useRef<HTMLDivElement | null>(null); // Create a ref for the bottom of the messages
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -38,15 +40,16 @@ const Messenger = (props: Props) => {
   });
 
   function sendText(values: typeof form.values) {
-    form.reset();
+    // TESTING Clear the form after submission
+    // form.reset();
 
     setMessages((prevMessages: string[]) => {
       return [...prevMessages, values.text];
     });
 
     if (socket) {
-      console.log('Sending the message:', values.text);
-      socket.emit('send-message', values.text);
+      console.log('Sending the message:', currentRoom?.id, values.text);
+      socket.emit('send-message', currentRoom?.id, values.text);
     }
   }
 

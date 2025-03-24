@@ -6,25 +6,29 @@ import { Room } from '../types/room';
 
 const API_URL = config.API_URL;
 
-type RoomContext = Room[] | null;
+type RoomContext = Room | null;
+type RoomsContext = Room[] | null;
 
 const RoomsContext = React.createContext({
-  rooms: [] as RoomContext,
+  rooms: [] as RoomsContext,
+  currentRoom: null as RoomContext,
+  setCurrentRoom: (room: RoomContext) => {},
 });
 
 function RoomsWrapper({ children }: { children: ReactNode }) {
   const { user, token } = useContext(AuthContext);
-  const [rooms, setRooms] = useState<RoomContext>(null);
+  const [rooms, setRooms] = useState<RoomsContext>(null);
+  const [currentRoom, setCurrentRoom] = useState<RoomContext>(null);
 
   useEffect(() => {
     if (user) fetchRooms();
   }, [user]);
 
   async function fetchRooms() {
-    const fetchedRooms = await axios.get(API_URL + '/api/rooms/all', {
-      // TESTING for now fetch all rooms
-      // Should be only the user's rooms in the end.
-      // const fetchedRooms = await axios.get(API_URL + '/api/rooms', {
+    // const fetchedRooms = await axios.get(API_URL + '/api/rooms/all', {
+    // TESTING for now fetch all rooms
+    // Should be only the user's rooms in the end.
+    const fetchedRooms = await axios.get(API_URL + '/api/rooms', {
       withCredentials: true,
       headers: {
         Authorization: `Bearer ${token}`,
@@ -35,7 +39,9 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
   }
 
   return (
-    <RoomsContext.Provider value={{ rooms }}>{children}</RoomsContext.Provider>
+    <RoomsContext.Provider value={{ rooms, currentRoom, setCurrentRoom }}>
+      {children}
+    </RoomsContext.Provider>
   );
 }
 

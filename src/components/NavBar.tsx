@@ -20,7 +20,10 @@ const NavBar = () => {
   return (
     <nav className='navbar-container'>
       <h1>Navbar</h1>
-      <p>{config.API_URL}</p>
+      <p>
+        {config.API_URL} <br />
+        {user?.name}: {user?.id}
+      </p>
 
       {isOnAuthPage ? (
         ''

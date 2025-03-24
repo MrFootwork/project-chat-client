@@ -1,12 +1,17 @@
-import { Button } from '@mantine/core';
 import './NavBar.css';
-import { useContext } from 'react';
-import { AuthContext } from '../contexts/AuthWrapper';
-import { useLocation, useNavigate } from 'react-router-dom';
 import config from '../../config';
+
+import { useContext } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Button } from '@mantine/core';
+
+import { AuthContext } from '../contexts/AuthWrapper';
+import { SocketContext } from '../contexts/SocketWrapper';
 
 const NavBar = () => {
   const { user, logout } = useContext(AuthContext);
+  const { socket } = useContext(SocketContext);
+
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -20,9 +25,10 @@ const NavBar = () => {
   return (
     <nav className='navbar-container'>
       <h1>Navbar</h1>
-      <p>
-        {config.API_URL} <br />
-        {user?.name}: {user?.id}
+      <p className='navbar-text'>
+        Env: {config.API_URL} <br />
+        User: "{user?.name}" {user?.id} <br />
+        Socket: {socket?.id}
       </p>
 
       {isOnAuthPage ? (

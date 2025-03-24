@@ -46,7 +46,7 @@ function AuthWrapper({ children }: { children: ReactNode }) {
       });
 
       if (response.status !== 200)
-        throw new Error(`Server didn't respond to logout: ${response}`);
+        console.warn(`Server didn't respond to logout: ${response}`);
 
       // Logout
       setUser(null);

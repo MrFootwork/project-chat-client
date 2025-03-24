@@ -11,3 +11,10 @@
 
   background-color: antiquewhite;
 }
+
+.navbar-text {
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: normal;
+  font-family: 'CaskaydiaCove Nerd Font';
+}

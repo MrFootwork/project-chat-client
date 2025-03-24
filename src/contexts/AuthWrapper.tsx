@@ -46,7 +46,9 @@ function AuthWrapper({ children }: { children: ReactNode }) {
       });
 
       if (response.statusText !== 'OK')
-        throw new Error("Server didn't respond to logout");
+        throw new Error(
+          `Server didn't respond to logout: ${response.status} ${response.statusText}`
+        );
 
       // Logout
       setUser(null);
@@ -54,7 +56,7 @@ function AuthWrapper({ children }: { children: ReactNode }) {
       window.localStorage.removeItem('chatToken');
       console.log('Logged out');
     } catch (error) {
-      throw new Error("Couldn't logout");
+      throw new Error(`Couldn't logout: ${error}`);
     }
   }
 

@@ -1,12 +1,12 @@
 import './MessageCard.css';
 import type { Message } from '../types/message';
 
-type Props = {
-  message: Message;
-};
-
-const MessageCard = (props: Props) => {
-  return <div>{props.message}</div>;
+const MessageCard = ({ message }: { message: Message }) => {
+  return (
+    <div>
+      {message.user.name}: {message.content}
+    </div>
+  );
 };
 
 export default MessageCard;

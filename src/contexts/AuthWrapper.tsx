@@ -76,8 +76,6 @@ function AuthWrapper({ children }: { children: ReactNode }) {
 
       // get user and store it
       await storeUserData(data.jwt);
-
-      // FIXME Connect to socket
     } catch (error) {
       throw new Error("Couldn't login");
     }

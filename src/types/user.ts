@@ -3,6 +3,16 @@ export type User = {
   email: string;
   name: string;
   password: string;
-  createdAt: Date;
-  updatedAt: Date;
+  avatarUrl: string | null;
+  isDeleted: boolean;
+  createdAt: string;
+  updatedAt: string;
 };
+
+export type RoomMember = Omit<User, 'password'> & {
+  avatarUrl: string;
+  isAdmin: boolean;
+  userLeft: boolean;
+};
+
+export type MessageAuthor = Pick<RoomMember, 'id' | 'name' | 'avatarUrl'>;

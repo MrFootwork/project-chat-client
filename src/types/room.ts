@@ -1,11 +1,12 @@
+import { Message } from './message';
+import { RoomMember } from './user';
+
 export type Room = {
   id: string;
   name: string;
-  private: boolean;
-  createdAt: string; // ISO date string
-  updatedAt: string; // ISO date string
-  Users: {
-    userId: string;
-    isAdmin: boolean;
-  }[];
+  createdAt: string;
+  updatedAt: string;
+  isPrivate: boolean;
+  members: RoomMember[];
+  messages: Message[];
 };

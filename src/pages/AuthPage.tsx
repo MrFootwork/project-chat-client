@@ -26,7 +26,6 @@ const AuthPage = () => {
 
   const handleSubmit = async (values: typeof form.values) => {
     if (!user) login(values);
-    // FIXME Connect to socket
   };
 
   return (

@@ -1,5 +1,6 @@
 import './Messenger.css';
 import { Room } from '../types/room';
+import { Message } from '../types/message';
 
 import {
   KeyboardEvent,
@@ -23,29 +24,34 @@ type Props = {
 const Messenger = (props: Props) => {
   // States and Refs
   const { socket } = useContext(SocketContext);
-  const [messages, setMessages] = useState<string[]>([]);
-  const { currentRoom } = useContext(RoomsContext);
+  const [roomMessages, setRoomMessages] = useState<Message[]>([]);
+  const { rooms, currentRoom } = useContext(RoomsContext);
 
-  // Scroll to the bottom whenever messages change
+  /**************************
+   * Messenger display
+   **************************/
   const messagesEndRef = useRef<HTMLDivElement | null>(null); // Create a ref for the bottom of the messages
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [roomMessages]);
 
-  // Input handling
+  /**************************
+   * Send messages
+   **************************/
   const form = useForm({
     mode: 'controlled',
     initialValues: { text: '' },
   });
 
+  // Load messages for the current room
+  useEffect(() => {
+    setRoomMessages(currentRoom?.messages || []);
+  }, [currentRoom]);
+
   function sendText(values: typeof form.values) {
     // TESTING Clear the form after submission
     // form.reset();
-
-    setMessages((prevMessages: string[]) => {
-      return [...prevMessages, values.text];
-    });
 
     if (socket) {
       console.log('Sending the message:', currentRoom?.id, values.text);
@@ -61,20 +67,22 @@ const Messenger = (props: Props) => {
     }
   }
 
-  // Socket listeners
+  /**************************
+   * Receive messages
+   **************************/
   useEffect(() => {
-    const handleReceiveMessage = (sender: string, message: string) => {
-      console.log(sender, message);
-      setMessages((prevMessages: string[]) => {
-        return [...prevMessages, message];
-      });
-    };
-
     socket?.on('receive-message', handleReceiveMessage);
 
     return () => {
       socket?.off('receive-message', handleReceiveMessage);
     };
+
+    function handleReceiveMessage(sender: string, message: Message) {
+      console.log(sender, message);
+      setRoomMessages((prevMessages: Message[]) => {
+        return [...prevMessages, message];
+      });
+    }
   }, [Boolean(socket)]);
 
   return (
@@ -83,9 +91,9 @@ const Messenger = (props: Props) => {
         <p>Here are the messages.</p>
         {props.room ? <>{props.room.name}</> : 'Choose a room!'}
         <ol>
-          {messages.length
-            ? messages.map(message => (
-                <li>
+          {roomMessages.length
+            ? roomMessages.map(message => (
+                <li key={message.id}>
                   <MessageCard message={message} />
                 </li>
               ))
@@ -96,7 +104,6 @@ const Messenger = (props: Props) => {
 
       <div className='input-container'>
         <form onSubmit={form.onSubmit(sendText)}>
-          {/* BUG Invalid value for prop `value` on <textarea> tag. Either remove it from the element, or pass a string or number value to keep it in the DOM. For details, see https://react.dev/link/attribute-behavior  Error Component Stack */}
           <Textarea
             radius='md'
             placeholder='Enter your message here.'

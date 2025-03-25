@@ -25,6 +25,7 @@ const ChatPage = () => {
     const selectedRoom = rooms?.filter(room => room.id === roomId)?.[0] || null;
     if (!selectRoom) console.warn('Could not select a room.');
     setCurrentRoom(selectedRoom);
+    // FIXME refetch room messages each time the client selects a room
   }
 
   return (

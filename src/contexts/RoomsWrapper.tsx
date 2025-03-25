@@ -9,11 +9,16 @@ const API_URL = config.API_URL;
 type RoomContext = Room | null;
 type RoomsContext = Room[] | null;
 
-const RoomsContext = React.createContext({
-  rooms: [] as RoomsContext,
-  currentRoom: null as RoomContext,
-  setCurrentRoom: (room: RoomContext) => {},
-  fetchSelectedRoom: async (roomID: string) => {},
+const RoomsContext = React.createContext<{
+  rooms: RoomsContext;
+  currentRoom: RoomContext;
+  setCurrentRoom: (room: RoomContext) => void;
+  fetchSelectedRoom: (roomID: string) => Promise<void>;
+}>({
+  rooms: null,
+  currentRoom: null,
+  setCurrentRoom: () => {},
+  fetchSelectedRoom: async () => {},
 });
 
 function RoomsWrapper({ children }: { children: ReactNode }) {
@@ -37,28 +42,28 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
 
   // Fetch room for a given room ID
   async function fetchSelectedRoom(roomId: string) {
-    const fetchedRoom = await axios.get(API_URL + `/api/rooms/${roomId}`, {
+    const response = await axios.get(API_URL + `/api/rooms/${roomId}`, {
       withCredentials: true,
       headers: { Authorization: `Bearer ${token}` },
     });
 
-    if (fetchedRoom) {
-      setCurrentRoom(fetchedRoom.data);
-      setRooms(prevRooms => {
-        // Update the room if it already exists in rooms
-        const updatedRooms = (prevRooms || []).map(room =>
-          room.id === fetchedRoom.data.id ? fetchedRoom.data : room
-        );
+    const fetchedRoom = response.data as Room;
 
-        const isRoomPresent = updatedRooms.some(
-          room => room.id === fetchedRoom.data.id
-        );
+    if (!fetchedRoom) return;
 
-        return isRoomPresent
-          ? updatedRooms
-          : [...updatedRooms, fetchedRoom.data];
-      });
-    }
+    setCurrentRoom(fetchedRoom);
+    setRooms(prevRooms => {
+      // Update the room if it already exists in rooms
+      const updatedRooms = (prevRooms || []).map(room =>
+        room.id === fetchedRoom.id ? fetchedRoom : room
+      );
+
+      const isRoomPresent = updatedRooms.some(
+        room => room.id === fetchedRoom.id
+      );
+
+      return isRoomPresent ? updatedRooms : [...updatedRooms, fetchedRoom];
+    });
   }
 
   return (

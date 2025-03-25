@@ -21,48 +21,52 @@ function SocketWrapper({ children }: { children: ReactNode }) {
   const [socketServer, setSocket] = useState<SocketType>(null);
 
   useEffect(() => {
-    const isReadyToConnect = token && user && (rooms?.length ?? 0) > 0;
+    // BUG Without the timeout, the socket would disconnect sometimes
+    // on room changes. Test if that's still the case!
+    setTimeout(() => {
+      const isReadyToConnect = token && user && (rooms?.length ?? 0) > 0;
 
-    if (isReadyToConnect) {
-      // Avoid reconnecting if the socket is already connected
-      if (socketServer) {
-        console.log('Socket is already connected. Skipping reconnection.');
-        return;
-      }
-
-      const socketServerURL = config.API_URL;
-      const socket = io(socketServerURL, { auth: { token } });
-
-      setSocket(socket);
-
-      socket.on('connect', () => {
-        console.log(`CONNECTION: Socket ${socket.id} Name ${user.name}`);
-        console.log(`CONNECTION: Rooms: `, rooms);
-
-        if (!rooms) {
-          console.warn('Rooms is null');
+      if (isReadyToConnect) {
+        // Avoid reconnecting if the socket is already connected
+        if (socketServer) {
+          console.log('Socket is already connected. Skipping reconnection.');
           return;
         }
 
-        const roomIDs = rooms.map(room => room.id);
+        const socketServerURL = config.API_URL;
+        const socket = io(socketServerURL, { auth: { token } });
 
-        socket.emit('join-room', roomIDs);
-      });
+        setSocket(socket);
 
-      return () => {
-        console.log(`Disconnecting from socket server ${socket.id}...`);
-        socket.disconnect();
+        socket.on('connect', () => {
+          console.log(`CONNECTION: Socket ${socket.id} Name ${user.name}`);
+          console.log(`CONNECTION: Rooms: `, rooms);
+
+          if (!rooms) {
+            console.warn('Rooms is null');
+            return;
+          }
+
+          const roomIDs = rooms.map(room => room.id);
+
+          socket.emit('join-room', roomIDs);
+        });
+
+        return () => {
+          console.log(`Disconnecting from socket server ${socket.id}...`);
+          socket.disconnect();
+          setSocket(null);
+          console.log('Disconnected from socket server.');
+        };
+      }
+
+      // Disconnect if the user or token are missing
+      if (!isReadyToConnect && socketServer) {
+        console.log('Disconnecting due to missing token, user, or rooms...');
+        socketServer.disconnect();
         setSocket(null);
-        console.log('Disconnected from socket server.');
-      };
-    }
-
-    // Disconnect if the user or token are missing
-    if (!isReadyToConnect && socketServer) {
-      console.log('Disconnecting due to missing token, user, or rooms...');
-      socketServer.disconnect();
-      setSocket(null);
-    }
+      }
+    }, 500);
   }, [token, JSON.stringify(rooms), JSON.stringify(rooms)]);
 
   return (

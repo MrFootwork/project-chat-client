@@ -22,8 +22,9 @@ const ChatPage = () => {
   const { rooms, currentRoom, fetchSelectedRoom } = useContext(RoomsContext);
 
   async function selectRoom(roomId: string) {
+    console.log(`🚀 ~ selectRoom ~ roomId:`, roomId);
     // refetch room messages for the selected room
-    const selectedRoom = await fetchSelectedRoom(roomId);
+    await fetchSelectedRoom(roomId);
   }
 
   return (

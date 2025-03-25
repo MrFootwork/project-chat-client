@@ -4,7 +4,7 @@ import type { Message } from '../types/message';
 const MessageCard = ({ message }: { message: Message }) => {
   return (
     <div>
-      {message.user.name}: {message.content}
+      {message.author.name}: {message.content}
     </div>
   );
 };

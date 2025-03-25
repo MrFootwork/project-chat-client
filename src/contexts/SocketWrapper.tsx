@@ -33,6 +33,8 @@ function SocketWrapper({ children }: { children: ReactNode }) {
           return;
         }
 
+        console.log('Connecting to socket server...');
+
         const socketServerURL = config.API_URL;
         const socket = io(socketServerURL, { auth: { token } });
 
@@ -43,7 +45,7 @@ function SocketWrapper({ children }: { children: ReactNode }) {
           console.log(`CONNECTION: Rooms: `, rooms);
 
           if (!rooms) {
-            console.warn('Rooms is null');
+            console.warn('You have no rooms: ', rooms);
             return;
           }
 
@@ -62,12 +64,18 @@ function SocketWrapper({ children }: { children: ReactNode }) {
 
       // Disconnect if the user or token are missing
       if (!isReadyToConnect && socketServer) {
-        console.log('Disconnecting due to missing token, user, or rooms...');
+        console.log(
+          'Disconnecting due to missing token, user, or rooms...',
+          token,
+          user,
+          rooms
+        );
         socketServer.disconnect();
         setSocket(null);
+        console.log('Disconnected from socket server.');
       }
     }, 500);
-  }, [token, JSON.stringify(rooms), JSON.stringify(rooms)]);
+  }, [user, token, JSON.stringify(rooms)]);
 
   return (
     <SocketContext.Provider value={{ socket: socketServer }}>

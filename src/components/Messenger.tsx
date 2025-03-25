@@ -25,7 +25,7 @@ const Messenger = (props: Props) => {
   // States and Refs
   const { socket } = useContext(SocketContext);
   const [roomMessages, setRoomMessages] = useState<Message[]>([]);
-  const { rooms, currentRoom } = useContext(RoomsContext);
+  const { currentRoom, updateRoomByMessage } = useContext(RoomsContext);
 
   /**************************
    * Messenger display
@@ -76,18 +76,23 @@ const Messenger = (props: Props) => {
     return () => {
       socket?.off('receive-message', handleReceiveMessage);
     };
+  }, [Boolean(socket), currentRoom]);
 
-    function handleReceiveMessage(sender: string, message: Message) {
-      console.log(sender, message);
+  function handleReceiveMessage(message: Message) {
+    // Update the messages state
+    if (message.roomId === currentRoom?.id)
       setRoomMessages((prevMessages: Message[]) => {
         return [...prevMessages, message];
       });
-    }
-  }, [Boolean(socket)]);
+
+    // Update the rooms state
+    updateRoomByMessage(message);
+  }
 
   return (
     <div className='messenger-container'>
       <div className='messages-display'>
+        {/* FIXME Add Messenger Header with chatroom details */}
         <p>Here are the messages.</p>
         {props.room ? <>{props.room.name}</> : 'Choose a room!'}
         <ol>

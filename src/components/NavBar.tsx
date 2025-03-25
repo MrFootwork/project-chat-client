@@ -7,10 +7,12 @@ import { Button } from '@mantine/core';
 
 import { AuthContext } from '../contexts/AuthWrapper';
 import { SocketContext } from '../contexts/SocketWrapper';
+import { RoomsContext } from '../contexts/RoomsWrapper';
 
 const NavBar = () => {
   const { user, logout } = useContext(AuthContext);
   const { socket } = useContext(SocketContext);
+  const { currentRoom } = useContext(RoomsContext);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -28,7 +30,8 @@ const NavBar = () => {
       <p className='navbar-text'>
         Env: {config.API_URL} <br />
         User: "{user?.name}" {user?.id} <br />
-        Socket: {socket?.id}
+        Socket: {socket?.id} <br />
+        Room: {currentRoom?.id}
       </p>
 
       {isOnAuthPage ? (

@@ -9,10 +9,13 @@ export type User = {
   updatedAt: string;
 };
 
-export type RoomMember = Omit<User, 'password'> & {
+export type RoomMember = Omit<User, 'password' | 'createdAt' | 'updatedAt'> & {
   avatarUrl: string;
   isAdmin: boolean;
   userLeft: boolean;
 };
 
-export type MessageAuthor = Pick<RoomMember, 'id' | 'name' | 'avatarUrl'>;
+export type MessageAuthor = Pick<
+  RoomMember,
+  'id' | 'name' | 'avatarUrl' | 'isDeleted'
+>;

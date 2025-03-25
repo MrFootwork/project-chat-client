@@ -49,9 +49,9 @@ function AuthWrapper({ children }: { children: ReactNode }) {
         console.warn(`Server didn't respond to logout: ${response}`);
 
       // Logout
-      setUser(null);
-      setToken(null);
       window.localStorage.removeItem('chatToken');
+      setToken(null);
+      setUser(null);
       console.log('Logged out');
     } catch (error) {
       throw new Error(`Couldn't logout: ${error}`);

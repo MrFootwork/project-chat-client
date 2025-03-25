@@ -40,18 +40,21 @@ function AuthWrapper({ children }: { children: ReactNode }) {
   }, []);
 
   async function logout() {
+    // Logout
+    window.localStorage.removeItem('chatToken');
+    setToken(null);
+    setUser(null);
+
     try {
       const response = await axios.post(API_URL + '/auth/logout', undefined, {
         withCredentials: true,
       });
 
       if (response.status !== 200)
-        console.warn(`Server didn't respond to logout: ${response}`);
+        console.warn(
+          `Server responded unexpectedly to logout request: ${response}`
+        );
 
-      // Logout
-      window.localStorage.removeItem('chatToken');
-      setToken(null);
-      setUser(null);
       console.log('Logged out');
     } catch (error) {
       throw new Error(`Couldn't logout: ${error}`);

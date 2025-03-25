@@ -19,13 +19,11 @@ const ChatPage = () => {
   }, []);
 
   // Room
-  const { rooms, currentRoom, setCurrentRoom } = useContext(RoomsContext);
+  const { rooms, currentRoom, fetchSelectedRoom } = useContext(RoomsContext);
 
-  function selectRoom(roomId: string) {
-    const selectedRoom = rooms?.filter(room => room.id === roomId)?.[0] || null;
-    if (!selectRoom) console.warn('Could not select a room.');
-    setCurrentRoom(selectedRoom);
-    // FIXME refetch room messages each time the client selects a room
+  async function selectRoom(roomId: string) {
+    // refetch room messages for the selected room
+    const selectedRoom = await fetchSelectedRoom(roomId);
   }
 
   return (

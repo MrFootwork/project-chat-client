@@ -23,8 +23,6 @@ function SocketWrapper({ children }: { children: ReactNode }) {
   useEffect(() => {
     const isReadyToConnect = token && user && (rooms?.length ?? 0) > 0;
 
-    console.log('Checking connection status...', { isReadyToConnect });
-
     if (isReadyToConnect) {
       // Avoid reconnecting if the socket is already connected
       if (socketServer) {
@@ -38,8 +36,8 @@ function SocketWrapper({ children }: { children: ReactNode }) {
       setSocket(socket);
 
       socket.on('connect', () => {
-        console.log(`You are connected to socket ${socket.id} as ${user.name}`);
-        console.log(`These are your rooms: `, rooms);
+        console.log(`CONNECTION: Socket ${socket.id} Name ${user.name}`);
+        console.log(`CONNECTION: Rooms: `, rooms);
 
         if (!rooms) {
           console.warn('Rooms is null');
@@ -47,11 +45,12 @@ function SocketWrapper({ children }: { children: ReactNode }) {
         }
 
         const roomIDs = rooms.map(room => room.id);
+
         socket.emit('join-room', roomIDs);
       });
 
       return () => {
-        console.log('Disconnecting from socket server...');
+        console.log(`Disconnecting from socket server ${socket.id}...`);
         socket.disconnect();
         setSocket(null);
         console.log('Disconnected from socket server.');

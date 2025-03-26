@@ -68,6 +68,18 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
 
     if (!fetchedRoom) return;
 
+    const readResponse = await axios.put(
+      API_URL + `/api/rooms/${roomId}/read`,
+      undefined,
+      { withCredentials: true, headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    console.log(
+      `🚀 ~ fetchSelectedRoom ~ readResponse:`,
+      readResponse.status,
+      readResponse.data
+    );
+
     // Refresh state data
     setCurrentRoom(fetchedRoom);
     setRooms(prevRooms => {

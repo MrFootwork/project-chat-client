@@ -21,7 +21,7 @@ function SocketWrapper({ children }: { children: ReactNode }) {
   const [socketServer, setSocket] = useState<SocketType>(null);
 
   useEffect(() => {
-    // BUG Without the timeout, the socket would disconnect sometimes
+    // HACK Without the timeout, the socket would disconnect sometimes
     // on room changes. Test if that's still the case!
     setTimeout(() => {
       const isReadyToConnect = token && user && (rooms?.length ?? 0) > 0;
@@ -75,7 +75,7 @@ function SocketWrapper({ children }: { children: ReactNode }) {
         console.log('Disconnected from socket server.');
       }
     }, 500);
-  }, [user, token, JSON.stringify(rooms)]);
+  }, [user?.id, token, rooms?.length]);
 
   return (
     <SocketContext.Provider value={{ socket: socketServer }}>

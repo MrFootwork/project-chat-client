@@ -87,10 +87,10 @@ function AuthWrapper({ children }: { children: ReactNode }) {
   async function validateToken() {
     const token = window.localStorage.getItem('chatToken');
 
-    if (!token) {
-      console.warn('No token in local storage');
-      return;
-    }
+    if (!token)
+      throw new Error(
+        "Couldn't retrieve token from local storage while validating it."
+      );
 
     setToken(token);
 

@@ -46,8 +46,13 @@ const Messenger = (props: Props) => {
 
   // Load messages for the current room
   useEffect(() => {
+    console.log(
+      'messages of currentRoom were updated',
+      currentRoom?.messages.length
+    );
+
     setRoomMessages(currentRoom?.messages || []);
-  }, [currentRoom]);
+  }, [currentRoom?.messages.length]);
 
   function sendText(values: typeof form.values) {
     // TESTING Clear the form after submission
@@ -76,16 +81,9 @@ const Messenger = (props: Props) => {
     return () => {
       socket?.off('receive-message', handleReceiveMessage);
     };
-  }, [Boolean(socket), currentRoom]);
+  }, [JSON.stringify(socket?.id), JSON.stringify(currentRoom?.id)]);
 
   function handleReceiveMessage(message: Message) {
-    // Update the messages state
-    if (message.roomId === currentRoom?.id)
-      setRoomMessages((prevMessages: Message[]) => {
-        return [...prevMessages, message];
-      });
-
-    // Update the rooms state
     updateRoomByMessage(message);
   }
 

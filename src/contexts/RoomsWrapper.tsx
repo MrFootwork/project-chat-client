@@ -13,13 +13,11 @@ type RoomsContext = Room[] | null;
 const RoomsContext = React.createContext<{
   rooms: RoomsContext;
   currentRoom: RoomContext;
-  // setCurrentRoom: (room: RoomContext) => void;
   fetchSelectedRoom: (roomID: string) => Promise<void>;
   updateRoomByMessage: (message: Message) => void;
 }>({
   rooms: null,
   currentRoom: null,
-  // setCurrentRoom: () => {},
   fetchSelectedRoom: async () => {},
   updateRoomByMessage: () => {},
 });
@@ -34,6 +32,8 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
     if (user) fetchRooms();
   }, [user]);
 
+  // FIXME Count and store unread messages for each room
+
   async function fetchRooms() {
     const fetchedRooms = await axios.get(API_URL + '/api/rooms', {
       withCredentials: true,
@@ -43,7 +43,21 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
     if (fetchedRooms) setRooms(fetchedRooms.data);
   }
 
-  // Fetch room for a given room ID
+  /**
+   * Fetches the details of a specific room by its ID and updates the state.
+   *
+   * This function performs the following steps:
+   * 1. Sends a GET request to fetch the room details from the server.
+   * 2. Updates the `currentRoom` state with the fetched room data.
+   * 3. Updates the `rooms` state by replacing the existing room with the fetched room
+   *    or appending it if it doesn't already exist.
+   *
+   * @param {string} roomId - The ID of the room to fetch.
+   * @returns {Promise<void>} A promise that resolves when the room data is fetched and state is updated.
+   *
+   * @example
+   * await fetchSelectedRoom('12345');
+   */
   async function fetchSelectedRoom(roomId: string) {
     const response = await axios.get(API_URL + `/api/rooms/${roomId}`, {
       withCredentials: true,
@@ -54,9 +68,9 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
 
     if (!fetchedRoom) return;
 
+    // Refresh state data
     setCurrentRoom(fetchedRoom);
     setRooms(prevRooms => {
-      // TODO There is redundant logic here. Check and refactor.
       // Replace with fetchedRoom if it already exists in rooms
       const updatedRooms = (prevRooms || []).map(room =>
         room.id === fetchedRoom.id ? fetchedRoom : room
@@ -67,20 +81,102 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
         room => room.id === fetchedRoom.id
       );
 
-      // Update the room if it already exists in rooms
+      // Append fetchedRoom if it doesn't exist in rooms
       return isRoomPresent ? updatedRooms : [...updatedRooms, fetchedRoom];
     });
   }
 
-  // FIXME Count and store unread messages for each room
-
-  // FIXME Push new room messages to the room
-  // set readBy if match on currentRoom
+  /**
+   * Updates the room data by adding a new message to the appropriate room.
+   *
+   * This function performs the following steps:
+   * 1. Verifies if the user is logged in. If not, logs an error and exits.
+   * 2. Checks if the room associated with the message exists in the current user's rooms.
+   * 3. Ensures the message is not already present in the room to avoid duplicates.
+   * 4. Adds the current user to the `readBy` property of the message if the message belongs to the current room.
+   * 5. Updates the state of `rooms` by appending the new message to the appropriate room.
+   * 6. Updates the state of `currentRoom` if the message belongs to the currently selected room.
+   *
+   * @param {Message} message - The message object to be added to the room.
+   * @throws Will log an error if the user is not logged in or if the room for the message is not found.
+   *
+   * @example
+   * const newMessage = {
+   *   id: '123',
+   *   roomId: '456',
+   *   content: 'Hello, world!',
+   *   createdAt: new Date(),
+   *   readBy: [],
+   * };
+   * updateRoomByMessage(newMessage);
+   */
   function updateRoomByMessage(message: Message) {
-    console.log('Adding message...', message);
+    // Check if user is logged in
+    if (!user) {
+      console.error('User not found while updating room by message');
+      return;
+    }
+
+    // Check if room of this message exists in the user's rooms list
+    const roomWithNewMessage = rooms?.find(room => room.id === message.roomId);
+
+    console.assert(
+      !!roomWithNewMessage,
+      'Room not found for message:',
+      message
+    );
+
+    if (!roomWithNewMessage) return;
+
+    // Check if the message is already present in the room
+    const isMessagePresent = roomWithNewMessage?.messages.some(
+      m => m.id === message.id
+    );
+
+    if (isMessagePresent) return;
+
+    const messageAuthor = {
+      id: user.id,
+      name: user.name,
+      avatarUrl: user.avatarUrl || '',
+      isDeleted: user.isDeleted,
+    };
+
+    // Add current user to readBy of currentRoom
+    if (currentRoom?.id === message.roomId) message.readBy = [messageAuthor];
+
     setRooms(prevRooms => {
-      return prevRooms;
+      if (!prevRooms) return [];
+
+      // Add the new message to the room
+      const updatedRooms = prevRooms.map(room => {
+        if (room.id === roomWithNewMessage.id) {
+          return {
+            ...room,
+            messages: [...room.messages, message], // Create a new messages array
+          };
+        }
+        return room;
+      });
+
+      return updatedRooms;
     });
+
+    // Update currentRoom to also make id be displayed in the UI
+    setCurrentRoom(prevRoom => {
+      if (!prevRoom) return null;
+      if (prevRoom.id !== message.roomId) return prevRoom;
+
+      // Add the new message to the current room
+      const updatedRoom = {
+        ...prevRoom,
+        messages: [...prevRoom.messages, message],
+      };
+
+      return updatedRoom;
+    });
+
+    console.log('Updated current room: ', currentRoom);
   }
 
   return (

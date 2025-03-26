@@ -19,7 +19,7 @@ const ChatPage = () => {
   }, []);
 
   // Room
-  const { rooms, currentRoom, fetchSelectedRoom } = useContext(RoomsContext);
+  const { rooms, fetchSelectedRoom } = useContext(RoomsContext);
 
   async function selectRoom(roomId: string) {
     // refetch room messages for the selected room
@@ -45,7 +45,7 @@ const ChatPage = () => {
       </nav>
 
       <section className='messenger-container'>
-        <Messenger room={currentRoom} />
+        <Messenger />
       </section>
     </div>
   );

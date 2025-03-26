@@ -1,31 +1,19 @@
 import './Messenger.css';
-import { Room } from '../types/room';
 import { Message } from '../types/message';
 
-import {
-  KeyboardEvent,
-  memo,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { KeyboardEvent, useContext, useEffect, useRef, useState } from 'react';
 import { Button, Textarea } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import MessageCard from './MessageCard';
 
-import { SocketContext } from '../contexts/SocketWrapper';
 import { RoomsContext } from '../contexts/RoomsWrapper';
+import { SocketContext } from '../contexts/SocketWrapper';
 
-type Props = {
-  room: Room | null;
-};
-
-const Messenger = (props: Props) => {
+const Messenger = () => {
   // States and Refs
   const { socket } = useContext(SocketContext);
   const [roomMessages, setRoomMessages] = useState<Message[]>([]);
-  const { currentRoom, updateRoomByMessage } = useContext(RoomsContext);
+  const { currentRoom, updateRoomMessages } = useContext(RoomsContext);
 
   /**************************
    * Messenger display
@@ -46,9 +34,19 @@ const Messenger = (props: Props) => {
 
   // Load messages for the current room
   useEffect(() => {
-    if (!currentRoom?.messages.length) return;
-    setRoomMessages(currentRoom?.messages || []);
-  }, [currentRoom?.messages.length]);
+    const currentRoomExists = currentRoom && currentRoom?.messages;
+    if (!currentRoomExists) return;
+
+    console.groupCollapsed('Messenger updates roomMessages in useEffect');
+    console.log('BEFORE ~ currentRoom messages:', currentRoom.messages);
+    console.log('BEFORE ~ roomMessages:', roomMessages);
+
+    setRoomMessages(currentRoom.messages || []);
+
+    console.log('AFTER ~ currentRoom messages:', currentRoom.messages);
+    console.log('AFTER ~ roomMessages:', roomMessages);
+    console.groupEnd();
+  }, [currentRoom]);
 
   function sendText(values: typeof form.values) {
     // TESTING Clear the form after submission
@@ -77,10 +75,20 @@ const Messenger = (props: Props) => {
     return () => {
       socket?.off('receive-message', handleReceiveMessage);
     };
-  }, [JSON.stringify(socket?.id), JSON.stringify(currentRoom?.id)]);
+  }, [currentRoom]);
 
+  /** Handles how received messages are managed. */
   function handleReceiveMessage(message: Message) {
-    updateRoomByMessage(message);
+    console.groupCollapsed('handleReceiveMessage');
+    console.log(
+      `received message from DB by ${message.author.name}: "${message.content}"`
+    );
+    console.log('currentRoom before:', currentRoom?.messages);
+
+    updateRoomMessages(message);
+
+    console.log('currentRoom after:', currentRoom?.messages);
+    console.groupEnd();
   }
 
   return (
@@ -88,7 +96,7 @@ const Messenger = (props: Props) => {
       <div className='messages-display'>
         {/* FIXME Add Messenger Header with chatroom details */}
         <p>Here are the messages.</p>
-        {props.room ? <>{props.room.name}</> : 'Choose a room!'}
+        {currentRoom ? <>{currentRoom.name}</> : 'Choose a room!'}
         <ol>
           {roomMessages.length
             ? roomMessages.map(message => (
@@ -118,4 +126,4 @@ const Messenger = (props: Props) => {
   );
 };
 
-export default memo(Messenger);
+export default Messenger;

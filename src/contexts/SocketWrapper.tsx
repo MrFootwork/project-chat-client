@@ -24,7 +24,7 @@ function SocketWrapper({ children }: { children: ReactNode }) {
     // HACK Without the timeout, the socket would disconnect sometimes
     // on room changes. Test if that's still the case!
     setTimeout(() => {
-      const isReadyToConnect = token && user && (rooms?.length ?? 0) > 0;
+      const isReadyToConnect = token && user && !!rooms?.length;
 
       if (isReadyToConnect) {
         console.group('SocketWrapper');

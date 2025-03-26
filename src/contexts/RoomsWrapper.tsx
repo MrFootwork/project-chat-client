@@ -9,33 +9,50 @@ const API_URL = config.API_URL;
 
 type RoomContext = Room | null;
 type RoomsContext = Room[] | null;
-type UnreadRoomMessagesMap = { [roomId: string]: number };
+type MessageCountMapType = {
+  [roomId: string]: { total: number; unread: number };
+};
 
 const RoomsContext = React.createContext<{
   rooms: RoomsContext;
   currentRoom: RoomContext;
   fetchSelectedRoom: (roomID: string) => Promise<void>;
-  updateRoomByMessage: (message: Message) => void;
+  updateRoomMessages: (message: Message) => void;
+  messageCountMap: MessageCountMapType;
 }>({
   rooms: null,
   currentRoom: null,
   fetchSelectedRoom: async () => {},
-  updateRoomByMessage: () => {},
+  updateRoomMessages: () => {},
+  messageCountMap: {},
 });
 
 function RoomsWrapper({ children }: { children: ReactNode }) {
   const { user, token } = useContext(AuthContext);
   const [rooms, setRooms] = useState<RoomsContext>(null);
   const [currentRoom, setCurrentRoom] = useState<RoomContext>(null);
-  const [unreadRoomMessagesMap, setUnreadRoomMessagesMap] =
-    useState<UnreadRoomMessagesMap>({});
+  const [messageCountMap, setMessageCountMap] = useState<MessageCountMapType>(
+    {}
+  );
 
   // Initially after login fetch all rooms
   useEffect(() => {
-    if (user) fetchRooms();
-  }, [user]);
+    if (!user) return;
+    console.groupCollapsed('fetchRooms');
+
+    fetchRooms().then(() => {
+      console.log('Rooms final state:', rooms);
+    });
+
+    console.groupEnd();
+  }, [!!user]);
 
   // FIXME Count and store unread messages for each room
+
+  useEffect(() => {
+    if (!rooms || !user) return;
+    refreshMessageMap();
+  }, [user, JSON.stringify(rooms)]);
 
   async function fetchRooms() {
     const fetchedRooms = await axios.get(API_URL + '/api/rooms', {
@@ -43,7 +60,31 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
       headers: { Authorization: `Bearer ${token}` },
     });
 
+    console.log(`Fetched Rooms: `, fetchedRooms.data);
+
     if (fetchedRooms) setRooms(fetchedRooms.data);
+  }
+
+  function refreshMessageMap() {
+    const newMessageMap: MessageCountMapType = {};
+    console.groupCollapsed('refreshUnreadMessages');
+
+    rooms?.forEach(room => {
+      const unreadMessages = room.messages.filter(message => {
+        return !message.readBy.find(reader => reader.id === user?.id);
+      });
+
+      newMessageMap[`${room.id} | ${room.name}`] = {
+        total: room.messages.length,
+        unread: unreadMessages.length,
+      };
+      console.log('Messages:', room.name, room.messages.length);
+      // unreadMessagesMap[room.id] = unreadMessages.length;
+    });
+
+    setMessageCountMap(newMessageMap);
+    console.table(newMessageMap);
+    console.groupEnd();
   }
 
   /**
@@ -62,14 +103,25 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
    * await fetchSelectedRoom('12345');
    */
   async function fetchSelectedRoom(roomId: string) {
+    console.groupCollapsed(
+      'fetchSelectedRoom',
+      roomId,
+      '|',
+      rooms?.find(r => r.id === roomId)?.name
+    );
+
     const response = await axios.get(API_URL + `/api/rooms/${roomId}`, {
       withCredentials: true,
       headers: { Authorization: `Bearer ${token}` },
     });
 
     const fetchedRoom = response.data as Room;
+    console.log(`Room from DB:`, fetchedRoom);
 
-    if (!fetchedRoom) return;
+    if (!fetchedRoom) {
+      console.groupEnd();
+      return;
+    }
 
     const readResponse = await axios.put(
       API_URL + `/api/rooms/${roomId}/read`,
@@ -78,10 +130,17 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
     );
 
     console.log(
-      `🚀 ~ fetchSelectedRoom ~ readResponse:`,
+      `DB Response on setting messages to 'read':`,
       readResponse.status,
       readResponse.data
     );
+
+    // console.log('rooms before update: ', rooms?['test01'].messages);
+    console.log(
+      'rooms before update: ',
+      rooms?.find(r => r.id === roomId)?.messages
+    );
+    console.log('currentRoom before update: ', currentRoom?.messages);
 
     // Refresh state data
     setCurrentRoom(fetchedRoom);
@@ -99,6 +158,14 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
       // Append fetchedRoom if it doesn't exist in rooms
       return isRoomPresent ? updatedRooms : [...updatedRooms, fetchedRoom];
     });
+
+    console.log(
+      'rooms after update: ',
+      rooms?.find(r => r.id === roomId)?.messages
+    );
+    console.log('currentRoom after update: ', currentRoom?.messages);
+
+    console.groupEnd();
   }
 
   /**
@@ -125,7 +192,7 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
    * };
    * updateRoomByMessage(newMessage);
    */
-  function updateRoomByMessage(message: Message) {
+  function updateRoomMessages(message: Message) {
     console.groupCollapsed('updateRoomByMessage', message.roomId);
     // Check if user is logged in
     if (!user) {
@@ -148,12 +215,15 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
       return;
     }
 
+    console.log('found room', roomWithNewMessage);
+
     // Check if the message is already present in the room
     const isMessagePresent = roomWithNewMessage?.messages.some(
       m => m.id === message.id
     );
 
     if (isMessagePresent) {
+      console.error('Message already present ');
       console.groupEnd();
       return;
     }
@@ -167,6 +237,10 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
 
     // Add current user to readBy of currentRoom
     if (currentRoom?.id === message.roomId) message.readBy = [messageAuthor];
+
+    // console.log('rooms before update: ', rooms?['test01'].messages);
+    // console.log('rooms before update: ', rooms['test01']);
+    console.log('currentRoom before update: ', currentRoom?.messages);
 
     // Compute updated state synchronously
     const updatedRooms =
@@ -187,13 +261,30 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
             messages: [...currentRoom.messages, message],
           }
         : currentRoom;
+    console.log(
+      `🚀 ~ new count updatedCurrentRoom:`,
+      updatedCurrentRoom?.messages.length
+    );
 
     // Update state
     setRooms(updatedRooms);
     setCurrentRoom(updatedCurrentRoom);
 
-    console.log('Updated rooms: ', updatedRooms);
-    console.log('Updated currentRoom: ', updatedCurrentRoom);
+    // console.log('Updated rooms: ', rooms?.messages);
+    console.log('Updated currentRoom: ', updatedCurrentRoom?.messages);
+
+    // const messageCount = updatedRooms.map(room => {
+    //   return {
+    //     roomId: room.id,
+    //     roomName: room.name,
+    //     total: room.messages.length,
+    //     unread: room.messages.filter(
+    //       message => !message.readBy.find(reader => reader.id === user?.id)
+    //     ).length,
+    //   };
+    // });
+
+    // console.table(messageCount);
 
     console.groupEnd();
   }
@@ -204,7 +295,8 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
         rooms,
         currentRoom,
         fetchSelectedRoom,
-        updateRoomByMessage,
+        updateRoomMessages,
+        messageCountMap: messageCountMap,
       }}
     >
       {children}

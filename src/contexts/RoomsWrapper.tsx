@@ -71,7 +71,7 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
 
     rooms?.forEach(room => {
       const unreadMessages = room.messages.filter(message => {
-        return !message.readBy.find(reader => reader.id === user?.id);
+        return !message.readers.find(reader => reader.id === user?.id);
       });
 
       newMessageMap[`${room.id} | ${room.name}`] = {
@@ -175,7 +175,7 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
    * 1. Verifies if the user is logged in. If not, logs an error and exits.
    * 2. Checks if the room associated with the message exists in the current user's rooms.
    * 3. Ensures the message is not already present in the room to avoid duplicates.
-   * 4. Adds the current user to the `readBy` property of the message if the message belongs to the current room.
+   * 4. Adds the current user to the `readers` property of the message if the message belongs to the current room.
    * 5. Updates the state of `rooms` by appending the new message to the appropriate room.
    * 6. Updates the state of `currentRoom` if the message belongs to the currently selected room.
    *
@@ -188,12 +188,12 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
    *   roomId: '456',
    *   content: 'Hello, world!',
    *   createdAt: new Date(),
-   *   readBy: [],
+   *   readers: [],
    * };
    * updateRoomByMessage(newMessage);
    */
   function updateRoomMessages(message: Message) {
-    console.groupCollapsed('updateRoomByMessage', message.roomId);
+    console.groupCollapsed('updateRoomMessages', message.roomId);
     // Check if user is logged in
     if (!user) {
       console.error('User not found while updating room by message');
@@ -201,29 +201,23 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
       return;
     }
 
-    // Check if room of this message exists in the user's rooms list
-    const roomWithNewMessage = rooms?.find(room => room.id === message.roomId);
+    // Check if room of this message exists in the rooms state
+    const targetRoom = rooms?.find(room => room.id === message.roomId);
 
-    console.assert(
-      !!roomWithNewMessage,
-      'Room not found for message:',
-      message
-    );
+    console.assert(!!targetRoom, 'Room not found for message:', message);
 
-    if (!roomWithNewMessage) {
+    if (!targetRoom) {
       console.groupEnd();
       return;
     }
 
-    console.log('found room', roomWithNewMessage);
+    console.log('found room', targetRoom);
 
-    // Check if the message is already present in the room
-    const isMessagePresent = roomWithNewMessage?.messages.some(
-      m => m.id === message.id
-    );
+    // Check if the room already has this message
+    const hasThisMessage = targetRoom?.messages.some(m => m.id === message.id);
 
-    if (isMessagePresent) {
-      console.error('Message already present ');
+    if (hasThisMessage) {
+      console.error('Room already has this message:', { message, targetRoom });
       console.groupEnd();
       return;
     }
@@ -235,8 +229,8 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
       isDeleted: user.isDeleted,
     };
 
-    // Add current user to readBy of currentRoom
-    if (currentRoom?.id === message.roomId) message.readBy = [messageAuthor];
+    // Add current user to readers list of currentRoom
+    if (currentRoom?.id === message.roomId) message.readers = [messageAuthor];
 
     // console.log('rooms before update: ', rooms?['test01'].messages);
     // console.log('rooms before update: ', rooms['test01']);
@@ -245,7 +239,7 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
     // Compute updated state synchronously
     const updatedRooms =
       rooms?.map(room => {
-        if (room.id === roomWithNewMessage.id) {
+        if (room.id === targetRoom.id) {
           return {
             ...room,
             messages: [...room.messages, message], // Create a new messages array
@@ -279,7 +273,7 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
     //     roomName: room.name,
     //     total: room.messages.length,
     //     unread: room.messages.filter(
-    //       message => !message.readBy.find(reader => reader.id === user?.id)
+    //       message => !message.readers.find(reader => reader.id === user?.id)
     //     ).length,
     //   };
     // });

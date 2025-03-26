@@ -4,7 +4,7 @@ export type Message = {
   id: string;
   content: string;
   edited: boolean;
-  readBy: MessageAuthor[];
+  readers: MessageAuthor[];
   roomId: string;
   createdAt: string;
   updatedAt: string;

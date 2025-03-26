@@ -9,6 +9,7 @@ const API_URL = config.API_URL;
 
 type RoomContext = Room | null;
 type RoomsContext = Room[] | null;
+type UnreadRoomMessagesMap = { [roomId: string]: number };
 
 const RoomsContext = React.createContext<{
   rooms: RoomsContext;
@@ -26,6 +27,8 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
   const { user, token } = useContext(AuthContext);
   const [rooms, setRooms] = useState<RoomsContext>(null);
   const [currentRoom, setCurrentRoom] = useState<RoomContext>(null);
+  const [unreadRoomMessagesMap, setUnreadRoomMessagesMap] =
+    useState<UnreadRoomMessagesMap>({});
 
   // Initially after login fetch all rooms
   useEffect(() => {
@@ -123,9 +126,11 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
    * updateRoomByMessage(newMessage);
    */
   function updateRoomByMessage(message: Message) {
+    console.groupCollapsed('updateRoomByMessage', message.roomId);
     // Check if user is logged in
     if (!user) {
       console.error('User not found while updating room by message');
+      console.groupEnd();
       return;
     }
 
@@ -138,14 +143,20 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
       message
     );
 
-    if (!roomWithNewMessage) return;
+    if (!roomWithNewMessage) {
+      console.groupEnd();
+      return;
+    }
 
     // Check if the message is already present in the room
     const isMessagePresent = roomWithNewMessage?.messages.some(
       m => m.id === message.id
     );
 
-    if (isMessagePresent) return;
+    if (isMessagePresent) {
+      console.groupEnd();
+      return;
+    }
 
     const messageAuthor = {
       id: user.id,
@@ -157,11 +168,9 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
     // Add current user to readBy of currentRoom
     if (currentRoom?.id === message.roomId) message.readBy = [messageAuthor];
 
-    setRooms(prevRooms => {
-      if (!prevRooms) return [];
-
-      // Add the new message to the room
-      const updatedRooms = prevRooms.map(room => {
+    // Compute updated state synchronously
+    const updatedRooms =
+      rooms?.map(room => {
         if (room.id === roomWithNewMessage.id) {
           return {
             ...room,
@@ -169,26 +178,24 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
           };
         }
         return room;
-      });
+      }) || [];
 
-      return updatedRooms;
-    });
+    const updatedCurrentRoom =
+      currentRoom?.id === message.roomId
+        ? {
+            ...currentRoom,
+            messages: [...currentRoom.messages, message],
+          }
+        : currentRoom;
 
-    // Update currentRoom to also make id be displayed in the UI
-    setCurrentRoom(prevRoom => {
-      if (!prevRoom) return null;
-      if (prevRoom.id !== message.roomId) return prevRoom;
+    // Update state
+    setRooms(updatedRooms);
+    setCurrentRoom(updatedCurrentRoom);
 
-      // Add the new message to the current room
-      const updatedRoom = {
-        ...prevRoom,
-        messages: [...prevRoom.messages, message],
-      };
+    console.log('Updated rooms: ', updatedRooms);
+    console.log('Updated currentRoom: ', updatedCurrentRoom);
 
-      return updatedRoom;
-    });
-
-    console.log('Updated current room: ', currentRoom);
+    console.groupEnd();
   }
 
   return (

@@ -36,7 +36,9 @@ function AuthWrapper({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    validateToken();
+    validateToken().catch(error =>
+      console.log(`Failed to validate token: ${error}`)
+    );
   }, []);
 
   async function logout() {
@@ -87,17 +89,14 @@ function AuthWrapper({ children }: { children: ReactNode }) {
   async function validateToken() {
     const token = window.localStorage.getItem('chatToken');
 
-    if (!token)
-      throw new Error(
-        "Couldn't retrieve token from local storage while validating it."
-      );
+    if (!token) throw new Error('No token found in local storage.');
 
     setToken(token);
 
     try {
       await storeUserData(token);
     } catch (error) {
-      throw new Error("Couldn't validate token.");
+      throw new Error(`${error}`);
     }
   }
 
@@ -109,7 +108,7 @@ function AuthWrapper({ children }: { children: ReactNode }) {
       });
       setUser(response.data);
     } catch (error) {
-      throw new Error(`Failed to fetch user: ${error}`);
+      throw new Error(`Failed to fetch user from token: ${error}`);
     } finally {
       setLoading(false);
     }

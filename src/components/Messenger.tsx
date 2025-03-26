@@ -46,11 +46,7 @@ const Messenger = (props: Props) => {
 
   // Load messages for the current room
   useEffect(() => {
-    console.log(
-      'messages of currentRoom were updated',
-      currentRoom?.messages.length
-    );
-
+    if (!currentRoom?.messages.length) return;
     setRoomMessages(currentRoom?.messages || []);
   }, [currentRoom?.messages.length]);
 

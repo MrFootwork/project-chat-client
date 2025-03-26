@@ -27,6 +27,8 @@ function SocketWrapper({ children }: { children: ReactNode }) {
       const isReadyToConnect = token && user && (rooms?.length ?? 0) > 0;
 
       if (isReadyToConnect) {
+        console.group('SocketWrapper');
+
         // Avoid reconnecting if the socket is already connected
         if (socketServer) {
           console.log('Socket is already connected. Skipping reconnection.');
@@ -41,8 +43,10 @@ function SocketWrapper({ children }: { children: ReactNode }) {
         setSocket(socket);
 
         socket.on('connect', () => {
-          console.log(`CONNECTION: Socket ${socket.id} Name ${user.name}`);
-          console.log(`CONNECTION: Rooms: `, rooms);
+          console.groupCollapsed('Socket connected', socket.id);
+          console.table({ socket });
+          console.table({ user });
+          console.table(rooms);
 
           if (!rooms) {
             console.warn('You have no rooms: ', rooms);
@@ -52,13 +56,16 @@ function SocketWrapper({ children }: { children: ReactNode }) {
           const roomIDs = rooms.map(room => room.id);
 
           socket.emit('join-room', roomIDs);
+          console.groupEnd();
         });
 
         return () => {
+          console.groupCollapsed('Socket disconnecting');
           console.log(`Disconnecting from socket server ${socket.id}...`);
           socket.disconnect();
           setSocket(null);
           console.log('Disconnected from socket server.');
+          console.groupEnd();
         };
       }
 
@@ -74,8 +81,9 @@ function SocketWrapper({ children }: { children: ReactNode }) {
         setSocket(null);
         console.log('Disconnected from socket server.');
       }
+      console.groupEnd();
     }, 500);
-  }, [user?.id, token, rooms?.length]);
+  }, [user?.id, token, Boolean(rooms?.length)]);
 
   return (
     <SocketContext.Provider value={{ socket: socketServer }}>

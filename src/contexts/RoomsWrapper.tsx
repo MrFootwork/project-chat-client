@@ -43,11 +43,11 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
 
     fetchRooms()
       .then(() => {
-      console.log('Rooms final state:', rooms);
+        console.log('Rooms final state:', rooms);
       })
       .catch(error => {
         console.error('Error fetching rooms:', error.code, error.message);
-    });
+      });
 
     console.groupEnd();
   }, [!!user]);
@@ -61,14 +61,14 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
 
   async function fetchRooms() {
     try {
-    const fetchedRooms = await axios.get(API_URL + '/api/rooms', {
-      withCredentials: true,
-      headers: { Authorization: `Bearer ${token}` },
-    });
+      const fetchedRooms = await axios.get(API_URL + '/api/rooms', {
+        withCredentials: true,
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-    console.log(`Fetched Rooms: `, fetchedRooms.data);
+      console.log(`Fetched Rooms: `, fetchedRooms.data);
 
-    if (fetchedRooms) setRooms(fetchedRooms.data);
+      if (fetchedRooms) setRooms(fetchedRooms.data);
     } catch (error) {
       throw error;
     }
@@ -274,10 +274,10 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
       }) || [];
 
     const updatedCurrentRoom =
-      currentRoom?.id === message.roomId
+      currentRoom?.id === newMessage.roomId
         ? {
             ...currentRoom,
-            messages: [...currentRoom.messages, message],
+            messages: [...currentRoom.messages, newMessage],
           }
         : currentRoom;
     console.log(

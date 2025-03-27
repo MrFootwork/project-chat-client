@@ -12,15 +12,15 @@ import { SocketWrapper } from './contexts/SocketWrapper.tsx';
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
-      <ThemeWrapper>
-        <AuthWrapper>
-          <RoomsWrapper>
-            <SocketWrapper>
+      <AuthWrapper>
+        <RoomsWrapper>
+          <SocketWrapper>
+            <ThemeWrapper>
               <App />
-            </SocketWrapper>
-          </RoomsWrapper>
-        </AuthWrapper>
-      </ThemeWrapper>
+            </ThemeWrapper>
+          </SocketWrapper>
+        </RoomsWrapper>
+      </AuthWrapper>
     </BrowserRouter>
   </StrictMode>
 );

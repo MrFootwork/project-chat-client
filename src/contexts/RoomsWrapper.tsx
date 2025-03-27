@@ -56,8 +56,7 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!rooms || !user) return;
     refreshMessageMap();
-  }, []);
-  // }, [user, rooms]);
+  }, [user, rooms]);
 
   async function fetchRooms() {
     try {

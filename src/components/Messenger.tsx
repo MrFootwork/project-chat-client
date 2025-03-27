@@ -86,6 +86,7 @@ const Messenger = () => {
     console.log('currentRoom before:', currentRoom?.messages);
 
     updateRoomMessages(message);
+    // FIXME Count and store unread messages for each room
 
     console.log('currentRoom after:', currentRoom?.messages);
     console.groupEnd();

@@ -4,6 +4,7 @@ import config from '../../config';
 import { AuthContext } from './AuthWrapper';
 import { Room } from '../types/room';
 import { Message } from '../types/message';
+import { MessageAuthor } from '../types/user';
 
 const API_URL = config.API_URL;
 
@@ -47,12 +48,10 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
     console.groupEnd();
   }, [!!user]);
 
-  // FIXME Count and store unread messages for each room
-
   useEffect(() => {
     if (!rooms || !user) return;
     refreshMessageMap();
-  }, [user, JSON.stringify(rooms)]);
+  }, [user, rooms]);
 
   async function fetchRooms() {
     const fetchedRooms = await axios.get(API_URL + '/api/rooms', {
@@ -71,7 +70,13 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
 
     rooms?.forEach(room => {
       const unreadMessages = room.messages.filter(message => {
-        return !message.readers.find(reader => reader.id === user?.id);
+        if (!message.readers)
+          console.warn(
+            'searching for unread messages: ',
+            message,
+            message.readers
+          );
+        return !message.readers?.find(reader => reader.id === user?.id);
       });
 
       newMessageMap[`${room.id} | ${room.name}`] = {
@@ -222,7 +227,7 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
       return;
     }
 
-    const messageAuthor = {
+    const messageAuthor: MessageAuthor = {
       id: user.id,
       name: user.name,
       avatarUrl: user.avatarUrl || '',
@@ -290,7 +295,7 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
         currentRoom,
         fetchSelectedRoom,
         updateRoomMessages,
-        messageCountMap: messageCountMap,
+        messageCountMap,
       }}
     >
       {children}

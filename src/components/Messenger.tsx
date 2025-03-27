@@ -12,8 +12,10 @@ import { SocketContext } from '../contexts/SocketWrapper';
 const Messenger = () => {
   // States and Refs
   const { socket } = useContext(SocketContext);
+  const { currentRoom, updateRoomMessages, refreshMessageMap } =
+    useContext(RoomsContext);
+
   const [roomMessages, setRoomMessages] = useState<Message[]>([]);
-  const { currentRoom, updateRoomMessages } = useContext(RoomsContext);
 
   /**************************
    * Messenger display
@@ -87,6 +89,9 @@ const Messenger = () => {
 
     updateRoomMessages(message);
     // FIXME Count and store unread messages for each room
+
+    console.log('Counting unread messages...');
+    refreshMessageMap();
 
     console.log('currentRoom after:', currentRoom?.messages);
     console.groupEnd();

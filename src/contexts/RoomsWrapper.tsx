@@ -20,12 +20,14 @@ const RoomsContext = React.createContext<{
   fetchSelectedRoom: (roomID: string) => Promise<void>;
   updateRoomMessages: (message: Message) => void;
   messageCountMap: MessageCountMapType;
+  refreshMessageMap: () => void;
 }>({
   rooms: null,
   currentRoom: null,
   fetchSelectedRoom: async () => {},
   updateRoomMessages: () => {},
   messageCountMap: {},
+  refreshMessageMap: () => {},
 });
 
 function RoomsWrapper({ children }: { children: ReactNode }) {
@@ -35,6 +37,25 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
   const [messageCountMap, setMessageCountMap] = useState<MessageCountMapType>(
     {}
   );
+
+  // Keep currentRoom in synch with rooms
+  useEffect(() => {
+    if (!rooms) return;
+    console.groupCollapsed('updateCurrentRoom');
+
+    const foundRoom = rooms.find(r => r.id === currentRoom?.id);
+    console.log('Found room:', foundRoom);
+
+    if (!foundRoom) {
+      console.groupEnd();
+      return;
+    }
+
+    setCurrentRoom(foundRoom);
+    console.log('Updated currentRoom:', currentRoom);
+
+    console.groupEnd();
+  }, [rooms?.find(r => r.id === currentRoom?.id)]);
 
   // Initially after login fetch all rooms
   useEffect(() => {
@@ -287,23 +308,13 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
 
     // Update state
     setRooms(updatedRooms);
-    setCurrentRoom(updatedCurrentRoom);
+    // setCurrentRoom(updatedCurrentRoom);
 
-    // console.log('Updated rooms: ', rooms?.messages);
-    console.log('Updated currentRoom: ', updatedCurrentRoom?.messages);
-
-    // const messageCount = updatedRooms.map(room => {
-    //   return {
-    //     roomId: room.id,
-    //     roomName: room.name,
-    //     total: room.messages.length,
-    //     unread: room.messages.filter(
-    //       message => !message.readers.find(reader => reader.id === user?.id)
-    //     ).length,
-    //   };
-    // });
-
-    // console.table(messageCount);
+    console.log(
+      'Updated rooms: ',
+      rooms?.find(r => isTarget(r.id))
+    );
+    // console.log('Updated currentRoom: ', updatedCurrentRoom?.messages);
 
     console.groupEnd();
   }
@@ -316,6 +327,7 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
         fetchSelectedRoom,
         updateRoomMessages,
         messageCountMap,
+        refreshMessageMap,
       }}
     >
       {children}

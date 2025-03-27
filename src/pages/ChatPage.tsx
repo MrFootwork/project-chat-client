@@ -30,7 +30,7 @@ const ChatPage = () => {
     <div className='chat-page-container'>
       <nav className='rooms-container'>
         <header>
-          <h1>ChatPage</h1>
+          <h1>Groups</h1>
         </header>
 
         <ol className='room-button-container'>

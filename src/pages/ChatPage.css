@@ -4,7 +4,7 @@
 }
 
 .rooms-container {
-  background-color: beige;
+  background-color: var(--bg-color-navbar);
 
   display: flex;
   flex-direction: column;
@@ -13,6 +13,12 @@
 
   height: 100%;
   width: clamp(18rem, 30vw, 60rem);
+
+  header {
+    h1 {
+      padding-left: 0.5rem;
+    }
+  }
 
   & ol.room-button-container {
     width: 100%;
@@ -31,6 +37,6 @@
 }
 
 section.messenger-container {
-  background-color: powderblue;
+  background-color: var(--bg-color-messenger);
   width: 100%;
 }

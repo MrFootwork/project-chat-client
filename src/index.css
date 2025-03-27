@@ -18,6 +18,31 @@ button {
 :root {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 
+  /***********
+  * COLORS
+  ***********/
+  /* Palette https://palettemaker.com/*/
+  --color-primary: #744c39; /* A rich brown color */
+  --color-secondary: #da8b79; /* A soft pinkish tone */
+  --color-accent: #edd0af; /* A warm beige accent */
+  --color-light: #e6e3cb; /* A light neutral shade */
+  --color-muted: #c2ddda; /* A muted teal tone */
+
+  /* Background */
+  --bg-color-messenger: hsl(from var(--color-light) h s calc(l + 10));
+  --bg-color-navbar: hsl(from var(--color-light) h s calc(l - 10));
+
+  /****************
+  * COLORS - DARK
+  ****************/
+  --color-dark-base: hsl(from var(--color-muted) h calc(s * 0.2) calc(l - 70));
+
+  &[data-mantine-color-scheme='dark'] {
+    /* Background */
+    --bg-color-messenger: hsl(from var(--color-dark-base) h s calc(l + 10));
+    --bg-color-navbar: var(--color-dark-base);
+  }
+
   /* Widths, Heights, Spaceing, Borders */
   --navbar-height: 4rem;
 }

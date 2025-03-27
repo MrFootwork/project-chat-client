@@ -3,18 +3,45 @@
   top: 0;
   width: 100%;
   height: var(--navbar-height);
-  padding: 0 1rem;
+  padding: 0 1.5rem;
 
   display: flex;
   justify-content: space-between;
   align-items: center;
 
   background-color: var(--bg-color-navbar);
-}
 
-.navbar-text {
-  font-size: 0.8rem;
-  font-weight: 600;
-  line-height: normal;
-  font-family: 'CaskaydiaCove Nerd Font';
+  & .navbar-text {
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: normal;
+    font-family: 'CaskaydiaCove Nerd Font';
+  }
+
+  & .button-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    height: 100%;
+
+    & .button-theme-toggler {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      border-radius: 50%;
+      padding: 0.5rem;
+      border: none;
+      background-color: inherit;
+
+      /* TODO Add click animation */
+      &:hover {
+        background-color: hsl(from var(--color-primary) h s l / 15%);
+
+        & svg {
+          fill: var(--color-primary);
+        }
+      }
+    }
+  }
 }

@@ -1,0 +1,51 @@
+.message-card {
+  background-color: var(--bg-bubble-them);
+  box-shadow: 3px 3px 10px -4px rgba(0, 0, 0, 0.77);
+
+  margin: 0.5rem;
+  margin-right: auto;
+  width: clamp(calc(13rem + 1vw * pow(1.5, 7)), 1vw * pow(1.7, 7), 25rem);
+  border-radius: 20px;
+  padding: 0.5rem 1rem;
+  padding-left: 3rem;
+
+  & label {
+    color: var(--color-bubble-them);
+    font-weight: bold;
+  }
+
+  &.its-me {
+    background-color: var(--bg-bubble-me);
+
+    margin: 0.5rem;
+    margin-left: auto;
+
+    & label {
+      color: var(--color-bubble-me);
+    }
+  }
+
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+
+  .image-container {
+    --image-size: 4rem;
+    position: absolute;
+    overflow: hidden;
+    border-radius: 50%;
+    height: var(--image-size);
+    width: var(--image-size);
+
+    top: 0;
+    left: -2rem;
+
+    object-position: center;
+    object-fit: cover;
+
+    img {
+      width: var(--image-size);
+    }
+  }
+}

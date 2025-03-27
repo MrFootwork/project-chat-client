@@ -13,7 +13,7 @@ import { AuthContext } from '../contexts/AuthWrapper';
 import { SocketContext } from '../contexts/SocketWrapper';
 import { RoomsContext } from '../contexts/RoomsWrapper';
 
-import { IconMoon, IconSunFilled } from '@tabler/icons-react';
+import { IconMoon, IconSun, IconSunFilled } from '@tabler/icons-react';
 
 const NavBar = () => {
   const { user, logout } = useContext(AuthContext);
@@ -32,7 +32,9 @@ const NavBar = () => {
   }
 
   // Theme Handling
-  const { toggleColorScheme } = useMantineColorScheme();
+  const { toggleColorScheme } = useMantineColorScheme({
+    keepTransitions: true,
+  });
   const computedColorScheme = useComputedColorScheme();
 
   const [isDark, setIsDark] = useState(computedColorScheme === 'dark');
@@ -46,28 +48,35 @@ const NavBar = () => {
   return (
     <nav className='navbar-container'>
       <h1>Messenger</h1>
-      <p className='navbar-text'>
-        Env: {config.API_URL} <br />
-        User: "{user?.name}" {user?.id} <br />
-        Socket: {socket?.id} <br />
-        Room: {currentRoom?.id}
-      </p>
 
-      <div className='theme-toggle-container'>
-        {isDark ? (
-          <IconMoon onClick={toggleTheme} />
+      {config.ENV === 'development' ? (
+        <p className='navbar-text'>
+          Env: {config.API_URL} <br />
+          User: "{user?.name}" {user?.id} <br />
+          Socket: {socket?.id} <br />
+          Room: {currentRoom?.id}
+        </p>
+      ) : (
+        ''
+      )}
+
+      <div className='button-container'>
+        <button className='button-theme-toggler'>
+          {isDark ? (
+            <IconMoon onClick={toggleTheme} />
+          ) : (
+            <IconSun onClick={toggleTheme} />
+          )}
+        </button>
+
+        {isOnAuthPage ? (
+          ''
         ) : (
-          <IconSunFilled onClick={toggleTheme} />
+          <Button type='submit' onClick={authHandler}>
+            {user ? 'Logout' : 'Login'}
+          </Button>
         )}
       </div>
-
-      {isOnAuthPage ? (
-        ''
-      ) : (
-        <Button type='submit' onClick={authHandler}>
-          {user ? 'Logout' : 'Login'}
-        </Button>
-      )}
     </nav>
   );
 };

@@ -9,6 +9,8 @@
 body {
   width: 100%;
   height: 100%;
+  overflow: hidden;
+  background-color: var(--bg-color-navbar) !important;
 }
 
 button {
@@ -29,8 +31,14 @@ button {
   --color-muted: #c2ddda; /* A muted teal tone */
 
   /* Background */
-  --bg-color-messenger: hsl(from var(--color-light) h s calc(l + 10));
+  --bg-color-messenger: hsl(from var(--color-light) h s calc(l + 5));
   --bg-color-navbar: hsl(from var(--color-light) h s calc(l - 10));
+
+  /* Messenger */
+  --bg-bubble-me: hsl(from var(--color-muted) h s calc(l - 5) / 60%);
+  --bg-bubble-them: hsl(from var(--color-accent) h s l);
+  --color-bubble-me: hsl(from var(--bg-bubble-me) h s calc(30%) / 300%);
+  --color-bubble-them: hsl(from var(--bg-bubble-them) h s calc(30%));
 
   /****************
   * COLORS - DARK
@@ -41,6 +49,12 @@ button {
     /* Background */
     --bg-color-messenger: hsl(from var(--color-dark-base) h s calc(l + 10));
     --bg-color-navbar: var(--color-dark-base);
+
+    /* Messenger */
+    --bg-bubble-me: hsl(from var(--color-muted) h s calc(l - 55));
+    --bg-bubble-them: hsl(from var(--color-accent) h s calc(l - 20) / 40%);
+    --color-bubble-me: hsl(from var(--bg-bubble-me) h s calc(70%));
+    --color-bubble-them: hsl(from var(--bg-bubble-them) h s calc(80%) / 300%);
   }
 
   /* Widths, Heights, Spaceing, Borders */

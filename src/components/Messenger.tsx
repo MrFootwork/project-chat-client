@@ -9,18 +9,42 @@ import MessageCard from './MessageCard';
 import { RoomsContext } from '../contexts/RoomsWrapper';
 import { SocketContext } from '../contexts/SocketWrapper';
 
-const Messenger = () => {
+type Props = { enteringRoomEvent: string | null };
+
+const Messenger = ({ enteringRoomEvent }: Props) => {
   // States and Refs
   const { socket } = useContext(SocketContext);
   const [roomMessages, setRoomMessages] = useState<Message[]>([]);
   const { currentRoom, updateRoomMessages } = useContext(RoomsContext);
+  const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
 
   /**************************
    * Messenger display
    **************************/
-  const messagesEndRef = useRef<HTMLDivElement | null>(null); // Create a ref for the bottom of the messages
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const autoScrollOn = useRef<boolean>(true);
 
+  // BUG
+  // CHROME: scrolls smoothly but last line stays out of view
+  // FIREFOX: always jumps, at least to the very bottom
+  // BOTH: doesn't jump on first page load
+
+  // JUMP to the bottom of the messages when the user enters a room
+  // It needs to depend on roomMessages to race against th smooth scroll
   useEffect(() => {
+    const userHasEnteredRoom = enteringRoomEvent;
+    if (!userHasEnteredRoom) return;
+    autoScrollOn.current = true;
+
+    messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+    enteringRoomEvent = null;
+
+    autoScrollOn.current = false;
+  }, [enteringRoomEvent, roomMessages]);
+
+  // SCROLL SMOOTHLY to the bottom when a new message is received
+  useEffect(() => {
+    if (!roomMessages.length || autoScrollOn.current) return;
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [roomMessages]);
 
@@ -49,13 +73,12 @@ const Messenger = () => {
   }, [currentRoom]);
 
   function sendText(values: typeof form.values) {
-    // TESTING Clear the form after submission
-    // form.reset();
+    if (!socket) return;
 
-    if (socket) {
-      console.log('Sending the message:', currentRoom?.id, values.text);
-      socket.emit('send-message', currentRoom?.id, values.text);
-    }
+    console.log('Sending the message:', currentRoom?.id, values.text);
+    socket.emit('send-message', currentRoom?.id, values.text);
+    form.reset();
+    textAreaRef.current?.focus();
   }
 
   /** Trigger form submission instead of a line break */
@@ -85,6 +108,12 @@ const Messenger = () => {
     );
     console.log('currentRoom before:', currentRoom?.messages);
 
+    console.log(
+      `Scrolling set to smooth ~ enteringRoom: ${autoScrollOn.current}`
+    );
+
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+
     updateRoomMessages(message);
     // FIXME Count and store unread messages for each room
 
@@ -113,6 +142,7 @@ const Messenger = () => {
       <div className='input-container'>
         <form onSubmit={form.onSubmit(sendText)}>
           <Textarea
+            ref={textAreaRef}
             radius='md'
             placeholder='Enter your message here.'
             key={form.key('text')}

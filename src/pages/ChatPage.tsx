@@ -1,5 +1,5 @@
 import './ChatPage.css';
-import { useContext, useEffect } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { AuthContext } from '../contexts/AuthWrapper';
@@ -10,7 +10,9 @@ import Messenger from '../components/Messenger';
 const ChatPage = () => {
   const navigate = useNavigate();
 
-  // Auth
+  /**********
+   * AUTH
+   **********/
   const { user, validateToken } = useContext(AuthContext);
 
   useEffect(() => {
@@ -18,11 +20,30 @@ const ChatPage = () => {
     if (!user) navigate('/');
   }, []);
 
-  // Room
+  /**********
+   * ROOMS
+   **********/
   const { rooms, fetchSelectedRoom } = useContext(RoomsContext);
+  const [selectedRoomId, setSelectedRoomId] = useState<string | null>(null);
+  const isInitialRender = useRef(true);
 
+  // Load messages for current room on first render
+  useEffect(() => {
+    const isFirstRender = rooms && isInitialRender.current;
+
+    if (isFirstRender) {
+      console.log('Initial Render detected: ', isFirstRender);
+
+      fetchSelectedRoom(rooms[0].id);
+      isInitialRender.current = false;
+    }
+
+    return;
+  }, [rooms]);
+
+  // Fetch selected room messages
   async function selectRoom(roomId: string) {
-    // refetch room messages for the selected room
+    setSelectedRoomId(roomId);
     await fetchSelectedRoom(roomId);
   }
 
@@ -34,10 +55,17 @@ const ChatPage = () => {
         </header>
 
         <ol className='room-button-container'>
-          {rooms?.map(room => {
+          {rooms?.map((room, firstElement) => {
             return (
               <li key={room.id}>
-                <button onClick={() => selectRoom(room.id)}>{room.name}</button>
+                <input
+                  defaultChecked={!firstElement}
+                  type='radio'
+                  name='room'
+                  id={`room-${room.id}`}
+                  onChange={() => selectRoom(room.id)}
+                />
+                <label htmlFor={`room-${room.id}`}>{room.name}</label>
               </li>
             );
           })}
@@ -45,7 +73,7 @@ const ChatPage = () => {
       </nav>
 
       <section className='messenger-container'>
-        <Messenger />
+        <Messenger enteringRoomEvent={selectedRoomId} />
       </section>
     </div>
   );

@@ -52,11 +52,12 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
     console.groupEnd();
   }, [!!user]);
 
+  // FIXME Cleanup unused code
   // Update message map (map of rooms and their unread message count) on user or rooms change
-  useEffect(() => {
-    if (!rooms || !user) return;
-    refreshMessageMap();
-  }, [user, rooms]);
+  // useEffect(() => {
+  //   if (!rooms || !user) return;
+  //   refreshMessageMap();
+  // }, [user, rooms]);
 
   async function fetchRooms() {
     try {
@@ -73,19 +74,22 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
     }
   }
 
-  function refreshMessageMap() {
+  function refreshMessageMap(copyOfRooms: Room[]): void {
     const newMessageMap: MessageCountMapType = {};
     console.groupCollapsed('refreshUnreadMessages');
 
-    rooms?.forEach(room => {
+    copyOfRooms?.forEach(room => {
       const unreadMessages = room.messages.filter(message => {
-        if (!message.readers)
+        if (!message.readers) {
           console.warn(
             'searching for unread messages: ',
             message,
             message.readers
           );
-        return !message.readers?.find(reader => reader.id === user?.id);
+          return false;
+        }
+
+        return !message.readers.find(reader => reader.id === user?.id);
       });
 
       newMessageMap[`${room.id} | ${room.name}`] = {
@@ -216,11 +220,11 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
     }
 
     // Check if room of this message exists in the rooms state
-    function isTarget(aRoomID: string = '') {
+    function isTargetRoom(aRoomID: string = '') {
       return aRoomID === newMessage.roomId;
     }
 
-    const targetRoom = rooms?.find(room => isTarget(room.id));
+    const targetRoom = rooms?.find(room => isTargetRoom(room.id));
 
     console.assert(!!targetRoom, 'Room not found for message:', newMessage);
 
@@ -253,34 +257,52 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
     };
 
     // Add current user to readers list if currentRoom is the target
-    if (isTarget(currentRoom?.id)) newMessage.readers.push(meAsAuthor);
+    if (isTargetRoom(currentRoom?.id)) newMessage.readers.push(meAsAuthor);
 
     // console.log('rooms before update: ', rooms?['test01'].messages);
     // console.log('rooms before update: ', rooms['test01']);
     console.log('currentRoom before update: ', currentRoom?.messages);
 
-    // Compute updated state synchronously
+    // Create and store an updated rooms
     const updatedRooms =
       rooms?.map(room => {
-        if (isTarget(room.id)) {
+        const tempMessages: Message[] = [];
+
+        if (isTargetRoom(room.id)) {
+          room.messages.forEach(message => {
+            if (message.id === newMessage.id) tempMessages.push(newMessage);
+            else tempMessages.push(message);
+          });
+
           return {
             ...room,
-            messages: [...room.messages, newMessage],
+            messages: tempMessages,
           };
         }
 
         return room;
       }) || [];
 
-    const updatedCurrentRoom =
-      currentRoom?.id === newMessage.roomId
-        ? {
-            ...currentRoom,
-            messages: [...currentRoom.messages, newMessage],
-          }
-        : currentRoom;
+    // FIXME Maybe make currentRoom depend on rooms?
+    // Create and store an updated room
+    let updatedCurrentRoom: RoomContext;
+
+    if (isTargetRoom(currentRoom?.id)) {
+      const tempMessages: Message[] = structuredClone(
+        currentRoom?.messages || []
+      );
+
+      updatedCurrentRoom = {
+        ...currentRoom,
+        messages: [...tempMessages, newMessage],
+      } as RoomContext;
+    } else {
+      updatedCurrentRoom = currentRoom;
+    }
+
+    // FIXME Cleanup unused code
     console.log(
-      `🚀 ~ new count updatedCurrentRoom:`,
+      `Internal current room to update currentRoom with:`,
       updatedCurrentRoom?.messages.length
     );
 
@@ -288,21 +310,17 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
     setRooms(updatedRooms);
     setCurrentRoom(updatedCurrentRoom);
 
-    // console.log('Updated rooms: ', rooms?.messages);
+    console.log(
+      'Updated rooms: ',
+      rooms?.map(r => {
+        name: r.name;
+        messages: r.messages;
+      })
+    );
     console.log('Updated currentRoom: ', updatedCurrentRoom?.messages);
 
-    // const messageCount = updatedRooms.map(room => {
-    //   return {
-    //     roomId: room.id,
-    //     roomName: room.name,
-    //     total: room.messages.length,
-    //     unread: room.messages.filter(
-    //       message => !message.readers.find(reader => reader.id === user?.id)
-    //     ).length,
-    //   };
-    // });
-
-    // console.table(messageCount);
+    // BUG Why is it still counting so bad?
+    refreshMessageMap(updatedRooms);
 
     console.groupEnd();
   }

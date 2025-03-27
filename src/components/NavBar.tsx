@@ -1,7 +1,7 @@
 import './NavBar.css';
 import config from '../../config';
 
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Button,
@@ -13,7 +13,7 @@ import { AuthContext } from '../contexts/AuthWrapper';
 import { SocketContext } from '../contexts/SocketWrapper';
 import { RoomsContext } from '../contexts/RoomsWrapper';
 
-import { IconArrowLeft } from '@tabler/icons-react';
+import { IconMoon, IconSunFilled } from '@tabler/icons-react';
 
 const NavBar = () => {
   const { user, logout } = useContext(AuthContext);
@@ -35,6 +35,14 @@ const NavBar = () => {
   const { toggleColorScheme } = useMantineColorScheme();
   const computedColorScheme = useComputedColorScheme();
 
+  const [isDark, setIsDark] = useState(computedColorScheme === 'dark');
+
+  // FIXME debug Icon
+  function toggleTheme() {
+    toggleColorScheme();
+    setIsDark(computedColorScheme === 'dark');
+  }
+
   return (
     <nav className='navbar-container'>
       <h1>Messenger</h1>
@@ -45,14 +53,13 @@ const NavBar = () => {
         Room: {currentRoom?.id}
       </p>
 
-      {/* <Button onClick={toggleColorScheme}>
-        {computedColorScheme === 'light' ? 'Dark' : 'Light'}
-      </Button> */}
-
-      {/* FIXME Choose good Icon */}
-      <IconArrowLeft onClick={toggleColorScheme}>
-        {computedColorScheme === 'light' ? 'Dark' : 'Light'}
-      </IconArrowLeft>
+      <div className='theme-toggle-container'>
+        {isDark ? (
+          <IconMoon onClick={toggleTheme} />
+        ) : (
+          <IconSunFilled onClick={toggleTheme} />
+        )}
+      </div>
 
       {isOnAuthPage ? (
         ''

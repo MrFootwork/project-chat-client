@@ -41,19 +41,26 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
     if (!user) return;
     console.groupCollapsed('fetchRooms');
 
-    fetchRooms().then(() => {
+    fetchRooms()
+      .then(() => {
       console.log('Rooms final state:', rooms);
+      })
+      .catch(error => {
+        console.error('Error fetching rooms:', error.code, error.message);
     });
 
     console.groupEnd();
   }, [!!user]);
 
+  // Update message map (map of rooms and their unread message count) on user or rooms change
   useEffect(() => {
     if (!rooms || !user) return;
     refreshMessageMap();
-  }, [user, rooms]);
+  }, []);
+  // }, [user, rooms]);
 
   async function fetchRooms() {
+    try {
     const fetchedRooms = await axios.get(API_URL + '/api/rooms', {
       withCredentials: true,
       headers: { Authorization: `Bearer ${token}` },
@@ -62,6 +69,9 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
     console.log(`Fetched Rooms: `, fetchedRooms.data);
 
     if (fetchedRooms) setRooms(fetchedRooms.data);
+    } catch (error) {
+      throw error;
+    }
   }
 
   function refreshMessageMap() {
@@ -184,7 +194,7 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
    * 5. Updates the state of `rooms` by appending the new message to the appropriate room.
    * 6. Updates the state of `currentRoom` if the message belongs to the currently selected room.
    *
-   * @param {Message} message - The message object to be added to the room.
+   * @param {Message} newMessage - The message object to be added to the room.
    * @throws Will log an error if the user is not logged in or if the room for the message is not found.
    *
    * @example
@@ -197,8 +207,8 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
    * };
    * updateRoomByMessage(newMessage);
    */
-  function updateRoomMessages(message: Message) {
-    console.groupCollapsed('updateRoomMessages', message.roomId);
+  function updateRoomMessages(newMessage: Message) {
+    console.groupCollapsed('updateRoomMessages', newMessage.roomId);
     // Check if user is logged in
     if (!user) {
       console.error('User not found while updating room by message');
@@ -207,9 +217,13 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
     }
 
     // Check if room of this message exists in the rooms state
-    const targetRoom = rooms?.find(room => room.id === message.roomId);
+    function isTarget(aRoomID: string = '') {
+      return aRoomID === newMessage.roomId;
+    }
 
-    console.assert(!!targetRoom, 'Room not found for message:', message);
+    const targetRoom = rooms?.find(room => isTarget(room.id));
+
+    console.assert(!!targetRoom, 'Room not found for message:', newMessage);
 
     if (!targetRoom) {
       console.groupEnd();
@@ -219,23 +233,28 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
     console.log('found room', targetRoom);
 
     // Check if the room already has this message
-    const hasThisMessage = targetRoom?.messages.some(m => m.id === message.id);
+    const hasThisMessage = targetRoom?.messages.some(
+      m => m.id === newMessage.id
+    );
 
     if (hasThisMessage) {
-      console.error('Room already has this message:', { message, targetRoom });
+      console.error('Room already has this message:', {
+        message: newMessage,
+        targetRoom,
+      });
       console.groupEnd();
       return;
     }
 
-    const messageAuthor: MessageAuthor = {
+    const meAsAuthor: MessageAuthor = {
       id: user.id,
       name: user.name,
       avatarUrl: user.avatarUrl || '',
       isDeleted: user.isDeleted,
     };
 
-    // Add current user to readers list of currentRoom
-    if (currentRoom?.id === message.roomId) message.readers = [messageAuthor];
+    // Add current user to readers list if currentRoom is the target
+    if (isTarget(currentRoom?.id)) newMessage.readers.push(meAsAuthor);
 
     // console.log('rooms before update: ', rooms?['test01'].messages);
     // console.log('rooms before update: ', rooms['test01']);
@@ -244,12 +263,13 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
     // Compute updated state synchronously
     const updatedRooms =
       rooms?.map(room => {
-        if (room.id === targetRoom.id) {
+        if (isTarget(room.id)) {
           return {
             ...room,
-            messages: [...room.messages, message], // Create a new messages array
+            messages: [...room.messages, newMessage],
           };
         }
+
         return room;
       }) || [];
 

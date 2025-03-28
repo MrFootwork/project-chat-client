@@ -9,9 +9,9 @@ import MessageCard from './MessageCard';
 import { RoomsContext } from '../contexts/RoomsWrapper';
 import { SocketContext } from '../contexts/SocketWrapper';
 
-type Props = { enteringRoomEvent: string | null };
+type Props = { userHasSelectedRoom: boolean };
 
-const Messenger = ({ enteringRoomEvent }: Props) => {
+const Messenger = ({ userHasSelectedRoom }: Props) => {
   // States and Refs
   const { socket } = useContext(SocketContext);
   const [roomMessages, setRoomMessages] = useState<Message[]>([]);
@@ -22,30 +22,64 @@ const Messenger = ({ enteringRoomEvent }: Props) => {
    * Messenger display
    **************************/
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
-  const autoScrollOn = useRef<boolean>(true);
+  const firstPageLoad = useRef<boolean>(true);
 
   // BUG
   // CHROME: scrolls smoothly but last line stays out of view
   // FIREFOX: always jumps, at least to the very bottom
   // BOTH: doesn't jump on first page load
 
+  // Jump scroll when:
+  // 1. User enters a room
+  // 2. On page load
+
   // JUMP to the bottom of the messages when the user enters a room
-  // It needs to depend on roomMessages to race against th smooth scroll
+  // It needs to depend on roomMessages to race against the smooth scroll
+
   useEffect(() => {
-    const userHasEnteredRoom = enteringRoomEvent;
-    if (!userHasEnteredRoom) return;
-    autoScrollOn.current = true;
+    const userHasEnteredRoom = userHasSelectedRoom;
+    const receivedMessageOutOfCurrentRoom =
+      !userHasEnteredRoom || !firstPageLoad.current;
 
+    console.log(`🎉 SCROLL JUMP userHasEnteredRoom`, userHasEnteredRoom);
+    console.log(`🎉 SCROLL JUMP firstPageLoad`, firstPageLoad.current);
+    console.log(
+      `🎉 SCROLL JUMP receivedMessageOutOfCurrentRoom`,
+      receivedMessageOutOfCurrentRoom
+    );
+
+    if (userHasEnteredRoom) return;
+    if (!firstPageLoad.current) return;
+
+    console.log(`🎉 SCROLL JUMP Start Scrolling`);
+    firstPageLoad.current = true;
     messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
-    enteringRoomEvent = null;
-
-    autoScrollOn.current = false;
-  }, [enteringRoomEvent, roomMessages]);
+    userHasSelectedRoom = false;
+    firstPageLoad.current = false;
+    console.log(`🎉 SCROLL JUMP Finished Scrolling`);
+  }, [
+    userHasSelectedRoom,
+    roomMessages,
+    firstPageLoad.current,
+    messagesEndRef.current,
+  ]);
 
   // SCROLL SMOOTHLY to the bottom when a new message is received
   useEffect(() => {
-    if (!roomMessages.length || autoScrollOn.current) return;
+    console.log(
+      `❌ SCROLL SMOOTH roomMessages`,
+      !roomMessages.length,
+      'OR firstPageLoad',
+      firstPageLoad.current,
+      '=> Skip?',
+      !roomMessages.length || firstPageLoad.current
+    );
+
+    if (!roomMessages.length || firstPageLoad.current) return;
+
+    console.log(`❌ SCROLL SMOOTH Start Scrolling`);
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    console.log(`❌ SCROLL SMOOTH Finished Scrolling`);
   }, [roomMessages]);
 
   /**************************
@@ -109,10 +143,12 @@ const Messenger = ({ enteringRoomEvent }: Props) => {
     console.log('currentRoom before:', currentRoom?.messages);
 
     console.log(
-      `Scrolling set to smooth ~ enteringRoom: ${autoScrollOn.current}`
+      `Scrolling set to smooth ~ enteringRoom: ${firstPageLoad.current}`
     );
 
+    console.log(`💌 SCROLL SMOOTH Start Scrolling`);
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    console.log(`💌 SCROLL SMOOTH Start Scrolling`);
 
     updateRoomMessages(message);
     // FIXME Count and store unread messages for each room

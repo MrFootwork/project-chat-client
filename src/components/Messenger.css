@@ -6,8 +6,6 @@ div.messenger-container {
   grid-template-areas:
     'display'
     'input';
-
-  /* background-color: var(--color-light); */
 }
 
 .messages-display {
@@ -16,8 +14,6 @@ div.messenger-container {
 
   ol {
     list-style-type: none;
-    li {
-    }
   }
 }
 

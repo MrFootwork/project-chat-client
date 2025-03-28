@@ -1,3 +1,4 @@
+import './AuthPage.css';
 import { useContext, useEffect } from 'react';
 import { AuthContext } from '../contexts/AuthWrapper';
 import { useForm } from '@mantine/form';
@@ -30,8 +31,8 @@ const AuthPage = () => {
 
   return (
     <>
-      <header>
-        <h1>AuthPage</h1>
+      <header className='auth-header'>
+        <h1>Login to get started!</h1>
       </header>
       <div className='form-container'>
         <form onSubmit={form.onSubmit(handleSubmit)}>
@@ -53,15 +54,6 @@ const AuthPage = () => {
           <Group justify='flex-end' mt='md'>
             <Button type='submit'>Login</Button>
           </Group>
-
-          <div>
-            <h3>Login Status</h3>
-            {user ? (
-              <p>Logged in as: {user.name || user.email}</p>
-            ) : (
-              <p>Not logged in</p>
-            )}
-          </div>
         </form>
       </div>
     </>

@@ -18,15 +18,17 @@ div.messenger-container {
 }
 
 .input-container {
-  padding: 0.5rem;
+  padding: 0.75rem 1rem;
 
   form {
     display: grid;
     grid-template-rows: 1fr;
     grid-template-columns: 1fr 5rem;
-    gap: 0.25rem;
+    gap: 0.5rem;
 
     height: 100%;
+
+    position: relative;
 
     /* mantine drives me crazy */
     .textarea-custom {
@@ -42,6 +44,32 @@ div.messenger-container {
     Button {
       height: 100%;
       width: 100%;
+    }
+
+    button.scroll-down {
+      --size: 2.5rem;
+      position: absolute;
+      top: calc(-1 * var(--size) - 0.5rem);
+      right: 0;
+      /* top: -4rem;
+      right: 3rem; */
+      width: var(--size);
+      height: var(--size);
+      border: none;
+      background-color: var(--input-bg);
+      backdrop-filter: blur(10px);
+      font-size: larger;
+      font-weight: bolder;
+      border-radius: 5px;
+
+      box-shadow: 3px 3px 7px -4px rgba(0, 0, 0, 0.77);
+      transition: all 0.3s ease-out;
+
+      &:active {
+        transition: none;
+        transform: translateY(2px);
+        box-shadow: 2px 2px 5px -4px rgba(0, 0, 0, 0.77);
+      }
     }
   }
 }

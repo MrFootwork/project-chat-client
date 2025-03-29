@@ -14,14 +14,14 @@ type Props = { userHasSelectedRoom: boolean };
 const Messenger = ({ userHasSelectedRoom }: Props) => {
   // States and Refs
   const { socket } = useContext(SocketContext);
-  const [roomMessages, setRoomMessages] = useState<Message[]>([]);
   const { currentRoom, updateRoomMessages } = useContext(RoomsContext);
+  const [roomMessages, setRoomMessages] = useState<Message[]>([]);
+  const [movedUpView, setMovedUpView] = useState<boolean>(false);
   const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
-
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
   /**************************
    * Messenger display
    **************************/
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const firstPageLoad = useRef<boolean>(true);
 
   // BUG
@@ -64,23 +64,36 @@ const Messenger = ({ userHasSelectedRoom }: Props) => {
     messagesEndRef.current,
   ]);
 
-  // SCROLL SMOOTHLY to the bottom when a new message is received
-  useEffect(() => {
-    console.log(
-      `❌ SCROLL SMOOTH roomMessages`,
-      !roomMessages.length,
-      'OR firstPageLoad',
-      firstPageLoad.current,
-      '=> Skip?',
-      !roomMessages.length || firstPageLoad.current
-    );
+  // FIXME rename and use that to switch on ⬇️ button
+  // FIXME add indicator on message receive
+  const [pos, setPos] = useState<number | null>(null);
+  // const scrollPosition = useRef<number>(0);
 
-    if (!roomMessages.length || firstPageLoad.current) return;
+  function handleUserScroll(e: React.UIEvent<HTMLDivElement>) {
+    // setPos(messagesEndRef.current?.scrollTop || 0);
+    console.log('scrolling...', e, messagesEndRef.current, pos);
 
-    console.log(`❌ SCROLL SMOOTH Start Scrolling`);
+    const { scrollTop, scrollHeight, clientHeight } =
+      e.target as HTMLDivElement;
+
+    const updatedPosition = scrollTop / (scrollHeight - clientHeight);
+    // pos = 1: at the top
+    // pos = 0: at the bottom
+
+    setPos(updatedPosition);
+  }
+
+  // Don't scroll on message reception
+
+  // SCROLL SMOOTHLY to the bottom when clicked on scroll down button
+  function scrollSmoothly() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    console.log(`❌ SCROLL SMOOTH Finished Scrolling`);
-  }, [roomMessages]);
+    setMovedUpView(false);
+  }
+
+  useEffect(() => {
+    console.log('🚀🚀🚀');
+  }, []);
 
   /**************************
    * Send messages
@@ -146,20 +159,19 @@ const Messenger = ({ userHasSelectedRoom }: Props) => {
       `Scrolling set to smooth ~ enteringRoom: ${firstPageLoad.current}`
     );
 
-    console.log(`💌 SCROLL SMOOTH Start Scrolling`);
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    console.log(`💌 SCROLL SMOOTH Start Scrolling`);
-
+    // Push new message to corresponding room messages
     updateRoomMessages(message);
-    // FIXME Count and store unread messages for each room
 
+    // FIXME Show icon on scroll down button if in current room and bottom out of view
+
+    // FIXME Count and store unread messages for each room
     console.log('currentRoom after:', currentRoom?.messages);
     console.groupEnd();
   }
 
   return (
     <div className='messenger-container'>
-      <div className='messages-display'>
+      <div className='messages-display' onScroll={handleUserScroll}>
         {/* FIXME Add Messenger Header with chatroom details */}
         <p>Here are the messages.</p>
         {currentRoom ? <>{currentRoom.name}</> : 'Choose a room!'}
@@ -187,6 +199,17 @@ const Messenger = ({ userHasSelectedRoom }: Props) => {
             onKeyDown={e => submitFormOnEnter(e)}
           />
           <Button type='submit'>Send</Button>
+          {(pos || 0) < 0.99 ? (
+            <button
+              type='button'
+              className='scroll-down'
+              onClick={scrollSmoothly}
+            >
+              ↓
+            </button>
+          ) : (
+            ''
+          )}
         </form>
       </div>
     </div>

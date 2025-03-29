@@ -39,6 +39,7 @@ button {
   --bg-bubble-them: hsl(from var(--color-accent) h s l);
   --color-bubble-me: hsl(from var(--bg-bubble-me) h s calc(30%) / 300%);
   --color-bubble-them: hsl(from var(--bg-bubble-them) h s calc(30%));
+  --input-bg: var(--mantine-color-white);
 
   /****************
   * COLORS - DARK
@@ -55,6 +56,7 @@ button {
     --bg-bubble-them: hsl(from var(--color-accent) h s calc(l - 20) / 40%);
     --color-bubble-me: hsl(from var(--bg-bubble-me) h s calc(70%));
     --color-bubble-them: hsl(from var(--bg-bubble-them) h s calc(80%) / 300%);
+    --input-bg: var(--mantine-color-dark-6);
   }
 
   /* Widths, Heights, Spaceing, Borders */

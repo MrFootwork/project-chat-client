@@ -20,12 +20,16 @@ const RoomsContext = React.createContext<{
   fetchSelectedRoom: (roomID: string) => Promise<void>;
   updateRoomMessages: (message: Message) => void;
   messageCountMap: MessageCountMapType;
+  userChangesRoom: boolean;
+  setUserChangesRoom: React.Dispatch<React.SetStateAction<boolean>>;
 }>({
   rooms: null,
   currentRoom: null,
   fetchSelectedRoom: async () => {},
   updateRoomMessages: () => {},
   messageCountMap: {},
+  userChangesRoom: false,
+  setUserChangesRoom: () => {},
 });
 
 function RoomsWrapper({ children }: { children: ReactNode }) {
@@ -35,6 +39,7 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
   const [messageCountMap, setMessageCountMap] = useState<MessageCountMapType>(
     {}
   );
+  const [userChangesRoom, setUserChangesRoom] = useState(false);
 
   // Initially after login fetch all rooms
   useEffect(() => {
@@ -333,6 +338,8 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
         fetchSelectedRoom,
         updateRoomMessages,
         messageCountMap,
+        userChangesRoom,
+        setUserChangesRoom,
       }}
     >
       {children}

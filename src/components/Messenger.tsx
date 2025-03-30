@@ -9,91 +9,85 @@ import MessageCard from './MessageCard';
 import { RoomsContext } from '../contexts/RoomsWrapper';
 import { SocketContext } from '../contexts/SocketWrapper';
 
-type Props = { userHasSelectedRoom: boolean };
-
-const Messenger = ({ userHasSelectedRoom }: Props) => {
-  // States and Refs
+const Messenger = () => {
+  /**************************
+   * States and Refs
+   **************************/
+  // Messages
   const { socket } = useContext(SocketContext);
-  const { currentRoom, updateRoomMessages } = useContext(RoomsContext);
+
+  // Rooms
   const [roomMessages, setRoomMessages] = useState<Message[]>([]);
-  const [movedUpView, setMovedUpView] = useState<boolean>(false);
+  const {
+    currentRoom,
+    updateRoomMessages,
+    userChangesRoom,
+    setUserChangesRoom,
+  } = useContext(RoomsContext);
+
+  // Input
   const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  // Scrolling
+  const [movedUpView, setMovedUpView] = useState<boolean>(false);
+  const [scrollPosition, setScrollPosition] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const messagesDisplay = useRef<HTMLDivElement | null>(null);
+
   /**************************
    * Messenger display
    **************************/
   const firstPageLoad = useRef<boolean>(true);
+  const initiallyScrolled = useRef<boolean>(false);
 
-  // BUG
-  // CHROME: scrolls smoothly but last line stays out of view
-  // FIREFOX: always jumps, at least to the very bottom
-  // BOTH: doesn't jump on first page load
-
-  // Jump scroll when:
-  // 1. User enters a room
-  // 2. On page load
-
-  // JUMP to the bottom of the messages when the user enters a room
-  // It needs to depend on roomMessages to race against the smooth scroll
-
+  // Jump to the bottom on mount
   useEffect(() => {
-    const userHasEnteredRoom = userHasSelectedRoom;
-    const receivedMessageOutOfCurrentRoom =
-      !userHasEnteredRoom || !firstPageLoad.current;
+    if (initiallyScrolled.current) return;
+    if (!currentRoom || !roomMessages) return;
 
-    console.log(`🎉 SCROLL JUMP userHasEnteredRoom`, userHasEnteredRoom);
-    console.log(`🎉 SCROLL JUMP firstPageLoad`, firstPageLoad.current);
-    console.log(
-      `🎉 SCROLL JUMP receivedMessageOutOfCurrentRoom`,
-      receivedMessageOutOfCurrentRoom
-    );
+    console.log('ROOM CHANGE JUMP TO BOTTOM on mount');
+    initiallyScrolled.current = true;
 
-    if (userHasEnteredRoom) return;
-    if (!firstPageLoad.current) return;
+    // Without timeout the scroll executes before re-render of roomMessages
+    const timeoutID = setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
+      initiallyScrolled.current = true;
+    }, 1);
 
-    console.log(`🎉 SCROLL JUMP Start Scrolling`);
-    firstPageLoad.current = true;
-    messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
-    userHasSelectedRoom = false;
-    firstPageLoad.current = false;
-    console.log(`🎉 SCROLL JUMP Finished Scrolling`);
-  }, [
-    userHasSelectedRoom,
-    roomMessages,
-    firstPageLoad.current,
-    messagesEndRef.current,
-  ]);
+    return () => {
+      if (!initiallyScrolled.current) return;
+      clearTimeout(timeoutID);
+    };
+  }, [currentRoom, roomMessages, initiallyScrolled]);
 
-  // FIXME rename and use that to switch on ⬇️ button
+  // Jump to the bottom when room has changed
+  useEffect(() => {
+    console.log('ROOM CHANGE', userChangesRoom, roomMessages.length);
+    if (!userChangesRoom || !roomMessages.length) return;
+
+    console.log('ROOM CHANGE scrolling', userChangesRoom, roomMessages.length);
+    messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
+    setUserChangesRoom(false);
+  }, [userChangesRoom]);
+
   // FIXME add indicator on message receive
-  const [pos, setPos] = useState<number | null>(null);
-  // const scrollPosition = useRef<number>(0);
 
-  function handleUserScroll(e: React.UIEvent<HTMLDivElement>) {
-    // setPos(messagesEndRef.current?.scrollTop || 0);
-    console.log('scrolling...', e, messagesEndRef.current, pos);
-
-    const { scrollTop, scrollHeight, clientHeight } =
-      e.target as HTMLDivElement;
-
-    const updatedPosition = scrollTop / (scrollHeight - clientHeight);
-    // pos = 1: at the top
-    // pos = 0: at the bottom
-
-    setPos(updatedPosition);
-  }
-
-  // Don't scroll on message reception
-
-  // SCROLL SMOOTHLY to the bottom when clicked on scroll down button
-  function scrollSmoothly() {
+  // Click Handler to scroll down smoothly
+  function onClickScroll() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     setMovedUpView(false);
   }
 
-  useEffect(() => {
-    console.log('🚀🚀🚀');
-  }, []);
+  // Listen and store scroll position on scroll event
+  function onScrollGetPosition(e: React.UIEvent<HTMLDivElement>) {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    const currentPosition = scrollTop / (scrollHeight - clientHeight);
+    // pos = 0: at the top
+    // pos = 1: at the bottom
+
+    setScrollPosition(currentPosition);
+    setMovedUpView(true);
+  }
 
   /**************************
    * Send messages
@@ -108,14 +102,15 @@ const Messenger = ({ userHasSelectedRoom }: Props) => {
     const currentRoomExists = currentRoom && currentRoom?.messages;
     if (!currentRoomExists) return;
 
-    console.groupCollapsed('Messenger updates roomMessages in useEffect');
-    console.log('BEFORE ~ currentRoom messages:', currentRoom.messages);
-    console.log('BEFORE ~ roomMessages:', roomMessages);
+    // console.groupCollapsed('Messenger updates roomMessages in useEffect');
+    // console.log('BEFORE ~ currentRoom messages:', currentRoom.messages);
+    // console.log('BEFORE ~ roomMessages:', roomMessages);
 
     setRoomMessages(currentRoom.messages || []);
+    // console.log('ROOM CHANGE TRIGGER');
 
-    console.log('AFTER ~ currentRoom messages:', currentRoom.messages);
-    console.log('AFTER ~ roomMessages:', roomMessages);
+    // console.log('AFTER ~ currentRoom messages:', currentRoom.messages);
+    // console.log('AFTER ~ roomMessages:', roomMessages);
     console.groupEnd();
   }, [currentRoom]);
 
@@ -145,6 +140,7 @@ const Messenger = ({ userHasSelectedRoom }: Props) => {
     return () => {
       socket?.off('receive-message', handleReceiveMessage);
     };
+    // TODO shouldn't that have no dependencies?
   }, [currentRoom]);
 
   /** Handles how received messages are managed. */
@@ -171,7 +167,11 @@ const Messenger = ({ userHasSelectedRoom }: Props) => {
 
   return (
     <div className='messenger-container'>
-      <div className='messages-display' onScroll={handleUserScroll}>
+      <div
+        ref={messagesDisplay}
+        className='messages-display'
+        onScroll={onScrollGetPosition}
+      >
         {/* FIXME Add Messenger Header with chatroom details */}
         <p>Here are the messages.</p>
         {currentRoom ? <>{currentRoom.name}</> : 'Choose a room!'}
@@ -199,11 +199,11 @@ const Messenger = ({ userHasSelectedRoom }: Props) => {
             onKeyDown={e => submitFormOnEnter(e)}
           />
           <Button type='submit'>Send</Button>
-          {(pos || 0) < 0.99 ? (
+          {(scrollPosition || 0) < 0.99 ? (
             <button
               type='button'
               className='scroll-down'
-              onClick={scrollSmoothly}
+              onClick={onClickScroll}
             >
               ↓
             </button>

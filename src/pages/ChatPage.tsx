@@ -23,8 +23,8 @@ const ChatPage = () => {
   /**********
    * ROOMS
    **********/
-  const { rooms, fetchSelectedRoom } = useContext(RoomsContext);
-  const [roomEntered, setroomEntered] = useState<boolean>(false);
+  const { rooms, fetchSelectedRoom, setUserChangesRoom } =
+    useContext(RoomsContext);
   const isInitialRender = useRef(true);
 
   // Load messages for current room on first render
@@ -46,19 +46,15 @@ const ChatPage = () => {
     console.log(
       `🎉 SCROLL JUMP Room selected: roomId`,
       roomId,
-      'selectedRoomId',
-      roomEntered
+      'selectedRoomId'
     );
-    setroomEntered(!!roomId);
     console.log(
       `🎉 SCROLL JUMP selectedRoomId updated`,
       roomId,
-      'selectedRoomId',
-      roomEntered
+      'selectedRoomId'
     );
     await fetchSelectedRoom(roomId);
-
-    setroomEntered(false);
+    setUserChangesRoom(true);
   }
 
   return (
@@ -87,7 +83,7 @@ const ChatPage = () => {
       </nav>
 
       <section className='messenger-container'>
-        <Messenger userHasSelectedRoom={!!roomEntered} />
+        <Messenger />
       </section>
     </div>
   );

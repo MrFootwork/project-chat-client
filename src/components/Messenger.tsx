@@ -6,15 +6,22 @@ import { Button, Textarea } from '@mantine/core';
 import { useForm } from '@mantine/form';
 import MessageCard from './MessageCard';
 
-import { RoomsContext } from '../contexts/RoomsWrapper';
 import { SocketContext } from '../contexts/SocketWrapper';
+import { AuthContext } from '../contexts/AuthWrapper';
+import { RoomsContext } from '../contexts/RoomsWrapper';
 
 const Messenger = () => {
   /**************************
    * States and Refs
    **************************/
+  // User
+  const { user } = useContext(AuthContext);
+
   // Messages
   const { socket } = useContext(SocketContext);
+  const [hasUnreadMessages, setHasUnreadMessages] = useState<boolean>(false);
+  const [sendingMessage, setSendingMessage] = useState(false);
+  const [receivingMessage, setReceivingMessage] = useState(false);
 
   // Rooms
   const [roomMessages, setRoomMessages] = useState<Message[]>([]);
@@ -37,25 +44,32 @@ const Messenger = () => {
   /**************************
    * Messenger display
    **************************/
-  const firstPageLoad = useRef<boolean>(true);
   const initiallyScrolled = useRef<boolean>(false);
+
+  // BUG states seem to lag one step behind
+  // 1. receive message in other room
+  // => when coming back, scroll down only to previous state
+  // 2. receive message in current room out of view
+  // => unread indicator shows up on second message
+  // 3. send message out of view
+  // => scroll down happens on second message
 
   // Jump to the bottom on mount
   useEffect(() => {
     if (initiallyScrolled.current) return;
     if (!currentRoom || !roomMessages) return;
 
-    console.log('ROOM CHANGE JUMP TO BOTTOM on mount');
-    initiallyScrolled.current = true;
-
     // Without timeout the scroll executes before re-render of roomMessages
     const timeoutID = setTimeout(() => {
+      console.log('SCROLL JUMP TO BOTTOM on mount');
       messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
+      setMovedUpView(false);
       initiallyScrolled.current = true;
-    }, 1);
+    }, 10);
 
     return () => {
       if (!initiallyScrolled.current) return;
+      console.log('SCROLL JUMP TO BOTTOM clear timeout');
       clearTimeout(timeoutID);
     };
   }, [currentRoom, roomMessages, initiallyScrolled]);
@@ -67,8 +81,50 @@ const Messenger = () => {
 
     console.log('ROOM CHANGE scrolling', userChangesRoom, roomMessages.length);
     messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
+    setMovedUpView(false);
     setUserChangesRoom(false);
   }, [userChangesRoom]);
+
+  // Scroll to the bottom when sent message while out of view
+  useEffect(() => {
+    // FIXME scroll to bottom if moved up view
+    if (!roomMessages.length) return;
+    if (!currentRoom) return;
+
+    const sentByMyself = user?.id === roomMessages.at(-1)?.author.id;
+
+    // console.log({ movedUpView, sentByMyself, sendingMessage });
+
+    if (sentByMyself && sendingMessage) {
+      // Wait for rendering to finish
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        setMovedUpView(false);
+      }, 150);
+
+      setHasUnreadMessages(false);
+    }
+
+    setSendingMessage(false);
+  }, [roomMessages, sendingMessage]);
+
+  // alwas scroll to the bottom when receiving message while in view
+  useEffect(() => {
+    if (!roomMessages.length) return;
+    if (!receivingMessage) return;
+
+    if (receivingMessage && !movedUpView) {
+      // Wait for rendering to finish
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        setMovedUpView(false);
+      }, 150);
+
+      setHasUnreadMessages(false);
+    }
+
+    setReceivingMessage(false);
+  }, [roomMessages, receivingMessage]);
 
   // FIXME add indicator on message receive
 
@@ -76,17 +132,29 @@ const Messenger = () => {
   function onClickScroll() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     setMovedUpView(false);
+
+    let timeoutID: number;
+
+    timeoutID = setTimeout(() => {
+      setHasUnreadMessages(false);
+      clearTimeout(timeoutID);
+    }, 500);
   }
 
   // Listen and store scroll position on scroll event
-  function onScrollGetPosition(e: React.UIEvent<HTMLDivElement>) {
-    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+  function updatePosition() {
+    const { scrollTop, scrollHeight, clientHeight } = messagesDisplay.current!;
     const currentPosition = scrollTop / (scrollHeight - clientHeight);
     // pos = 0: at the top
     // pos = 1: at the bottom
 
     setScrollPosition(currentPosition);
-    setMovedUpView(true);
+
+    if (currentPosition < 0.99) setMovedUpView(true);
+    if (currentPosition >= 0.99) {
+      setMovedUpView(false);
+      setHasUnreadMessages(false);
+    }
   }
 
   /**************************
@@ -117,6 +185,8 @@ const Messenger = () => {
   function sendText(values: typeof form.values) {
     if (!socket) return;
 
+    setSendingMessage(true);
+
     console.log('Sending the message:', currentRoom?.id, values.text);
     socket.emit('send-message', currentRoom?.id, values.text);
     form.reset();
@@ -145,24 +215,34 @@ const Messenger = () => {
 
   /** Handles how received messages are managed. */
   function handleReceiveMessage(message: Message) {
-    console.groupCollapsed('handleReceiveMessage');
-    console.log(
-      `received message from DB by ${message.author.name}: "${message.content}"`
-    );
-    console.log('currentRoom before:', currentRoom?.messages);
+    // console.groupCollapsed('handleReceiveMessage');
+    // console.log(
+    //   `received message from DB by ${message.author.name}: "${message.content}"`
+    // );
+    // console.log('currentRoom before:', currentRoom?.messages);
 
-    console.log(
-      `Scrolling set to smooth ~ enteringRoom: ${firstPageLoad.current}`
-    );
+    // console.log(
+    //   `Scrolling set to smooth ~ enteringRoom: ${firstPageLoad.current}`
+    // );
 
     // Push new message to corresponding room messages
     updateRoomMessages(message);
 
-    // FIXME Show icon on scroll down button if in current room and bottom out of view
+    // Set receivingMessage flag
+    setReceivingMessage(true);
+
+    // Activate Unread Messages indicator
+    const isInCurrentRoom = currentRoom?.id === message.roomId;
+    const sentByMyself = user?.id === message.author.id;
+
+    // console.log({ isInCurrentRoom, movedUpView, sentByMyself });
+
+    if (isInCurrentRoom && movedUpView && !sentByMyself)
+      setHasUnreadMessages(true);
 
     // FIXME Count and store unread messages for each room
-    console.log('currentRoom after:', currentRoom?.messages);
-    console.groupEnd();
+    // console.log('currentRoom after:', currentRoom?.messages);
+    // console.groupEnd();
   }
 
   return (
@@ -170,9 +250,9 @@ const Messenger = () => {
       <div
         ref={messagesDisplay}
         className='messages-display'
-        onScroll={onScrollGetPosition}
+        onScroll={updatePosition}
       >
-        {/* FIXME Add Messenger Header with chatroom details */}
+        {/* TODO Add Messenger Header with chatroom details */}
         <p>Here are the messages.</p>
         {currentRoom ? <>{currentRoom.name}</> : 'Choose a room!'}
         <ol>
@@ -206,6 +286,11 @@ const Messenger = () => {
               onClick={onClickScroll}
             >
               ↓
+              {hasUnreadMessages ? (
+                <div className='indicator-received-message-current-room' />
+              ) : (
+                ''
+              )}
             </button>
           ) : (
             ''

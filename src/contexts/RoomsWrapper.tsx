@@ -1,5 +1,11 @@
 import axios from 'axios';
-import React, { ReactNode, useContext, useEffect, useState } from 'react';
+import React, {
+  ReactNode,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import config from '../../config';
 import { AuthContext } from './AuthWrapper';
 import { Room } from '../types/room';
@@ -22,6 +28,8 @@ const RoomsContext = React.createContext<{
   messageCountMap: MessageCountMapType;
   userChangesRoom: boolean;
   setUserChangesRoom: React.Dispatch<React.SetStateAction<boolean>>;
+  selectedRoomID: string | null;
+  setSelectedRoomID: React.Dispatch<React.SetStateAction<string | null>>;
 }>({
   rooms: null,
   currentRoom: null,
@@ -30,12 +38,22 @@ const RoomsContext = React.createContext<{
   messageCountMap: {},
   userChangesRoom: false,
   setUserChangesRoom: () => {},
+  selectedRoomID: null,
+  setSelectedRoomID: () => {},
 });
 
 function RoomsWrapper({ children }: { children: ReactNode }) {
   const { user, token } = useContext(AuthContext);
   const [rooms, setRooms] = useState<RoomsContext>(null);
-  const [currentRoom, setCurrentRoom] = useState<RoomContext>(null);
+  // const [currentRoom, setCurrentRoom] = useState<RoomContext>(null);
+  const [selectedRoomID, setSelectedRoomID] = useState<string | null>(null);
+
+  // const currentRoom = rooms?.find(r => r.id === selectedRoomID) || null;
+  const currentRoom = useMemo(() => {
+    console.log('CURRENT ROOM UPDATE: ', selectedRoomID, rooms);
+    return rooms?.find(r => r.id === selectedRoomID) || null;
+  }, [rooms, selectedRoomID]);
+
   const [messageCountMap, setMessageCountMap] = useState<MessageCountMapType>(
     {}
   );
@@ -166,7 +184,7 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
     console.log('currentRoom before update: ', currentRoom?.messages);
 
     // Refresh state data
-    setCurrentRoom(fetchedRoom);
+    // setCurrentRoom(fetchedRoom);
     setRooms(prevRooms => {
       // Replace with fetchedRoom if it already exists in rooms
       const updatedRooms = (prevRooms || []).map(room =>
@@ -262,7 +280,7 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
     };
 
     // Add current user to readers list if currentRoom is the target
-    if (isTargetRoom(currentRoom?.id)) newMessage.readers.push(meAsAuthor);
+    if (isTargetRoom(selectedRoomID || '')) newMessage.readers.push(meAsAuthor);
 
     // console.log('rooms before update: ', rooms?['test01'].messages);
     // console.log('rooms before update: ', rooms['test01']);
@@ -313,7 +331,7 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
 
     // Update state
     setRooms(updatedRooms);
-    setCurrentRoom(updatedCurrentRoom);
+    // setCurrentRoom(updatedCurrentRoom);
 
     console.log(
       'Updated rooms: ',
@@ -340,6 +358,8 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
         messageCountMap,
         userChangesRoom,
         setUserChangesRoom,
+        selectedRoomID,
+        setSelectedRoomID,
       }}
     >
       {children}

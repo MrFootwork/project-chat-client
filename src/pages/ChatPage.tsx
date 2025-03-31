@@ -23,8 +23,13 @@ const ChatPage = () => {
   /**********
    * ROOMS
    **********/
-  const { rooms, fetchSelectedRoom, setUserChangesRoom } =
-    useContext(RoomsContext);
+  const {
+    rooms,
+    fetchSelectedRoom,
+    setUserChangesRoom,
+    selectedRoomID,
+    setSelectedRoomID,
+  } = useContext(RoomsContext);
   const isInitialRender = useRef(true);
 
   // Load messages for current room on first render
@@ -34,7 +39,8 @@ const ChatPage = () => {
     if (isFirstRender) {
       console.log('Initial Render detected: ', isFirstRender);
 
-      fetchSelectedRoom(rooms[0].id);
+      setSelectedRoomID(rooms[0].id);
+      // fetchSelectedRoom(rooms[0].id);
       isInitialRender.current = false;
     }
 
@@ -53,7 +59,8 @@ const ChatPage = () => {
       roomId,
       'selectedRoomId'
     );
-    await fetchSelectedRoom(roomId);
+    setSelectedRoomID(roomId || '');
+    // await fetchSelectedRoom(roomId);
     setUserChangesRoom(true);
   }
 

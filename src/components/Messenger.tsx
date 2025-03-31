@@ -20,17 +20,24 @@ const Messenger = () => {
   // Messages
   const { socket } = useContext(SocketContext);
   const [hasUnreadMessages, setHasUnreadMessages] = useState<boolean>(false);
-  const [sendingMessage, setSendingMessage] = useState(false);
+  const sendingMessage = useRef(false);
   const [receivingMessage, setReceivingMessage] = useState(false);
 
   // Rooms
-  const [roomMessages, setRoomMessages] = useState<Message[]>([]);
+  // const [roomMessages, setRoomMessages] = useState<Message[]>([]);
   const {
     currentRoom,
     updateRoomMessages,
     userChangesRoom,
     setUserChangesRoom,
+    selectedRoomID,
   } = useContext(RoomsContext);
+
+  const roomMessages = currentRoom?.messages || [];
+
+  useEffect(() => {
+    console.log('CHANGE ROOMS:', selectedRoomID, roomMessages.length);
+  }, [selectedRoomID]);
 
   // Input
   const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -54,6 +61,9 @@ const Messenger = () => {
   // 3. send message out of view
   // => scroll down happens on second message
 
+  // FIXME Try to simplify the logic and remove unnecessary states
+  // see chat: useEffect state management concerns in Messenger component
+
   // Jump to the bottom on mount
   useEffect(() => {
     if (initiallyScrolled.current) return;
@@ -76,16 +86,24 @@ const Messenger = () => {
 
   // Jump to the bottom when room has changed
   useEffect(() => {
-    console.log('ROOM CHANGE', userChangesRoom, roomMessages.length);
+    // console.log('ROOM CHANGE', userChangesRoom, roomMessages.length);
+
+    // console.log({
+    //   name: 'room change',
+    //   userChangesRoom,
+    //   roomMessages: roomMessages.length,
+    //   pass: !(!userChangesRoom || !roomMessages.length),
+    // });
+
     if (!userChangesRoom || !roomMessages.length) return;
 
-    console.log('ROOM CHANGE scrolling', userChangesRoom, roomMessages.length);
+    // console.log('ROOM CHANGE scrolling', userChangesRoom, roomMessages.length);
     messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
     setMovedUpView(false);
     setUserChangesRoom(false);
-  }, [userChangesRoom]);
+  }, [roomMessages]);
 
-  // Scroll to the bottom when sent message while out of view
+  // Scroll to the bottom when sent message, always
   useEffect(() => {
     // FIXME scroll to bottom if moved up view
     if (!roomMessages.length) return;
@@ -93,9 +111,15 @@ const Messenger = () => {
 
     const sentByMyself = user?.id === roomMessages.at(-1)?.author.id;
 
-    // console.log({ movedUpView, sentByMyself, sendingMessage });
+    // console.log({
+    //   name: 'scroll down when sending',
+    //   movedUpView,
+    //   sentByMyself,
+    //   sendingMessage: sendingMessage.current,
+    //   pass: sentByMyself && sendingMessage.current,
+    // });
 
-    if (sentByMyself && sendingMessage) {
+    if (sentByMyself && sendingMessage.current) {
       // Wait for rendering to finish
       setTimeout(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -105,8 +129,8 @@ const Messenger = () => {
       setHasUnreadMessages(false);
     }
 
-    setSendingMessage(false);
-  }, [roomMessages, sendingMessage]);
+    sendingMessage.current = false;
+  }, [roomMessages]);
 
   // alwas scroll to the bottom when receiving message while in view
   useEffect(() => {
@@ -155,6 +179,8 @@ const Messenger = () => {
       setMovedUpView(false);
       setHasUnreadMessages(false);
     }
+
+    console.log('setMovedUpView:', currentPosition < 0.99);
   }
 
   /**************************
@@ -174,7 +200,7 @@ const Messenger = () => {
     // console.log('BEFORE ~ currentRoom messages:', currentRoom.messages);
     // console.log('BEFORE ~ roomMessages:', roomMessages);
 
-    setRoomMessages(currentRoom.messages || []);
+    // setRoomMessages(currentRoom.messages || []);
     // console.log('ROOM CHANGE TRIGGER');
 
     // console.log('AFTER ~ currentRoom messages:', currentRoom.messages);
@@ -185,7 +211,7 @@ const Messenger = () => {
   function sendText(values: typeof form.values) {
     if (!socket) return;
 
-    setSendingMessage(true);
+    sendingMessage.current = true;
 
     console.log('Sending the message:', currentRoom?.id, values.text);
     socket.emit('send-message', currentRoom?.id, values.text);
@@ -205,13 +231,18 @@ const Messenger = () => {
    * Receive messages
    **************************/
   useEffect(() => {
+    console.log('SOCKET ON');
     socket?.on('receive-message', handleReceiveMessage);
 
     return () => {
+      console.log('SOCKET OFF');
       socket?.off('receive-message', handleReceiveMessage);
     };
-    // TODO shouldn't that have no dependencies?
-  }, [currentRoom]);
+    // TODO Find a way to reduce dependencies
+    // and make the listener use latest values of states
+    // }, [currentRoom?.messages]);
+  }, [selectedRoomID, currentRoom?.messages, movedUpView]);
+  // }, [currentRoom?.id, currentRoom?.messages, movedUpView]);
 
   /** Handles how received messages are managed. */
   function handleReceiveMessage(message: Message) {
@@ -232,10 +263,16 @@ const Messenger = () => {
     setReceivingMessage(true);
 
     // Activate Unread Messages indicator
-    const isInCurrentRoom = currentRoom?.id === message.roomId;
+    const isInCurrentRoom = selectedRoomID === message.roomId;
     const sentByMyself = user?.id === message.author.id;
 
-    // console.log({ isInCurrentRoom, movedUpView, sentByMyself });
+    // console.log({
+    //   name: 'socket.on("receive-message")',
+    //   isInCurrentRoom,
+    //   movedUpView,
+    //   sentByMyself,
+    //   pass: isInCurrentRoom && movedUpView && !sentByMyself,
+    // });
 
     if (isInCurrentRoom && movedUpView && !sentByMyself)
       setHasUnreadMessages(true);
@@ -256,7 +293,7 @@ const Messenger = () => {
         <p>Here are the messages.</p>
         {currentRoom ? <>{currentRoom.name}</> : 'Choose a room!'}
         <ol>
-          {roomMessages.length
+          {!!selectedRoomID && !!roomMessages.length
             ? roomMessages.map(message => (
                 <li key={message.id}>
                   <MessageCard message={message} />

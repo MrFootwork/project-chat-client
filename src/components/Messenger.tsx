@@ -151,13 +151,20 @@ const Messenger = () => {
         {selectedRoomID ? <>{currentRoom?.name}</> : 'Choose a room!'}
         <ol>
           {currentRoom?.messages.length
-            ? currentRoom?.messages.map(message => (
-                <li key={message.id}>
-                  {/* FIXME Don't repeat avatar and user name */}
-                  {/* FIXME Myself should be on the right */}
-                  <MessageCard message={message} />
-                </li>
-              ))
+            ? currentRoom?.messages.map((message, i) => {
+                // Explicit reclalculating messagesProp to force re-render
+                const messagesProp = {
+                  pre: currentRoom?.messages[i - 1] || null,
+                  this: { ...message },
+                  next: currentRoom?.messages[i + 1] || null,
+                };
+
+                return (
+                  <li key={`${message.id}-${currentRoom.messages.length}`}>
+                    <MessageCard messages={messagesProp} />
+                  </li>
+                );
+              })
             : ''}
           <div ref={messagesEndRef} />
         </ol>

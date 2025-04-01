@@ -1,8 +1,15 @@
 import axios from 'axios';
-import React, { ReactNode, useEffect, useRef, useState } from 'react';
+import React, {
+  ReactNode,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import config from '../../config';
 import { Room } from '../types/room';
 import { Message } from '../types/message';
+import { AuthContext } from './AuthWrapper';
 
 const API_URL = config.API_URL;
 
@@ -28,6 +35,17 @@ const RoomsContext = React.createContext<RoomsContextType>(defaultStore);
 
 function RoomsWrapper({ children }: { children: ReactNode }) {
   const [store, setStore] = useState<RoomsContextType>(defaultStore);
+  const { logout } = useContext(AuthContext);
+
+  // Reset to default, if user logs out
+  useEffect(() => {
+    setStore(s => ({
+      ...s,
+      rooms: null,
+      selectedRoomID: null,
+      currentRoom: null,
+    }));
+  }, [logout]);
 
   // Set Current Room on each selection change
   useEffect(() => {

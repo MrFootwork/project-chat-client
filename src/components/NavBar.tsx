@@ -1,7 +1,7 @@
 import './NavBar.css';
 import config from '../../config';
 
-import { useContext, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Button,
@@ -39,10 +39,9 @@ const NavBar = () => {
 
   const [isDark, setIsDark] = useState(computedColorScheme === 'dark');
 
-  // FIXME debug Icon
   function toggleTheme() {
+    setIsDark(computedColorScheme !== 'dark');
     toggleColorScheme();
-    setIsDark(computedColorScheme === 'dark');
   }
 
   return (
@@ -63,9 +62,9 @@ const NavBar = () => {
       <div className='button-container'>
         <button className='button-theme-toggler'>
           {isDark ? (
-            <IconMoon onClick={toggleTheme} />
-          ) : (
             <IconSun onClick={toggleTheme} />
+          ) : (
+            <IconMoon onClick={toggleTheme} />
           )}
         </button>
 

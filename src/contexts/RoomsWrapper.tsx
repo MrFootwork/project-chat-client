@@ -39,7 +39,12 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
     setStore(s => ({ ...s, currentRoom: selectedRoom }));
   }, [store.selectedRoomID]);
 
-  // Fetch all rooms on mount
+  /**
+   * Fetches all rooms of user by token from the API and updates the store.
+   * Logs an error if the request fails.
+   *
+   * @returns A promise that resolves with the list of rooms or an empty array on failure.
+   */
   async function fetchRooms() {
     try {
       const { data } = await axios.get<Room[]>(`${API_URL}/api/rooms`, {
@@ -59,7 +64,12 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
     }
   }
 
-  // Fetch and set selected room on room change
+  /**
+   * Fetches the details of a selected room by its ID and updates the store.
+   *
+   * @param roomID - The ID of the room to fetch.
+   * @returns Resolves when the room is successfully fetched and the store is updated.
+   */
   async function fetchSelectedRoom(roomID: string) {
     try {
       const { data } = await axios.get<Room>(`${API_URL}/api/rooms/${roomID}`, {

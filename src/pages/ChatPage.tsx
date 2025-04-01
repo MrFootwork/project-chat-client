@@ -25,7 +25,6 @@ const ChatPage = () => {
    **********/
   const { rooms, fetchRooms, fetchSelectedRoom, selectedRoomID } =
     useContext(RoomsContext);
-  const isInitialRender = useRef(true);
 
   // initial page load
   useEffect(() => {
@@ -48,6 +47,7 @@ const ChatPage = () => {
           {rooms?.map((room, firstElement) => {
             return (
               <li key={room.id}>
+                {/* FIXME Add unread messages icon */}
                 <input
                   defaultChecked={!firstElement}
                   type='radio'

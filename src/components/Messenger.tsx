@@ -153,6 +153,8 @@ const Messenger = () => {
           {currentRoom?.messages.length
             ? currentRoom?.messages.map(message => (
                 <li key={message.id}>
+                  {/* FIXME Don't repeat avatar and user name */}
+                  {/* FIXME Myself should be on the right */}
                   <MessageCard message={message} />
                 </li>
               ))

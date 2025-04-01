@@ -14,17 +14,6 @@
     font-weight: bold;
   }
 
-  &.its-me {
-    background-color: var(--bg-bubble-me);
-
-    margin: 0.5rem;
-    margin-left: auto;
-
-    & h5 {
-      color: var(--color-bubble-me);
-    }
-  }
-
   position: relative;
 
   .image-container {
@@ -44,5 +33,30 @@
     img {
       width: var(--image-size);
     }
+  }
+}
+
+.message-card.its-me {
+  background-color: var(--bg-bubble-me);
+
+  margin: 0.5rem;
+  margin-left: auto;
+  padding: 0.5rem 1rem;
+  padding-right: 3.5rem;
+
+  & h5 {
+    color: var(--color-bubble-me);
+
+    text-align: right;
+  }
+
+  & p {
+    text-align: right;
+  }
+
+  & .image-container {
+    left: unset;
+    top: -0.25rem;
+    right: -0.25rem;
   }
 }

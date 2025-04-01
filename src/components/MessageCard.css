@@ -9,7 +9,7 @@
   padding: 0.5rem 1rem;
   padding-left: 3rem;
 
-  & label {
+  & h5 {
     color: var(--color-bubble-them);
     font-weight: bold;
   }
@@ -20,7 +20,7 @@
     margin: 0.5rem;
     margin-left: auto;
 
-    & label {
+    & h5 {
       color: var(--color-bubble-me);
     }
   }

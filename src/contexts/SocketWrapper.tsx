@@ -57,6 +57,7 @@ function SocketWrapper({ children }: { children: ReactNode }) {
 
           socket.emit('join-room', roomIDs);
           console.groupEnd();
+          console.groupEnd();
         });
 
         return () => {
@@ -81,7 +82,6 @@ function SocketWrapper({ children }: { children: ReactNode }) {
         setSocket(null);
         console.log('Disconnected from socket server.');
       }
-      console.groupEnd();
     }, 500);
   }, [user?.id, token, Boolean(rooms?.length)]);
 

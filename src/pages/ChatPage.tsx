@@ -23,38 +23,18 @@ const ChatPage = () => {
   /**********
    * ROOMS
    **********/
-  const { rooms, fetchSelectedRoom, setUserChangesRoom } =
+  const { rooms, fetchRooms, fetchSelectedRoom, selectedRoomID } =
     useContext(RoomsContext);
   const isInitialRender = useRef(true);
 
-  // Load messages for current room on first render
+  // initial page load
   useEffect(() => {
-    const isFirstRender = rooms && isInitialRender.current;
-
-    if (isFirstRender) {
-      console.log('Initial Render detected: ', isFirstRender);
-
-      fetchSelectedRoom(rooms[0].id);
-      isInitialRender.current = false;
-    }
-
-    return;
-  }, [rooms]);
+    fetchRooms();
+  }, []);
 
   // Fetch selected room messages
-  async function selectRoom(roomId: string) {
-    console.log(
-      `🎉 SCROLL JUMP Room selected: roomId`,
-      roomId,
-      'selectedRoomId'
-    );
-    console.log(
-      `🎉 SCROLL JUMP selectedRoomId updated`,
-      roomId,
-      'selectedRoomId'
-    );
-    await fetchSelectedRoom(roomId);
-    setUserChangesRoom(true);
+  function handleRoomSelection(roomID: string) {
+    fetchSelectedRoom(roomID);
   }
 
   return (
@@ -73,7 +53,7 @@ const ChatPage = () => {
                   type='radio'
                   name='room'
                   id={`room-${room.id}`}
-                  onChange={() => selectRoom(room.id)}
+                  onChange={() => handleRoomSelection(room.id)}
                 />
                 <label htmlFor={`room-${room.id}`}>{room.name}</label>
               </li>
@@ -83,7 +63,7 @@ const ChatPage = () => {
       </nav>
 
       <section className='messenger-container'>
-        <Messenger />
+        <Messenger key={selectedRoomID} />
       </section>
     </div>
   );

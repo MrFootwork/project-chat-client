@@ -1,346 +1,125 @@
 import axios from 'axios';
-import React, { ReactNode, useContext, useEffect, useState } from 'react';
+import React, { ReactNode, useEffect, useRef, useState } from 'react';
 import config from '../../config';
-import { AuthContext } from './AuthWrapper';
 import { Room } from '../types/room';
 import { Message } from '../types/message';
-import { MessageAuthor } from '../types/user';
 
 const API_URL = config.API_URL;
 
-type RoomContext = Room | null;
-type RoomsContext = Room[] | null;
-type MessageCountMapType = {
-  [roomId: string]: { total: number; unread: number };
+const defaultStore = {
+  rooms: null,
+  fetchRooms: async () => [],
+  fetchSelectedRoom: async (roomID: string) => {},
+  selectedRoomID: null,
+  currentRoom: null,
+  pushMessage: async (message: Message) => {},
 };
 
-const RoomsContext = React.createContext<{
-  rooms: RoomsContext;
-  currentRoom: RoomContext;
+type RoomsContextType = {
+  rooms: Room[] | null;
+  fetchRooms: () => Promise<Room[]>;
   fetchSelectedRoom: (roomID: string) => Promise<void>;
-  updateRoomMessages: (message: Message) => void;
-  messageCountMap: MessageCountMapType;
-  userChangesRoom: boolean;
-  setUserChangesRoom: React.Dispatch<React.SetStateAction<boolean>>;
-}>({
-  rooms: null,
-  currentRoom: null,
-  fetchSelectedRoom: async () => {},
-  updateRoomMessages: () => {},
-  messageCountMap: {},
-  userChangesRoom: false,
-  setUserChangesRoom: () => {},
-});
+  selectedRoomID: string | null;
+  currentRoom: Room | null;
+  pushMessage: (message: Message) => Promise<void>;
+};
+
+const RoomsContext = React.createContext<RoomsContextType>(defaultStore);
 
 function RoomsWrapper({ children }: { children: ReactNode }) {
-  const { user, token } = useContext(AuthContext);
-  const [rooms, setRooms] = useState<RoomsContext>(null);
-  const [currentRoom, setCurrentRoom] = useState<RoomContext>(null);
-  const [messageCountMap, setMessageCountMap] = useState<MessageCountMapType>(
-    {}
-  );
-  const [userChangesRoom, setUserChangesRoom] = useState(false);
+  const [store, setStore] = useState<RoomsContextType>(defaultStore);
 
-  // Initially after login fetch all rooms
+  // Set Current Room on each selection change
   useEffect(() => {
-    if (!user) return;
-    console.groupCollapsed('fetchRooms');
+    console.log('Selection changed: ', store.selectedRoomID);
+    const selectedRoom = store.rooms?.find(r => r.id === store.selectedRoomID);
+    if (!selectedRoom) return;
 
-    fetchRooms()
-      .then(() => {
-        console.log('Rooms final state:', rooms);
-      })
-      .catch(error => {
-        console.error('Error fetching rooms:', error.code, error.message);
-      });
+    // HACK doesn't load initially without this
+    setStore(s => ({ ...s, currentRoom: selectedRoom }));
+  }, [store.selectedRoomID]);
 
-    console.groupEnd();
-  }, [!!user]);
-
-  // FIXME Cleanup unused code
-  // Update message map (map of rooms and their unread message count) on user or rooms change
-  // useEffect(() => {
-  //   if (!rooms || !user) return;
-  //   refreshMessageMap();
-  // }, [user, rooms]);
-
+  // Fetch all rooms on mount
   async function fetchRooms() {
     try {
-      const fetchedRooms = await axios.get(API_URL + '/api/rooms', {
-        withCredentials: true,
-        headers: { Authorization: `Bearer ${token}` },
+      const { data } = await axios.get<Room[]>(`${API_URL}/api/rooms`, {
+        headers: {
+          // TODO add token retrieval method
+          Authorization: `Bearer ${localStorage.getItem('chatToken')}`,
+        },
       });
 
-      console.log(`Fetched Rooms: `, fetchedRooms.data);
+      console.log('Rooms fetched successfully: ', data);
+      setStore(s => ({ ...s, rooms: data, selectedRoomID: data[0]?.id }));
 
-      if (fetchedRooms) setRooms(fetchedRooms.data);
-    } catch (error) {
-      throw error;
+      return data;
+    } catch (err) {
+      console.error('Error fetching rooms: ', err);
+      return [];
     }
   }
 
-  function refreshMessageMap(copyOfRooms: Room[]): void {
-    const newMessageMap: MessageCountMapType = {};
-    console.groupCollapsed('refreshUnreadMessages');
-
-    copyOfRooms?.forEach(room => {
-      const unreadMessages = room.messages.filter(message => {
-        if (!message.readers) {
-          console.warn(
-            'searching for unread messages: ',
-            message,
-            message.readers
-          );
-          return false;
-        }
-
-        return !message.readers.find(reader => reader.id === user?.id);
+  // Fetch and set selected room on room change
+  async function fetchSelectedRoom(roomID: string) {
+    try {
+      const { data } = await axios.get<Room>(`${API_URL}/api/rooms/${roomID}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('chatToken')}`,
+        },
       });
 
-      newMessageMap[`${room.id} | ${room.name}`] = {
-        total: room.messages.length,
-        unread: unreadMessages.length,
-      };
-      console.log('Messages:', room.name, room.messages.length);
-      // unreadMessagesMap[room.id] = unreadMessages.length;
-    });
+      // console.log('Selected room fetched successfully: ', data);
 
-    setMessageCountMap(newMessageMap);
-    console.table(newMessageMap);
-    console.groupEnd();
-  }
+      if (!store.rooms) return;
 
-  /**
-   * Fetches the details of a specific room by its ID and updates the state.
-   *
-   * This function performs the following steps:
-   * 1. Sends a GET request to fetch the room details from the server.
-   * 2. Updates the `currentRoom` state with the fetched room data.
-   * 3. Updates the `rooms` state by replacing the existing room with the fetched room
-   *    or appending it if it doesn't already exist.
-   *
-   * @param {string} roomId - The ID of the room to fetch.
-   * @returns {Promise<void>} A promise that resolves when the room data is fetched and state is updated.
-   *
-   * @example
-   * await fetchSelectedRoom('12345');
-   */
-  async function fetchSelectedRoom(roomId: string) {
-    console.groupCollapsed(
-      'fetchSelectedRoom',
-      roomId,
-      '|',
-      rooms?.find(r => r.id === roomId)?.name
-    );
-
-    const response = await axios.get(API_URL + `/api/rooms/${roomId}`, {
-      withCredentials: true,
-      headers: { Authorization: `Bearer ${token}` },
-    });
-
-    const fetchedRoom = response.data as Room;
-    console.log(`Room from DB:`, fetchedRoom);
-
-    if (!fetchedRoom) {
-      console.groupEnd();
-      return;
-    }
-
-    const readResponse = await axios.put(
-      API_URL + `/api/rooms/${roomId}/read`,
-      undefined,
-      { withCredentials: true, headers: { Authorization: `Bearer ${token}` } }
-    );
-
-    console.log(
-      `DB Response on setting messages to 'read':`,
-      readResponse.status,
-      readResponse.data
-    );
-
-    // console.log('rooms before update: ', rooms?['test01'].messages);
-    console.log(
-      'rooms before update: ',
-      rooms?.find(r => r.id === roomId)?.messages
-    );
-    console.log('currentRoom before update: ', currentRoom?.messages);
-
-    // Refresh state data
-    setCurrentRoom(fetchedRoom);
-    setRooms(prevRooms => {
-      // Replace with fetchedRoom if it already exists in rooms
-      const updatedRooms = (prevRooms || []).map(room =>
-        room.id === fetchedRoom.id ? fetchedRoom : room
-      );
-
-      // I suspect this is redundant
-      const isRoomPresent = updatedRooms.some(
-        room => room.id === fetchedRoom.id
-      );
-
-      // Append fetchedRoom if it doesn't exist in rooms
-      return isRoomPresent ? updatedRooms : [...updatedRooms, fetchedRoom];
-    });
-
-    console.log(
-      'rooms after update: ',
-      rooms?.find(r => r.id === roomId)?.messages
-    );
-    console.log('currentRoom after update: ', currentRoom?.messages);
-
-    console.groupEnd();
-  }
-
-  /**
-   * Updates the room data by adding a new message to the appropriate room.
-   *
-   * This function performs the following steps:
-   * 1. Verifies if the user is logged in. If not, logs an error and exits.
-   * 2. Checks if the room associated with the message exists in the current user's rooms.
-   * 3. Ensures the message is not already present in the room to avoid duplicates.
-   * 4. Adds the current user to the `readers` property of the message if the message belongs to the current room.
-   * 5. Updates the state of `rooms` by appending the new message to the appropriate room.
-   * 6. Updates the state of `currentRoom` if the message belongs to the currently selected room.
-   *
-   * @param {Message} newMessage - The message object to be added to the room.
-   * @throws Will log an error if the user is not logged in or if the room for the message is not found.
-   *
-   * @example
-   * const newMessage = {
-   *   id: '123',
-   *   roomId: '456',
-   *   content: 'Hello, world!',
-   *   createdAt: new Date(),
-   *   readers: [],
-   * };
-   * updateRoomByMessage(newMessage);
-   */
-  function updateRoomMessages(newMessage: Message) {
-    console.groupCollapsed('updateRoomMessages', newMessage.roomId);
-    // Check if user is logged in
-    if (!user) {
-      console.error('User not found while updating room by message');
-      console.groupEnd();
-      return;
-    }
-
-    // Check if room of this message exists in the rooms state
-    function isTargetRoom(aRoomID: string = '') {
-      return aRoomID === newMessage.roomId;
-    }
-
-    const targetRoom = rooms?.find(room => isTargetRoom(room.id));
-
-    console.assert(!!targetRoom, 'Room not found for message:', newMessage);
-
-    if (!targetRoom) {
-      console.groupEnd();
-      return;
-    }
-
-    console.log('found room', targetRoom);
-
-    // Check if the room already has this message
-    const hasThisMessage = targetRoom?.messages.some(
-      m => m.id === newMessage.id
-    );
-
-    if (hasThisMessage) {
-      console.error('Room already has this message:', {
-        message: newMessage,
-        targetRoom,
-      });
-      console.groupEnd();
-      return;
-    }
-
-    const meAsAuthor: MessageAuthor = {
-      id: user.id,
-      name: user.name,
-      avatarUrl: user.avatarUrl || '',
-      isDeleted: user.isDeleted,
-    };
-
-    // Add current user to readers list if currentRoom is the target
-    if (isTargetRoom(currentRoom?.id)) newMessage.readers.push(meAsAuthor);
-
-    // console.log('rooms before update: ', rooms?['test01'].messages);
-    // console.log('rooms before update: ', rooms['test01']);
-    console.log('currentRoom before update: ', currentRoom?.messages);
-
-    // Create and store an updated rooms
-    const updatedRooms =
-      rooms?.map(room => {
-        const tempMessages: Message[] = [];
-
-        if (isTargetRoom(room.id)) {
-          room.messages.forEach(message => {
-            if (message.id === newMessage.id) tempMessages.push(newMessage);
-            else tempMessages.push(message);
-          });
-
-          return {
-            ...room,
-            messages: tempMessages,
-          };
-        }
-
+      const updatedRooms = store.rooms.map(room => {
+        if (room.id === data.id) return data;
         return room;
-      }) || [];
+      });
 
-    // FIXME Maybe make currentRoom depend on rooms?
-    // Create and store an updated room
-    let updatedCurrentRoom: RoomContext;
+      if (!updatedRooms) return;
 
-    if (isTargetRoom(currentRoom?.id)) {
-      const tempMessages: Message[] = structuredClone(
-        currentRoom?.messages || []
-      );
-
-      updatedCurrentRoom = {
-        ...currentRoom,
-        messages: [...tempMessages, newMessage],
-      } as RoomContext;
-    } else {
-      updatedCurrentRoom = currentRoom;
+      setStore(s => ({
+        ...s,
+        rooms: updatedRooms,
+        selectedRoomID: roomID,
+        currentRoom: data,
+      }));
+    } catch (err) {
+      console.error('Error fetching selected room: ', err);
     }
+  }
 
-    // FIXME Cleanup unused code
-    console.log(
-      `Internal current room to update currentRoom with:`,
-      updatedCurrentRoom?.messages.length
-    );
+  // Push a new message to the correct room
+  async function pushMessage(message: Message) {
+    if (!store.rooms) return;
 
-    // Update state
-    setRooms(updatedRooms);
-    setCurrentRoom(updatedCurrentRoom);
+    const updatedRooms = store.rooms.map(room => {
+      if (room.id === message.roomId) {
+        return { ...room, messages: [...room.messages, message] };
+      }
+      return room;
+    });
 
-    console.log(
-      'Updated rooms: ',
-      rooms?.map(r => {
-        name: r.name;
-        messages: r.messages;
-      })
-    );
-    console.log('Updated currentRoom: ', updatedCurrentRoom?.messages);
+    const isCurrentRoom = store.currentRoom?.id === message.roomId;
 
-    // BUG Why is it still counting so bad?
-    refreshMessageMap(updatedRooms);
+    if (isCurrentRoom) {
+      const updatedCurrentRoom =
+        updatedRooms.find(r => r.id === message.roomId) || null;
 
-    console.groupEnd();
+      setStore(s => ({
+        ...s,
+        rooms: updatedRooms,
+        currentRoom: updatedCurrentRoom,
+      }));
+    } else {
+      setStore(s => ({ ...s, rooms: updatedRooms }));
+    }
   }
 
   return (
     <RoomsContext.Provider
-      value={{
-        rooms,
-        currentRoom,
-        fetchSelectedRoom,
-        updateRoomMessages,
-        messageCountMap,
-        userChangesRoom,
-        setUserChangesRoom,
-      }}
+      value={{ ...store, fetchRooms, fetchSelectedRoom, pushMessage }}
     >
       {children}
     </RoomsContext.Provider>

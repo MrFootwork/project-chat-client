@@ -14,28 +14,15 @@ const Messenger = () => {
   /**************************
    * States and Refs
    **************************/
-  // User
   const { user } = useContext(AuthContext);
-
-  // Messages
   const { socket } = useContext(SocketContext);
-  const [hasUnreadMessages, setHasUnreadMessages] = useState<boolean>(false);
-  const [sendingMessage, setSendingMessage] = useState(false);
-  const [receivingMessage, setReceivingMessage] = useState(false);
-
-  // Rooms
-  const [roomMessages, setRoomMessages] = useState<Message[]>([]);
-  const {
-    currentRoom,
-    updateRoomMessages,
-    userChangesRoom,
-    setUserChangesRoom,
-  } = useContext(RoomsContext);
+  const { currentRoom, selectedRoomID, pushMessage } = useContext(RoomsContext);
 
   // Input
   const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
 
   // Scrolling
+  const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
   const [movedUpView, setMovedUpView] = useState<boolean>(false);
   const [scrollPosition, setScrollPosition] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -44,101 +31,18 @@ const Messenger = () => {
   /**************************
    * Messenger display
    **************************/
-  const initiallyScrolled = useRef<boolean>(false);
-
-  // BUG states seem to lag one step behind
-  // 1. receive message in other room
-  // => when coming back, scroll down only to previous state
-  // 2. receive message in current room out of view
-  // => unread indicator shows up on second message
-  // 3. send message out of view
-  // => scroll down happens on second message
-
-  // Jump to the bottom on mount
+  // Jump to the bottom on mount & when room has changed
   useEffect(() => {
-    if (initiallyScrolled.current) return;
-    if (!currentRoom || !roomMessages) return;
+    if (!messagesDisplay.current) return;
 
-    // Without timeout the scroll executes before re-render of roomMessages
-    const timeoutID = setTimeout(() => {
-      console.log('SCROLL JUMP TO BOTTOM on mount');
-      messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
-      setMovedUpView(false);
-      initiallyScrolled.current = true;
-    }, 10);
-
-    return () => {
-      if (!initiallyScrolled.current) return;
-      console.log('SCROLL JUMP TO BOTTOM clear timeout');
-      clearTimeout(timeoutID);
-    };
-  }, [currentRoom, roomMessages, initiallyScrolled]);
-
-  // Jump to the bottom when room has changed
-  useEffect(() => {
-    console.log('ROOM CHANGE', userChangesRoom, roomMessages.length);
-    if (!userChangesRoom || !roomMessages.length) return;
-
-    console.log('ROOM CHANGE scrolling', userChangesRoom, roomMessages.length);
-    messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
-    setMovedUpView(false);
-    setUserChangesRoom(false);
-  }, [userChangesRoom]);
-
-  // Scroll to the bottom when sent message while out of view
-  useEffect(() => {
-    // FIXME scroll to bottom if moved up view
-    if (!roomMessages.length) return;
-    if (!currentRoom) return;
-
-    const sentByMyself = user?.id === roomMessages.at(-1)?.author.id;
-
-    // console.log({ movedUpView, sentByMyself, sendingMessage });
-
-    if (sentByMyself && sendingMessage) {
-      // Wait for rendering to finish
-      setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-        setMovedUpView(false);
-      }, 150);
-
-      setHasUnreadMessages(false);
-    }
-
-    setSendingMessage(false);
-  }, [roomMessages, sendingMessage]);
-
-  // alwas scroll to the bottom when receiving message while in view
-  useEffect(() => {
-    if (!roomMessages.length) return;
-    if (!receivingMessage) return;
-
-    if (receivingMessage && !movedUpView) {
-      // Wait for rendering to finish
-      setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-        setMovedUpView(false);
-      }, 150);
-
-      setHasUnreadMessages(false);
-    }
-
-    setReceivingMessage(false);
-  }, [roomMessages, receivingMessage]);
-
-  // FIXME add indicator on message receive
+    // console.log('SCROLLING DOWN', selectedRoomID);
+    messagesDisplay.current.scrollTop = messagesDisplay.current.scrollHeight;
+  }, [currentRoom?.id]);
 
   // Click Handler to scroll down smoothly
   function onClickScroll() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     setMovedUpView(false);
-
-    let timeoutID: number;
-
-    timeoutID = setTimeout(() => {
-      setHasUnreadMessages(false);
-      clearTimeout(timeoutID);
-    }, 500);
   }
 
   // Listen and store scroll position on scroll event
@@ -151,11 +55,13 @@ const Messenger = () => {
     setScrollPosition(currentPosition);
 
     if (currentPosition < 0.99) setMovedUpView(true);
-    if (currentPosition >= 0.99) {
-      setMovedUpView(false);
-      setHasUnreadMessages(false);
-    }
+    if (currentPosition >= 0.99) setMovedUpView(false);
   }
+
+  // Remove indicator when at bottom
+  useEffect(() => {
+    if (!movedUpView) setHasUnreadMessages(false);
+  }, [movedUpView]);
 
   /**************************
    * Send messages
@@ -165,30 +71,14 @@ const Messenger = () => {
     initialValues: { text: '' },
   });
 
-  // Load messages for the current room
-  useEffect(() => {
-    const currentRoomExists = currentRoom && currentRoom?.messages;
-    if (!currentRoomExists) return;
-
-    // console.groupCollapsed('Messenger updates roomMessages in useEffect');
-    // console.log('BEFORE ~ currentRoom messages:', currentRoom.messages);
-    // console.log('BEFORE ~ roomMessages:', roomMessages);
-
-    setRoomMessages(currentRoom.messages || []);
-    // console.log('ROOM CHANGE TRIGGER');
-
-    // console.log('AFTER ~ currentRoom messages:', currentRoom.messages);
-    // console.log('AFTER ~ roomMessages:', roomMessages);
-    console.groupEnd();
-  }, [currentRoom]);
-
   function sendText(values: typeof form.values) {
     if (!socket) return;
 
-    setSendingMessage(true);
-
-    console.log('Sending the message:', currentRoom?.id, values.text);
+    console.log(
+      `Sending the message: ${currentRoom?.id} | ${currentRoom?.name} | ${values.text}`
+    );
     socket.emit('send-message', currentRoom?.id, values.text);
+
     form.reset();
     textAreaRef.current?.focus();
   }
@@ -201,49 +91,53 @@ const Messenger = () => {
     }
   }
 
+  // Sending messages, while out of view
+  // => scroll down
+  useEffect(() => {
+    const sentByMyself = currentRoom?.messages.at(-1)?.author.id === user?.id;
+
+    if (movedUpView && sentByMyself) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [currentRoom?.messages.length]);
+
   /**************************
    * Receive messages
    **************************/
+  // Setup socket listener for incoming messages
   useEffect(() => {
+    // console.log('MESSAGE LISTENER ON', socket?.id);
     socket?.on('receive-message', handleReceiveMessage);
+    // console.log('SOCKET LISTENER', currentRoom?.messages);
 
     return () => {
+      // console.log('MESSAGE LISTENER OFF');
       socket?.off('receive-message', handleReceiveMessage);
     };
-    // TODO shouldn't that have no dependencies?
-  }, [currentRoom]);
+    //
+  }, [socket?.connected, currentRoom?.messages.length]);
 
   /** Handles how received messages are managed. */
   function handleReceiveMessage(message: Message) {
-    // console.groupCollapsed('handleReceiveMessage');
-    // console.log(
-    //   `received message from DB by ${message.author.name}: "${message.content}"`
-    // );
-    // console.log('currentRoom before:', currentRoom?.messages);
-
-    // console.log(
-    //   `Scrolling set to smooth ~ enteringRoom: ${firstPageLoad.current}`
-    // );
-
-    // Push new message to corresponding room messages
-    updateRoomMessages(message);
-
-    // Set receivingMessage flag
-    setReceivingMessage(true);
-
-    // Activate Unread Messages indicator
-    const isInCurrentRoom = currentRoom?.id === message.roomId;
-    const sentByMyself = user?.id === message.author.id;
-
-    // console.log({ isInCurrentRoom, movedUpView, sentByMyself });
-
-    if (isInCurrentRoom && movedUpView && !sentByMyself)
-      setHasUnreadMessages(true);
-
-    // FIXME Count and store unread messages for each room
-    // console.log('currentRoom after:', currentRoom?.messages);
-    // console.groupEnd();
+    console.log('RECEIVE MESSAGE', message.author.name, message.content);
+    pushMessage(message);
   }
+
+  // Receiving messages while moved up
+  // => show indicator
+  useEffect(() => {
+    const sentByMyself = currentRoom?.messages.at(-1)?.author.id === user?.id;
+
+    if (movedUpView && !sentByMyself) setHasUnreadMessages(true);
+  }, [currentRoom?.messages.length]);
+
+  // Receiving messages in currentRoom while scroll position is at the bottom
+  // => scroll down
+  useEffect(() => {
+    if (movedUpView || !messagesEndRef.current) return;
+
+    messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+  }, [currentRoom?.messages.length]);
 
   return (
     <div className='messenger-container'>
@@ -254,10 +148,10 @@ const Messenger = () => {
       >
         {/* TODO Add Messenger Header with chatroom details */}
         <p>Here are the messages.</p>
-        {currentRoom ? <>{currentRoom.name}</> : 'Choose a room!'}
+        {selectedRoomID ? <>{currentRoom?.name}</> : 'Choose a room!'}
         <ol>
-          {roomMessages.length
-            ? roomMessages.map(message => (
+          {currentRoom?.messages.length
+            ? currentRoom?.messages.map(message => (
                 <li key={message.id}>
                   <MessageCard message={message} />
                 </li>

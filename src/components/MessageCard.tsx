@@ -12,8 +12,8 @@ const MessageCard = ({ message }: { message: Message }) => {
       <div className='image-container'>
         <img src={message.author.avatarUrl} alt='' />
       </div>
-      <label htmlFor={`text-${message.id}`}>{message.author.name}</label>
-      <p id={`text-${message.id}`}>{message.content || ''}</p>
+      <h5>{message.author.name}</h5>
+      <p>{message.content || ''}</p>
     </div>
   );
 };

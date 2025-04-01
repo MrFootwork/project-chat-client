@@ -18,7 +18,7 @@ import { IconMoon, IconSun, IconSunFilled } from '@tabler/icons-react';
 const NavBar = () => {
   const { user, logout } = useContext(AuthContext);
   const { socket } = useContext(SocketContext);
-  const { currentRoom } = useContext(RoomsContext);
+  const { selectedRoomID } = useContext(RoomsContext);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -54,7 +54,7 @@ const NavBar = () => {
           Env: {config.API_URL} <br />
           User: "{user?.name}" {user?.id} <br />
           Socket: {socket?.id} <br />
-          Room: {currentRoom?.id}
+          Room: {selectedRoomID}
         </p>
       ) : (
         ''

@@ -142,7 +142,7 @@ const Messenger = () => {
 
   return (
     <div className='messenger-container'>
-      {/* TODO Add Messenger Header with chatroom details */}
+      {/* FIXME Add Messenger Header with chatroom details */}
       <div
         ref={messagesDisplay}
         className='messages-display'

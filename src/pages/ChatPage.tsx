@@ -32,6 +32,8 @@ const ChatPage = () => {
   useEffect(() => {
     fetchRooms();
     // Fetch the first room messages & set messages to read
+    // BUG Doesn't set messages to read on first load
+    // Would only work if user selected the room manually
     if (rooms?.length) fetchSelectedRoom(rooms[0]?.id || '');
   }, []);
 

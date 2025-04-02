@@ -142,7 +142,20 @@ const Messenger = () => {
 
   return (
     <div className='messenger-container'>
-      {/* FIXME Add Messenger Header with chatroom details */}
+      <header>
+        <h3>{currentRoom?.name}</h3>
+        <div className='members-container'>
+          {currentRoom?.members.map(member => {
+            return (
+              <div key={`member-${member.id}`} className='avatar-container'>
+                <img src={member.avatarUrl} alt={member.name} />
+              </div>
+            );
+          })}
+        </div>
+        <p>{`${currentRoom?.members.length} Members`}</p>
+      </header>
+
       <div
         ref={messagesDisplay}
         className='messages-display'

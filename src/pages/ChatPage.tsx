@@ -28,13 +28,13 @@ const ChatPage = () => {
   const { rooms, fetchRooms, fetchSelectedRoom, selectedRoomID } =
     useContext(RoomsContext);
 
-  // initial page load
+  // Initial page load
   useEffect(() => {
     console.log('Loading from ChatPage...');
     fetchRooms();
   }, []);
 
-  // After initial load, fetch the first room messages & set messages to read
+  // After initial load, fetch the first room messages & set messages to being read
   // Needs this effect to access the rooms from before
   useEffect(() => {
     if (rooms?.length) {

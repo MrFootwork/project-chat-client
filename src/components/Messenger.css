@@ -2,10 +2,43 @@ div.messenger-container {
   height: 100%;
 
   display: grid;
-  grid-template-rows: 1fr 5rem;
+  grid-template-rows: 5rem 1fr 5rem;
   grid-template-areas:
+    'header'
     'display'
     'input';
+
+  & header {
+    padding: 0 3rem;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  & .members-container {
+    display: flex;
+    gap: 0;
+
+    & .avatar-container {
+      --image-size: 3rem;
+      overflow: hidden;
+      border-radius: 50%;
+      height: var(--image-size);
+      width: var(--image-size);
+
+      object-position: center;
+      object-fit: cover;
+
+      margin-left: -2rem;
+      /* TODO user proper stacking order */
+
+      img {
+        width: var(--image-size);
+      }
+    }
+  }
 }
 
 .messages-display {

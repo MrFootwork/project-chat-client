@@ -30,24 +30,28 @@ const ChatPage = () => {
 
   // initial page load
   useEffect(() => {
+    console.log('Loading from ChatPage...');
     fetchRooms();
-    // Fetch the first room messages & set messages to read
-    // BUG Doesn't set messages to read on first load
-    // Would only work if user selected the room manually
-    if (rooms?.length) fetchSelectedRoom(rooms[0]?.id || '');
   }, []);
 
-  // useEffect(() => {
-  //   console.table(
-  //     rooms?.map(r => {
-  //       return {
-  //         room: r.name,
-  //         total: r.messages.length,
-  //         unread: roomHasUnreadMessages(r),
-  //       };
-  //     })
-  //   );
-  // }, [rooms]);
+  // After initial load, fetch the first room messages & set messages to read
+  // Needs this effect to access the rooms from before
+  useEffect(() => {
+    if (rooms?.length) {
+      console.log('Fetch selected room from ChatPage...', rooms?.length);
+      fetchSelectedRoom(rooms[0]?.id || '');
+    }
+
+    // console.table(
+    //   rooms?.map(r => {
+    //     return {
+    //       room: r.name,
+    //       total: r.messages.length,
+    //       unread: roomHasUnreadMessages(r),
+    //     };
+    //   })
+    // );
+  }, [rooms && rooms.length]);
 
   // Fetch selected room messages
   function handleRoomSelection(roomID: string) {

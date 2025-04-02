@@ -43,12 +43,16 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
 
   // Set Current Room on each selection change
   useEffect(() => {
-    console.log('Selection changed: ', store.selectedRoomID);
-    const selectedRoom = store.rooms?.find(r => r.id === store.selectedRoomID);
-    if (!selectedRoom) return;
-
     // HACK doesn't load initially without this
-    setStore(s => ({ ...s, currentRoom: selectedRoom }));
+    setStore(prevStore => {
+      console.log('Selection changed: ', prevStore.selectedRoomID);
+      const selectedRoom = prevStore.rooms?.find(
+        r => r.id === prevStore.selectedRoomID
+      );
+      if (!selectedRoom) return prevStore;
+
+      return { ...prevStore, currentRoom: selectedRoom };
+    });
   }, [store.selectedRoomID]);
 
   /**
@@ -107,21 +111,23 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
 
       // console.log('Selected room fetched successfully: ', data);
 
-      if (!store.rooms) return;
+      setStore(s => {
+        if (!s.rooms) return s;
 
-      const updatedRooms = store.rooms.map(room => {
-        if (room.id === data.id) return data;
-        return room;
+        const updatedRooms = s.rooms.map(room => {
+          if (room.id === data.id) return data;
+          return room;
+        });
+
+        if (!updatedRooms) return s;
+
+        return {
+          ...s,
+          rooms: updatedRooms,
+          selectedRoomID: roomID,
+          currentRoom: data,
+        };
       });
-
-      if (!updatedRooms) return;
-
-      setStore(s => ({
-        ...s,
-        rooms: updatedRooms,
-        selectedRoomID: roomID,
-        currentRoom: data,
-      }));
     } catch (err) {
       console.error('Error fetching selected room: ', err);
     }

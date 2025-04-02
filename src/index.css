@@ -52,10 +52,10 @@ button {
     --bg-color-navbar: var(--color-dark-base);
 
     /* Messenger */
-    --bg-bubble-me: hsl(from var(--color-muted) h s calc(l - 55));
-    --bg-bubble-them: hsl(from var(--color-accent) h s calc(l - 20) / 40%);
-    --color-bubble-me: hsl(from var(--bg-bubble-me) h s calc(70%));
-    --color-bubble-them: hsl(from var(--bg-bubble-them) h s calc(80%) / 300%);
+    --bg-bubble-me: hsl(from var(--color-muted) h s 25%);
+    --bg-bubble-them: hsl(from var(--color-accent) h 35% 35%);
+    --color-bubble-me: hsl(from var(--bg-bubble-me) h s 70%);
+    --color-bubble-them: hsl(from var(--bg-bubble-them) h s 80%);
     --input-bg: var(--mantine-color-dark-6);
   }
 

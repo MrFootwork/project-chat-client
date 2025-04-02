@@ -37,6 +37,7 @@ const NavBar = () => {
   });
   const computedColorScheme = useComputedColorScheme();
 
+  // FIXME Enable setting to choose auto
   const [isDark, setIsDark] = useState(computedColorScheme === 'dark');
 
   function toggleTheme() {

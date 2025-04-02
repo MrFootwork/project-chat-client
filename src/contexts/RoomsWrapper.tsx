@@ -1,11 +1,5 @@
 import axios from 'axios';
-import React, {
-  ReactNode,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import React, { ReactNode, useContext, useEffect, useState } from 'react';
 import config from '../../config';
 import { Room } from '../types/room';
 import { Message } from '../types/message';
@@ -65,6 +59,7 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
    */
   async function fetchRooms() {
     try {
+      // Fetch rooms
       const { data } = await axios.get<Room[]>(`${API_URL}/api/rooms`, {
         headers: {
           // TODO add token retrieval method
@@ -90,6 +85,20 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
    */
   async function fetchSelectedRoom(roomID: string) {
     try {
+      const reponse = await axios.put(
+        ` ${API_URL}/api/rooms/${roomID}/read`,
+        null,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('chatToken')}`,
+          },
+        }
+      );
+
+      console.info(
+        `Entering Room ${roomID} | message: ${reponse.data.message}`
+      );
+
       const { data } = await axios.get<Room>(`${API_URL}/api/rooms/${roomID}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('chatToken')}`,
@@ -120,29 +129,28 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
 
   // Push a new message to the correct room
   async function pushMessage(message: Message) {
-    if (!store.rooms) return;
+    // Dependencies on state should address those inside the setter
+    // using prevStore to avoid stale closures
+    setStore(prevStore => {
+      if (!prevStore.rooms) return prevStore;
 
-    const updatedRooms = store.rooms.map(room => {
-      if (room.id === message.roomId) {
-        return { ...room, messages: [...room.messages, message] };
-      }
-      return room;
-    });
+      const updatedRooms = prevStore.rooms.map(room => {
+        if (room.id === message.roomId) {
+          return { ...room, messages: [...room.messages, message] };
+        }
+        return room;
+      });
 
-    const isCurrentRoom = store.currentRoom?.id === message.roomId;
+      const isCurrentRoom = prevStore.currentRoom?.id === message.roomId;
 
-    if (!isCurrentRoom) {
-      setStore(s => ({ ...s, rooms: updatedRooms }));
-    } else if (isCurrentRoom) {
-      const updatedCurrentRoom =
-        updatedRooms.find(r => r.id === message.roomId) || null;
-
-      setStore(s => ({
-        ...s,
+      return {
+        ...prevStore,
         rooms: updatedRooms,
-        currentRoom: updatedCurrentRoom,
-      }));
-    }
+        currentRoom: isCurrentRoom
+          ? updatedRooms.find(r => r.id === message.roomId) || null
+          : prevStore.currentRoom,
+      };
+    });
   }
 
   return (

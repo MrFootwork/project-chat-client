@@ -1,0 +1,9 @@
+.indicator-on {
+  position: absolute;
+  width: 1rem;
+  height: 1rem;
+  background-color: var(--mantine-primary-color-filled);
+  /* background-color: var(--color-primary); */
+  border-radius: 50%;
+  box-shadow: 0 0 0.5rem var(--color-primary);
+}

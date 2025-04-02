@@ -9,6 +9,7 @@ import MessageCard from './MessageCard';
 import { SocketContext } from '../contexts/SocketWrapper';
 import { AuthContext } from '../contexts/AuthWrapper';
 import { RoomsContext } from '../contexts/RoomsWrapper';
+import IndicatorUnread from './IndicatorUnread';
 
 const Messenger = () => {
   /**************************
@@ -141,12 +142,12 @@ const Messenger = () => {
 
   return (
     <div className='messenger-container'>
+      {/* TODO Add Messenger Header with chatroom details */}
       <div
         ref={messagesDisplay}
         className='messages-display'
         onScroll={updatePosition}
       >
-        {/* TODO Add Messenger Header with chatroom details */}
         <p>Here are the messages.</p>
         {selectedRoomID ? <>{currentRoom?.name}</> : 'Choose a room!'}
         <ol>
@@ -189,11 +190,10 @@ const Messenger = () => {
               onClick={onClickScroll}
             >
               ↓
-              {hasUnreadMessages ? (
-                <div className='indicator-received-message-current-room' />
-              ) : (
-                ''
-              )}
+              <IndicatorUnread
+                visible={hasUnreadMessages}
+                position={{ top: '-0.3rem', left: '-0.3rem' }}
+              />
             </button>
           ) : (
             ''

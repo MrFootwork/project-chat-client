@@ -1,11 +1,13 @@
 import './ChatPage.css';
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { AuthContext } from '../contexts/AuthWrapper';
 import { RoomsContext } from '../contexts/RoomsWrapper';
 
 import Messenger from '../components/Messenger';
+import IndicatorUnread from '../components/IndicatorUnread';
+import { Room } from '../types/room';
 
 const ChatPage = () => {
   const navigate = useNavigate();
@@ -29,11 +31,38 @@ const ChatPage = () => {
   // initial page load
   useEffect(() => {
     fetchRooms();
+    // Fetch the first room messages & set messages to read
+    if (rooms?.length) fetchSelectedRoom(rooms[0]?.id || '');
   }, []);
+
+  // useEffect(() => {
+  //   console.table(
+  //     rooms?.map(r => {
+  //       return {
+  //         room: r.name,
+  //         total: r.messages.length,
+  //         unread: roomHasUnreadMessages(r),
+  //       };
+  //     })
+  //   );
+  // }, [rooms]);
 
   // Fetch selected room messages
   function handleRoomSelection(roomID: string) {
     fetchSelectedRoom(roomID);
+  }
+
+  /**********
+   * MESSAGES
+   **********/
+  function roomHasUnreadMessages(room: Room) {
+    return room.messages.some(message => {
+      const onReadersList = message.readers.some(readers => {
+        return readers.id === user?.id;
+      });
+
+      return !onReadersList;
+    });
   }
 
   return (
@@ -45,9 +74,11 @@ const ChatPage = () => {
 
         <ol className='room-button-container'>
           {rooms?.map((room, firstElement) => {
+            const hasUnreadMessage = roomHasUnreadMessages(room);
+            const isSelectedRoom = room.id === selectedRoomID;
+
             return (
               <li key={room.id}>
-                {/* FIXME Add unread messages icon */}
                 <input
                   defaultChecked={!firstElement}
                   type='radio'
@@ -55,7 +86,16 @@ const ChatPage = () => {
                   id={`room-${room.id}`}
                   onChange={() => handleRoomSelection(room.id)}
                 />
-                <label htmlFor={`room-${room.id}`}>{room.name}</label>
+                <label htmlFor={`room-${room.id}`}>
+                  {room.name}
+                  <IndicatorUnread
+                    visible={hasUnreadMessage && !isSelectedRoom}
+                    position={{
+                      top: '1rem',
+                      right: '.5rem',
+                    }}
+                  />
+                </label>
               </li>
             );
           })}

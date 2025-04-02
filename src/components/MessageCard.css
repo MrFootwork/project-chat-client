@@ -1,11 +1,12 @@
 .message-card {
   --br-card-round: 20px;
   --br-card-small: 5px;
+  --m-base: 2px;
 
   background-color: var(--bg-bubble-them);
   box-shadow: 6px 6px 10px -1px rgba(0, 0, 0, 0.4);
 
-  margin: 0.2rem;
+  margin: var(--m-base);
   margin-right: auto;
   width: clamp(calc(13rem + 1vw * pow(1.5, 7)), 1vw * pow(1.7, 7), 25rem);
   border-radius: var(--br-card-small);
@@ -40,11 +41,9 @@
 
   /* Changes for cards of myself */
   &.its-me {
-    /* background-color: var(--bg-bubble-them); */
     background-color: var(--bg-bubble-me);
-    /* background-color: lightpink; */
 
-    margin: 0.2rem;
+    margin: var(--m-base);
     margin-left: auto;
     padding: 0.5rem 1rem;
     padding-right: 3.5rem;

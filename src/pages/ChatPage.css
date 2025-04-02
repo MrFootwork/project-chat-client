@@ -32,6 +32,7 @@
     & li {
       border-radius: 0.25rem;
       cursor: pointer;
+      position: relative;
 
       &:hover {
         background-color: hsl(from var(--color-secondary) h s l / 15%);

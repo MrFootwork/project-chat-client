@@ -29,6 +29,7 @@ const AuthPage = () => {
     if (!user) login(values);
   };
 
+  // FIXME Add social login buttons
   return (
     <>
       <header className='auth-header'>

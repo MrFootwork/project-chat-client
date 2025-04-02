@@ -35,9 +35,9 @@ button {
   --bg-color-navbar: hsl(from var(--color-light) h s calc(l - 10));
 
   /* Messenger */
-  --bg-bubble-me: hsl(from var(--color-muted) h s calc(l - 5) / 60%);
+  --bg-bubble-me: hsl(from var(--color-muted) h s calc(l + 2));
   --bg-bubble-them: hsl(from var(--color-accent) h s l);
-  --color-bubble-me: hsl(from var(--bg-bubble-me) h s calc(30%) / 300%);
+  --color-bubble-me: hsl(from var(--bg-bubble-me) h s calc(30%));
   --color-bubble-them: hsl(from var(--bg-bubble-them) h s calc(30%));
   --input-bg: var(--mantine-color-white);
 

@@ -131,7 +131,9 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
 
     const isCurrentRoom = store.currentRoom?.id === message.roomId;
 
-    if (isCurrentRoom) {
+    if (!isCurrentRoom) {
+      setStore(s => ({ ...s, rooms: updatedRooms }));
+    } else if (isCurrentRoom) {
       const updatedCurrentRoom =
         updatedRooms.find(r => r.id === message.roomId) || null;
 
@@ -140,8 +142,6 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
         rooms: updatedRooms,
         currentRoom: updatedCurrentRoom,
       }));
-    } else {
-      setStore(s => ({ ...s, rooms: updatedRooms }));
     }
   }
 

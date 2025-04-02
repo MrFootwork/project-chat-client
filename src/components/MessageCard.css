@@ -3,7 +3,7 @@
   --br-card-small: 5px;
 
   background-color: var(--bg-bubble-them);
-  box-shadow: 3px 3px 10px -4px rgba(0, 0, 0, 0.77);
+  box-shadow: 6px 6px 10px -1px rgba(0, 0, 0, 0.4);
 
   margin: 0.2rem;
   margin-right: auto;
@@ -38,23 +38,11 @@
     }
   }
 
-  /* First MessageCard */
-  &.first {
-    margin-top: 0.75rem;
-    border-top-left-radius: var(--br-card-round);
-    border-top-right-radius: var(--br-card-round);
-  }
-
-  /* Last MessageCard */
-  &.last {
-    margin-bottom: 0.75rem;
-    border-bottom-left-radius: var(--br-card-round);
-    border-bottom-right-radius: var(--br-card-round);
-  }
-
   /* Changes for cards of myself */
   &.its-me {
+    /* background-color: var(--bg-bubble-them); */
     background-color: var(--bg-bubble-me);
+    /* background-color: lightpink; */
 
     margin: 0.2rem;
     margin-left: auto;
@@ -63,7 +51,6 @@
 
     & h5 {
       color: var(--color-bubble-me);
-
       text-align: right;
     }
 
@@ -73,8 +60,20 @@
 
     & .image-container {
       left: unset;
-      top: -0.25rem;
       right: -0.25rem;
     }
+  }
+
+  /* First MessageCard */
+  &.first {
+    margin-top: 1rem;
+    border-top-left-radius: var(--br-card-round);
+    border-top-right-radius: var(--br-card-round);
+  }
+
+  /* Last MessageCard */
+  &.last {
+    border-bottom-left-radius: var(--br-card-round);
+    border-bottom-right-radius: var(--br-card-round);
   }
 }

@@ -1,10 +1,11 @@
 import './NavBar.css';
 import config from '../../config';
 
-import { useContext, useEffect, useState } from 'react';
+import { JSX, useContext, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Button,
+  MantineColorScheme,
   useComputedColorScheme,
   useMantineColorScheme,
 } from '@mantine/core';
@@ -13,7 +14,7 @@ import { AuthContext } from '../contexts/AuthWrapper';
 import { SocketContext } from '../contexts/SocketWrapper';
 import { RoomsContext } from '../contexts/RoomsWrapper';
 
-import { IconMoon, IconSun, IconSunFilled } from '@tabler/icons-react';
+import { IconMoon, IconSun, IconSunMoon } from '@tabler/icons-react';
 
 const NavBar = () => {
   const { user, logout } = useContext(AuthContext);
@@ -23,7 +24,9 @@ const NavBar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Auth Handling
+  /**********
+   * AUTH
+   *********/
   const isOnAuthPage = location.pathname.includes('/auth');
 
   async function authHandler() {
@@ -31,18 +34,30 @@ const NavBar = () => {
     if (!user) navigate('/auth');
   }
 
-  // Theme Handling
-  const { toggleColorScheme } = useMantineColorScheme({
+  /******************
+   * Theme Handling
+   ******************/
+  const { setColorScheme } = useMantineColorScheme({
     keepTransitions: true,
   });
-  const computedColorScheme = useComputedColorScheme();
 
-  // FIXME Enable setting to choose auto
-  const [isDark, setIsDark] = useState(computedColorScheme === 'dark');
+  const [currentTheme, setCurrentTheme] = useState<MantineColorScheme>('auto');
 
-  function toggleTheme() {
-    setIsDark(computedColorScheme !== 'dark');
-    toggleColorScheme();
+  // Set Mantine's color scheme whenever currentTheme changes
+  useEffect(() => {
+    setColorScheme(currentTheme);
+  }, [currentTheme, setColorScheme]);
+
+  // Cycles themes through auto, dark, and light
+  function handleNextTheme() {
+    setCurrentTheme(prevTheme => {
+      const themes: MantineColorScheme[] = ['auto', 'dark', 'light'];
+      const currentIndex = themes.indexOf(prevTheme);
+      const nextIndex = (currentIndex + 1) % themes.length;
+      const nextTheme = themes[nextIndex];
+
+      return nextTheme;
+    });
   }
 
   return (
@@ -61,13 +76,15 @@ const NavBar = () => {
       )}
 
       <div className='button-container'>
-        <button className='button-theme-toggler'>
-          {isDark ? (
-            <IconSun onClick={toggleTheme} />
-          ) : (
-            <IconMoon onClick={toggleTheme} />
-          )}
-        </button>
+        <div className='button-theme-toggler' onClick={handleNextTheme}>
+          {
+            {
+              auto: <IconSunMoon />,
+              dark: <IconMoon />,
+              light: <IconSun />,
+            }[currentTheme]
+          }
+        </div>
 
         {isOnAuthPage ? (
           ''

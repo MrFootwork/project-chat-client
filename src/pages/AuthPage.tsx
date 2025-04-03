@@ -30,6 +30,8 @@ const AuthPage = () => {
   };
 
   // FIXME Add social login buttons
+  // FIXME Login possible with email OR name
+  // FIXME Registration screen
   return (
     <>
       <header className='auth-header'>

@@ -73,6 +73,7 @@ const ChatPage = () => {
 
   return (
     <div className='chat-page-container'>
+      {/* FIXME make responsive */}
       <nav className='rooms-container'>
         <header>
           <h1>Groups</h1>

@@ -31,8 +31,9 @@ button {
   --color-muted: #c2ddda; /* A muted teal tone */
 
   /* Background */
-  --bg-color-messenger: hsl(from var(--color-light) h s calc(l + 5));
   --bg-color-navbar: hsl(from var(--color-light) h s calc(l - 10));
+  --bg-color-messenger: hsl(from var(--color-light) h s calc(l + 5));
+  --bg-color-messenger-header: hsl(from var(--color-light) h s 85%);
 
   /* Messenger */
   --bg-bubble-me: hsl(from var(--color-muted) h s calc(l + 2));
@@ -48,8 +49,9 @@ button {
 
   &[data-mantine-color-scheme='dark'] {
     /* Background */
-    --bg-color-messenger: hsl(from var(--color-dark-base) h s calc(l + 10));
     --bg-color-navbar: var(--color-dark-base);
+    --bg-color-messenger: hsl(from var(--color-dark-base) h s calc(l + 10));
+    --bg-color-messenger-header: hsl(from var(--color-dark-base) h s 18%);
 
     /* Messenger */
     --bg-bubble-me: hsl(from var(--color-muted) h s 25%);

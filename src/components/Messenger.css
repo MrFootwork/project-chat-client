@@ -15,11 +15,14 @@ div.messenger-container {
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
+
+    background-color: var(--bg-color-messenger-header);
   }
 
   & .members-container {
     display: flex;
     gap: 0;
+    margin-left: -10rem;
 
     & .avatar-container {
       --image-size: 3rem;
@@ -52,6 +55,8 @@ div.messenger-container {
 
 .input-container {
   padding: 0.75rem 1rem;
+
+  background-color: var(--bg-color-messenger-header);
 
   form {
     display: grid;
@@ -101,17 +106,6 @@ div.messenger-container {
         transform: translateY(2px);
         box-shadow: 2px 2px 5px -4px rgba(0, 0, 0, 0.77);
       }
-
-      /* & .indicator-received-message-current-room {
-        position: absolute;
-        width: 1rem;
-        height: 1rem;
-        top: -0.3rem;
-        left: -0.3rem;
-        background-color: var(--color-primary);
-        border-radius: 50%;
-        box-shadow: 0 0 0.5rem var(--color-primary);
-      } */
     }
   }
 }

@@ -85,6 +85,10 @@ function SocketWrapper({ children }: { children: ReactNode }) {
     }, 500);
   }, [user?.id, token, Boolean(rooms?.length)]);
 
+  useEffect(() => {
+    console.log('SOCKET: new room detected', rooms?.length);
+  }, [rooms?.length]);
+
   return (
     <SocketContext.Provider value={{ socket: socketServer }}>
       {children}

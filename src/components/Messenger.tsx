@@ -17,7 +17,8 @@ const Messenger = () => {
    **************************/
   const { user } = useContext(AuthContext);
   const { socket } = useContext(SocketContext);
-  const { currentRoom, selectedRoomID, pushMessage } = useContext(RoomsContext);
+  const { createRoom, currentRoom, deleteRoom, selectedRoomID, pushMessage } =
+    useContext(RoomsContext);
 
   // Input
   const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -116,7 +117,7 @@ const Messenger = () => {
       socket?.off('receive-message', handleReceiveMessage);
     };
     //
-  }, [socket?.connected, currentRoom?.messages.length]);
+  }, [socket?.connected, currentRoom?.messages.length, createRoom]);
 
   /** Handles how received messages are managed. */
   function handleReceiveMessage(message: Message) {
@@ -140,10 +141,21 @@ const Messenger = () => {
     messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
   }, [currentRoom?.messages.length]);
 
+  /**************************
+   * Rooms
+   **************************/
+  function handleRoomDeletion() {
+    console.log('Deleting room...');
+    deleteRoom(currentRoom?.id || '');
+  }
+
   return (
     <div className='messenger-container'>
       <header>
-        <h3>{currentRoom?.name}</h3>
+        <div>
+          <h3>{currentRoom?.name}</h3>
+          <p>{`${currentRoom?.members.length} Members`}</p>
+        </div>
         <div className='members-container'>
           {currentRoom?.members.map(member => {
             return (
@@ -153,7 +165,7 @@ const Messenger = () => {
             );
           })}
         </div>
-        <p>{`${currentRoom?.members.length} Members`}</p>
+        <button onClick={handleRoomDeletion}>Delete</button>
       </header>
 
       <div

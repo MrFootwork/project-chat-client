@@ -8,9 +8,11 @@ import { RoomsContext } from '../contexts/RoomsWrapper';
 import Messenger from '../components/Messenger';
 import IndicatorUnread from '../components/IndicatorUnread';
 import { Room } from '../types/room';
+import { SocketContext } from '../contexts/SocketWrapper';
 
 const ChatPage = () => {
   const navigate = useNavigate();
+  const { socket } = useContext(SocketContext);
 
   /**********
    * AUTH
@@ -25,7 +27,7 @@ const ChatPage = () => {
   /**********
    * ROOMS
    **********/
-  const { rooms, fetchRooms, fetchSelectedRoom, selectedRoomID } =
+  const { rooms, createRoom, fetchRooms, fetchSelectedRoom, selectedRoomID } =
     useContext(RoomsContext);
 
   // Initial page load
@@ -58,10 +60,30 @@ const ChatPage = () => {
     fetchSelectedRoom(roomID);
   }
 
+  async function handleRoomCreation() {
+    console.log('Creating new room...');
+    const newRoom = await createRoom('🐞🐞🐞🚀');
+
+    console.log(
+      'AFTER ROOM CREATION',
+      rooms?.length,
+      socket?.connected,
+      newRoom
+    );
+
+    if (!socket || !newRoom) return;
+
+    // BUG room seems to be joined already, but listener has stale state
+    // socket.emit('join-room', [rooms?.map(r => r.id)]);
+    console.log('JOINING ROOM Socket', socket);
+  }
+
   /**********
    * MESSAGES
    **********/
   function roomHasUnreadMessages(room: Room) {
+    if (!room.messages) return false;
+
     return room.messages.some(message => {
       const onReadersList = message.readers.some(readers => {
         return readers.id === user?.id;
@@ -77,6 +99,7 @@ const ChatPage = () => {
       <nav className='rooms-container'>
         <header>
           <h1>Groups</h1>
+          <button onClick={handleRoomCreation}>+</button>
         </header>
 
         <ol className='room-button-container'>

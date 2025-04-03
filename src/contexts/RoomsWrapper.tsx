@@ -9,6 +9,10 @@ const API_URL = config.API_URL;
 
 const defaultStore = {
   rooms: null,
+  createRoom: async (roomName: string) => {
+    throw new Error('createNewRoom is not implemented in defaultStore');
+  },
+  deleteRoom: async (roomID: string) => {},
   fetchRooms: async () => [],
   fetchSelectedRoom: async (roomID: string) => {},
   selectedRoomID: null,
@@ -18,6 +22,8 @@ const defaultStore = {
 
 type RoomsContextType = {
   rooms: Room[] | null;
+  createRoom: (roomName: string) => Promise<Room | undefined>;
+  deleteRoom: (roomID: string) => Promise<void>;
   fetchRooms: () => Promise<Room[]>;
   fetchSelectedRoom: (roomID: string) => Promise<void>;
   selectedRoomID: string | null;
@@ -55,6 +61,48 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
     });
   }, [store.selectedRoomID]);
 
+  async function createRoom(roomName: string) {
+    try {
+      const { data } = await axios.post<Room>(
+        `${API_URL}/api/rooms`,
+        { name: roomName },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('chatToken')}`,
+          },
+        }
+      );
+
+      console.log('New room created successfully: ', data);
+      setStore(s => ({ ...s, rooms: [...s.rooms!, data] }));
+
+      return data;
+    } catch (err) {
+      console.error('Error creating new room: ', err);
+    }
+  }
+
+  async function deleteRoom(roomID: string) {
+    try {
+      const { data } = await axios.delete<Room>(
+        `${API_URL}/api/rooms/${roomID}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('chatToken')}`,
+          },
+        }
+      );
+
+      console.log('Room deleted successfully: ', data);
+      setStore(s => ({
+        ...s,
+        rooms: s.rooms?.filter(room => room.id !== roomID) || null,
+      }));
+    } catch (err) {
+      console.error('Error deleting room: ', err);
+    }
+  }
+
   /**
    * Fetches all rooms of user by token from the API and updates the store.
    * Logs an error if the request fails.
@@ -89,7 +137,7 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
    */
   async function fetchSelectedRoom(roomID: string) {
     try {
-      const reponse = await axios.put(
+      const response = await axios.put(
         ` ${API_URL}/api/rooms/${roomID}/read`,
         null,
         {
@@ -99,9 +147,10 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
         }
       );
 
-      console.info(
-        `Entering Room ${roomID} | message: ${reponse.data.message}`
-      );
+      if (response)
+        console.info(
+          `Entering Room ${roomID} | message: ${response.data.message}`
+        );
 
       const { data } = await axios.get<Room>(`${API_URL}/api/rooms/${roomID}`, {
         headers: {
@@ -161,7 +210,14 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
 
   return (
     <RoomsContext.Provider
-      value={{ ...store, fetchRooms, fetchSelectedRoom, pushMessage }}
+      value={{
+        ...store,
+        createRoom,
+        deleteRoom,
+        fetchRooms,
+        fetchSelectedRoom,
+        pushMessage,
+      }}
     >
       {children}
     </RoomsContext.Provider>

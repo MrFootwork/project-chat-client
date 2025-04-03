@@ -11,9 +11,8 @@ div.messenger-container {
   & header {
     padding: 0 3vw;
 
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: clamp(6rem, 40%, 20rem) 1fr 5rem;
     align-items: center;
 
     background-color: var(--bg-color-messenger-header);
@@ -52,6 +51,10 @@ div.messenger-container {
 
   ol {
     list-style-type: none;
+
+    & > div:last-child {
+      margin-top: 5rem;
+    }
   }
 }
 

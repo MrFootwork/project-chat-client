@@ -7,3 +7,27 @@
     width: 80%;
   }
 }
+
+.icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  aspect-ratio: 1;
+  width: 3rem;
+
+  cursor: pointer;
+  border-radius: 50%;
+  padding: 0.75rem;
+  border: none;
+  background-color: inherit;
+
+  /* TODO Add click animation */
+  &:hover {
+    background-color: hsl(from var(--color-primary) h s l / 15%);
+
+    & svg {
+      fill: var(--color-primary);
+    }
+  }
+}

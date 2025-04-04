@@ -16,31 +16,37 @@ div.messenger-container {
     align-items: center;
 
     background-color: var(--bg-color-messenger-header);
-  }
 
-  & .members-container {
-    width: clamp(5rem, 50%, 10rem);
+    & .members-container {
+      width: clamp(5rem, 50%, 10rem);
 
-    display: flex;
-    justify-content: flex-start;
-    gap: 0;
+      display: flex;
+      justify-content: flex-start;
+      gap: 0;
 
-    & .avatar-container {
-      --image-size: 3rem;
-      overflow: hidden;
-      border-radius: 50%;
-      height: var(--image-size);
-      width: var(--image-size);
-
-      object-position: center;
-      object-fit: cover;
-
-      margin-right: -1.5rem;
-      /* TODO user proper stacking order */
-
-      img {
+      & .avatar-container {
+        --image-size: 3rem;
+        overflow: hidden;
+        border-radius: 50%;
+        height: var(--image-size);
         width: var(--image-size);
+
+        object-position: center;
+        object-fit: cover;
+
+        margin-right: -1.5rem;
+        /* TODO user proper stacking order */
+
+        img {
+          width: var(--image-size);
+        }
       }
+    }
+
+    & .button-container {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-end;
     }
   }
 }

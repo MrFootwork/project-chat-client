@@ -1,14 +1,15 @@
 import './ChatPage.css';
 import { useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { IconCopyPlus } from '@tabler/icons-react';
 
 import { AuthContext } from '../contexts/AuthWrapper';
 import { RoomsContext } from '../contexts/RoomsWrapper';
+import { SocketContext } from '../contexts/SocketWrapper';
 
 import Messenger from '../components/Messenger';
 import IndicatorUnread from '../components/IndicatorUnread';
 import { Room } from '../types/room';
-import { SocketContext } from '../contexts/SocketWrapper';
 
 const ChatPage = () => {
   const navigate = useNavigate();
@@ -50,7 +51,7 @@ const ChatPage = () => {
     fetchSelectedRoom(roomID);
   }
 
-  // FIXME Need user input for room name
+  // FIXME Provide modal form for user input (room name, members)
   async function handleRoomCreation() {
     console.log('Creating new room...');
     const newRoom = await createRoom('🐞🐞🐞🚀');
@@ -84,7 +85,15 @@ const ChatPage = () => {
       <nav className='rooms-container'>
         <header>
           <h1>Groups</h1>
-          <button onClick={handleRoomCreation}>+</button>
+
+          {/* TODO Make all icon-buttons a component */}
+          <div
+            className='button-create-room icon-button'
+            onClick={handleRoomCreation}
+            title='Create new room'
+          >
+            <IconCopyPlus />
+          </div>
         </header>
 
         <ol className='room-button-container'>

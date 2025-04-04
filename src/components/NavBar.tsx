@@ -76,7 +76,11 @@ const NavBar = () => {
       )}
 
       <div className='button-container'>
-        <div className='button-theme-toggler' onClick={handleNextTheme}>
+        <div
+          className='button-theme-toggler icon-button'
+          onClick={handleNextTheme}
+          title='Cycle themes through auto, dark, and light'
+        >
           {
             {
               auto: <IconSunMoon />,

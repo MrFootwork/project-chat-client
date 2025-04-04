@@ -4,12 +4,13 @@ import { Message } from '../types/message';
 import { KeyboardEvent, useContext, useEffect, useRef, useState } from 'react';
 import { Button, Textarea } from '@mantine/core';
 import { useForm } from '@mantine/form';
+import { IconTrashX } from '@tabler/icons-react';
 import MessageCard from './MessageCard';
+import IndicatorUnread from './IndicatorUnread';
 
 import { SocketContext } from '../contexts/SocketWrapper';
 import { AuthContext } from '../contexts/AuthWrapper';
 import { RoomsContext } from '../contexts/RoomsWrapper';
-import IndicatorUnread from './IndicatorUnread';
 
 const Messenger = () => {
   /**************************
@@ -156,6 +157,8 @@ const Messenger = () => {
           <h3>{currentRoom?.name}</h3>
           <p>{`${currentRoom?.members.length} Members`}</p>
         </div>
+
+        {/* FIXME Add members to this room */}
         <div className='members-container'>
           {currentRoom?.members.map(member => {
             return (
@@ -165,7 +168,16 @@ const Messenger = () => {
             );
           })}
         </div>
-        <button onClick={handleRoomDeletion}>Delete</button>
+
+        <div className='button-container'>
+          <div
+            className='button-delete-room icon-button'
+            onClick={handleRoomDeletion}
+            title='Delete this room'
+          >
+            <IconTrashX />
+          </div>
+        </div>
       </header>
 
       <div

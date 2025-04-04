@@ -20,45 +20,13 @@ function SocketWrapper({ children }: { children: ReactNode }) {
 
   const [socketServer, setSocket] = useState<SocketType>(null);
 
-  // Initial connection to socket server
+  // Connect and reconnect with new room after room creation
   useEffect(() => {
-    // HACK Without the timeout, the socket would disconnect sometimes
-    // on room changes. Test if that's still the case!
-    setTimeout(() => {
-      const isReadyToConnect = token && user && !!rooms?.length;
+    // BUG
+    const isReadyToConnect = token && user && !!rooms?.length;
 
-      if (isReadyToConnect) {
-        console.group('SocketWrapper');
+    if (!isReadyToConnect) return;
 
-        // Avoid reconnecting if the socket is already connected
-        if (socketServer) {
-          console.log('Socket is already connected. Skipping reconnection.');
-          return;
-        }
-
-        const socket = setupSocket();
-        connectSocket(socket);
-
-        return () => disconnectSocket(socket);
-      }
-
-      // BUG Handle token loss
-      // Disconnect if the user or token are missing
-      if (!isReadyToConnect && socketServer) {
-        console.log(
-          'Disconnecting due to missing token, user, or rooms...',
-          token,
-          user,
-          rooms
-        );
-
-        disconnectSocket(socketServer);
-      }
-    }, 500);
-  }, [user?.id, token, Boolean(rooms?.length)]);
-
-  // Reconnect with new room after room creation
-  useEffect(() => {
     const socket = setupSocket();
     connectSocket(socket);
 

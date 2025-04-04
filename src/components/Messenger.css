@@ -65,7 +65,8 @@ div.messenger-container {
 }
 
 .input-container {
-  padding: 0.75rem 1rem;
+  --p-top: 0.75rem;
+  padding: var(--p-top) 1rem;
 
   background-color: var(--bg-color-messenger-header);
 
@@ -98,8 +99,11 @@ div.messenger-container {
     button.scroll-down {
       --size: 2.5rem;
       position: absolute;
-      top: calc(-1 * var(--size) - 0.5rem);
-      right: 0;
+
+      /* Keep spacing consistent to padding of input-container */
+      top: calc(-1 * var(--size) - calc(var(--p-top) * 2));
+      right: var(--p-top);
+
       width: var(--size);
       height: var(--size);
       border: none;

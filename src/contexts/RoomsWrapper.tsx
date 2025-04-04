@@ -127,6 +127,22 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
         },
       });
 
+      data.sort((a, b) => {
+        function getLatestMessageDate(room: Room) {
+          if (!room.messages || room.messages.length === 0)
+            return new Date(room.createdAt).getTime();
+
+          return Math.max(
+            ...room.messages.map(m => new Date(m.updatedAt).getTime())
+          );
+        }
+
+        const aDate = getLatestMessageDate(a);
+        const bDate = getLatestMessageDate(b);
+
+        return bDate - aDate;
+      });
+
       console.log('Rooms fetched successfully: ', data);
       setStore(s => ({ ...s, rooms: data, selectedRoomID: data[0]?.id }));
 

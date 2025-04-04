@@ -56,6 +56,8 @@ const ChatPage = () => {
     console.log('Creating new room...');
     const newRoom = await createRoom('🐞🐞🐞🚀');
 
+    // FIXME Sort rooms correctly by latest updated message in descending order
+
     // console.log(
     //   'AFTER ROOM CREATION',
     //   rooms?.length,

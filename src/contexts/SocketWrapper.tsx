@@ -20,6 +20,7 @@ function SocketWrapper({ children }: { children: ReactNode }) {
 
   const [socketServer, setSocket] = useState<SocketType>(null);
 
+  // Initial connection to socket server
   useEffect(() => {
     // HACK Without the timeout, the socket would disconnect sometimes
     // on room changes. Test if that's still the case!
@@ -35,41 +36,13 @@ function SocketWrapper({ children }: { children: ReactNode }) {
           return;
         }
 
-        console.log('Connecting to socket server...');
+        const socket = setupSocket();
+        connectSocket(socket);
 
-        const socketServerURL = config.API_URL;
-        const socket = io(socketServerURL, { auth: { token } });
-
-        setSocket(socket);
-
-        socket.on('connect', () => {
-          console.groupCollapsed('Socket connected', socket.id);
-          console.table({ socket });
-          console.table({ user });
-          console.table(rooms);
-
-          if (!rooms) {
-            console.warn('You have no rooms: ', rooms);
-            return;
-          }
-
-          const roomIDs = rooms.map(room => room.id);
-
-          socket.emit('join-room', roomIDs);
-          console.groupEnd();
-          console.groupEnd();
-        });
-
-        return () => {
-          console.groupCollapsed('Socket disconnecting');
-          console.log(`Disconnecting from socket server ${socket.id}...`);
-          socket.disconnect();
-          setSocket(null);
-          console.log('Disconnected from socket server.');
-          console.groupEnd();
-        };
+        return () => disconnectSocket(socket);
       }
 
+      // BUG Handle token loss
       // Disconnect if the user or token are missing
       if (!isReadyToConnect && socketServer) {
         console.log(
@@ -78,16 +51,63 @@ function SocketWrapper({ children }: { children: ReactNode }) {
           user,
           rooms
         );
-        socketServer.disconnect();
-        setSocket(null);
-        console.log('Disconnected from socket server.');
+
+        disconnectSocket(socketServer);
       }
     }, 500);
   }, [user?.id, token, Boolean(rooms?.length)]);
 
+  // Reconnect with new room after room creation
   useEffect(() => {
-    console.log('SOCKET: new room detected', rooms?.length);
+    const socket = setupSocket();
+    connectSocket(socket);
+
+    return () => disconnectSocket(socket);
   }, [rooms?.length]);
+
+  function connectSocket(socket: SocketType) {
+    if (!socket) return;
+
+    socket.on('connect', () => {
+      console.groupCollapsed('Socket connected', socket.id);
+      console.table({ socket });
+      console.table({ user });
+      console.table(rooms);
+
+      if (!rooms) {
+        console.warn('You have no rooms: ', rooms);
+        return;
+      }
+
+      const roomIDs = rooms.map(room => room.id);
+
+      socket.emit('join-room', roomIDs);
+      console.groupEnd();
+      console.groupEnd();
+    });
+  }
+
+  function setupSocket() {
+    console.log('Connecting to socket server...');
+
+    const socketServerURL = config.API_URL;
+    const socket = io(socketServerURL, { auth: { token } });
+
+    setSocket(socket);
+
+    return socket;
+  }
+
+  function disconnectSocket(socket: SocketType) {
+    if (!socket) return;
+
+    console.groupCollapsed('Socket disconnecting');
+    console.log(`Disconnecting from socket server ${socket.id}...`);
+    socket.disconnect();
+    setSocket(null);
+    console.log('Disconnected from socket server.');
+    console.groupEnd();
+  }
 
   return (
     <SocketContext.Provider value={{ socket: socketServer }}>

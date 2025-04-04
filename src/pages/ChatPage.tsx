@@ -43,16 +43,6 @@ const ChatPage = () => {
       console.log('Fetch selected room from ChatPage...', rooms?.length);
       fetchSelectedRoom(rooms[0]?.id || '');
     }
-
-    // console.table(
-    //   rooms?.map(r => {
-    //     return {
-    //       room: r.name,
-    //       total: r.messages.length,
-    //       unread: roomHasUnreadMessages(r),
-    //     };
-    //   })
-    // );
   }, [rooms && rooms.length]);
 
   // Fetch selected room messages
@@ -60,22 +50,17 @@ const ChatPage = () => {
     fetchSelectedRoom(roomID);
   }
 
+  // FIXME Need user input for room name
   async function handleRoomCreation() {
     console.log('Creating new room...');
     const newRoom = await createRoom('🐞🐞🐞🚀');
 
-    console.log(
-      'AFTER ROOM CREATION',
-      rooms?.length,
-      socket?.connected,
-      newRoom
-    );
-
-    if (!socket || !newRoom) return;
-
-    // BUG room seems to be joined already, but listener has stale state
-    // socket.emit('join-room', [rooms?.map(r => r.id)]);
-    console.log('JOINING ROOM Socket', socket);
+    // console.log(
+    //   'AFTER ROOM CREATION',
+    //   rooms?.length,
+    //   socket?.connected,
+    //   newRoom
+    // );
   }
 
   /**********

@@ -94,10 +94,18 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
       );
 
       console.log('Room deleted successfully: ', data);
-      setStore(s => ({
-        ...s,
-        rooms: s.rooms?.filter(room => room.id !== roomID) || null,
-      }));
+
+      setStore(s => {
+        const updatedRooms =
+          s.rooms?.filter(room => room.id !== roomID) || null;
+
+        console.log('rooms state after deletion:', updatedRooms);
+
+        return {
+          ...s,
+          rooms: updatedRooms,
+        };
+      });
     } catch (err) {
       console.error('Error deleting room: ', err);
     }

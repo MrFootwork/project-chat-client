@@ -36,6 +36,8 @@ function AuthWrapper({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
+    // FIXME Handle server down error
+    // Failed to validate token: Error: Error: Failed to fetch user from token: AxiosError: Network Error
     validateToken().catch(error =>
       console.log(`Failed to validate token: ${error}`)
     );

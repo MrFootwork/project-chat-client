@@ -2,7 +2,8 @@ import './Messenger.css';
 import { Message } from '../types/message';
 
 import { KeyboardEvent, useContext, useEffect, useRef, useState } from 'react';
-import { Button, Textarea } from '@mantine/core';
+import { Button, Modal, Textarea } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
 import { useForm } from '@mantine/form';
 import { IconTrashX } from '@tabler/icons-react';
 import MessageCard from './MessageCard';
@@ -145,9 +146,14 @@ const Messenger = () => {
   /**************************
    * Rooms
    **************************/
+  // Delete room modal
+  const [wantToDelete, { open: openModalDelete, close: closeModalDelete }] =
+    useDisclosure(false);
+
+  // Delete room handler
   function handleRoomDeletion() {
-    console.log('Deleting room...');
     deleteRoom(currentRoom?.id || '');
+    closeModalDelete();
   }
 
   return (
@@ -172,7 +178,7 @@ const Messenger = () => {
         <div className='button-container'>
           <div
             className='button-delete-room icon-button'
-            onClick={handleRoomDeletion}
+            onClick={openModalDelete}
             title='Delete this room'
           >
             <IconTrashX />
@@ -239,6 +245,33 @@ const Messenger = () => {
           )}
         </form>
       </div>
+
+      {/* Delete Modal */}
+      {wantToDelete ? (
+        <Modal
+          opened={wantToDelete}
+          onClose={closeModalDelete}
+          title={`Delete Room ${currentRoom?.name}?`}
+          yOffset='10rem'
+          className='modal-delete-room'
+        >
+          <p>
+            Are you sure you want to delete this room? The room and all its
+            messages will be deleted. This is irrevertable.
+          </p>
+
+          <div className='button-container'>
+            <Button onClick={closeModalDelete} variant='light'>
+              Cancel
+            </Button>
+            <Button onClick={handleRoomDeletion} variant='filled' color='red'>
+              Delete
+            </Button>
+          </div>
+        </Modal>
+      ) : (
+        ''
+      )}
     </div>
   );
 };

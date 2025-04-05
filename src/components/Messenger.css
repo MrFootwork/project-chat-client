@@ -51,6 +51,17 @@ div.messenger-container {
   }
 }
 
+.modal-delete-room {
+  & .button-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    gap: 1rem;
+
+    margin-top: 1rem;
+  }
+}
+
 .messages-display {
   overflow-y: scroll;
   padding: 0 calc(1% * pow(1.8, 4));

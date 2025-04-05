@@ -70,9 +70,15 @@
     border-top-right-radius: var(--br-card-round);
   }
 
-  /* Last MessageCard */
+  /* Last MessageCard (others)*/
   &.last {
-    border-bottom-left-radius: var(--br-card-round);
+    border-bottom-left-radius: var(--br-card-small);
     border-bottom-right-radius: var(--br-card-round);
+  }
+
+  /* Last MessageCard (me)*/
+  &.its-me.last {
+    border-bottom-left-radius: var(--br-card-round);
+    border-bottom-right-radius: var(--br-card-small);
   }
 }

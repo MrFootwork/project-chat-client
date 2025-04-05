@@ -22,7 +22,6 @@ function SocketWrapper({ children }: { children: ReactNode }) {
 
   // Connect and reconnect with new room after room creation
   useEffect(() => {
-    // BUG
     const isReadyToConnect = token && user && !!rooms?.length;
 
     if (!isReadyToConnect) return;

@@ -185,25 +185,27 @@ const Messenger = () => {
         className='messages-display'
         onScroll={updatePosition}
       >
-        <p>Here are the messages.</p>
-        {selectedRoomID ? <>{currentRoom?.name}</> : 'Choose a room!'}
         <ol>
-          {currentRoom?.messages.length
-            ? currentRoom?.messages.map((message, i) => {
-                // Explicit reclalculating messagesProp to force re-render
-                const messagesProp = {
-                  pre: currentRoom?.messages[i - 1] || null,
-                  this: { ...message },
-                  next: currentRoom?.messages[i + 1] || null,
-                };
+          {currentRoom?.messages.length ? (
+            currentRoom?.messages.map((message, i) => {
+              // Explicit reclalculating messagesProp to force re-render
+              const messagesProp = {
+                pre: currentRoom?.messages[i - 1] || null,
+                this: { ...message },
+                next: currentRoom?.messages[i + 1] || null,
+              };
 
-                return (
-                  <li key={`${message.id}-${currentRoom.messages.length}`}>
-                    <MessageCard messages={messagesProp} />
-                  </li>
-                );
-              })
-            : ''}
+              return (
+                <li key={`${message.id}-${currentRoom.messages.length}`}>
+                  <MessageCard messages={messagesProp} />
+                </li>
+              );
+            })
+          ) : (
+            <p style={{ marginTop: '2rem' }}>
+              Start chatting by entering your first message.
+            </p>
+          )}
           <div ref={messagesEndRef} />
         </ol>
       </div>

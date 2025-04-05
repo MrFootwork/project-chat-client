@@ -45,7 +45,6 @@
 
     & li {
       border-radius: 0.25rem;
-      cursor: pointer;
       position: relative;
 
       &:hover {
@@ -54,13 +53,18 @@
 
       &:has(input[type='radio']:checked + label) {
         background-color: hsl(from var(--color-secondary) h s l / 30%);
-        color: var(--button-color);
+      }
+
+      &:active,
+      &:focus,
+      &:has(input[type='radio']:checked + label):active,
+      &:has(input[type='radio']:checked + label):focus {
+        background-color: hsl(from var(--color-secondary) h s l / 45%);
       }
     }
 
     & input[type='radio'] {
       display: none;
-      cursor: pointer;
     }
 
     & label {

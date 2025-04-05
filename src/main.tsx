@@ -1,13 +1,16 @@
+import './index.css';
+import '@mantine/core/styles.css';
+import '@mantine/notifications/styles.css';
+
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import './index.css';
-import App from './App.tsx';
-import '@mantine/core/styles.css';
 import { BrowserRouter } from 'react-router-dom';
-import ThemeWrapper from './contexts/ThemeWrapper.tsx';
+import App from './App.tsx';
+
 import { AuthWrapper } from './contexts/AuthWrapper.tsx';
 import { RoomsWrapper } from './contexts/RoomsWrapper.tsx';
 import { SocketWrapper } from './contexts/SocketWrapper.tsx';
+import ThemeWrapper from './contexts/ThemeWrapper.tsx';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

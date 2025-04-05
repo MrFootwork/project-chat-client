@@ -5,7 +5,6 @@ import { IconCopyPlus } from '@tabler/icons-react';
 
 import { AuthContext } from '../contexts/AuthWrapper';
 import { RoomsContext } from '../contexts/RoomsWrapper';
-import { SocketContext } from '../contexts/SocketWrapper';
 
 import Messenger from '../components/Messenger';
 import IndicatorUnread from '../components/IndicatorUnread';
@@ -13,7 +12,6 @@ import { Room } from '../types/room';
 
 const ChatPage = () => {
   const navigate = useNavigate();
-  const { socket } = useContext(SocketContext);
 
   /**********
    * AUTH
@@ -57,13 +55,6 @@ const ChatPage = () => {
     const newRoom = await createRoom('🐞🐞🐞🚀');
 
     // FIXME Sort rooms correctly by latest updated message in descending order
-
-    // console.log(
-    //   'AFTER ROOM CREATION',
-    //   rooms?.length,
-    //   socket?.connected,
-    //   newRoom
-    // );
   }
 
   /**********

@@ -1,7 +1,11 @@
-import axios from 'axios';
-import React, { useState, useEffect, ReactNode, useContext } from 'react';
-import { User, UserSignUp } from '../types/user';
 import config from '../../config';
+
+import React, { useState, useEffect, ReactNode } from 'react';
+import axios from 'axios';
+import { notifications } from '@mantine/notifications';
+
+import { User, UserSignUp } from '../types/user';
+import { ResponseError } from '../types/error';
 
 const API_URL = config.API_URL;
 
@@ -53,6 +57,7 @@ function AuthWrapper({ children }: { children: ReactNode }) {
     window.localStorage.removeItem('chatToken');
     setToken(null);
     setUser(null);
+    notifications.cleanQueue();
 
     try {
       const response = await axios.post(API_URL + '/auth/logout', undefined, {
@@ -70,25 +75,20 @@ function AuthWrapper({ children }: { children: ReactNode }) {
     }
   }
 
-  interface CustomError {
-    message: string;
-    code?: string;
-    details?: Record<string, any>;
-  }
-
   async function signup(userData: UserSignUp) {
     setLoading(true);
+
     try {
       const response = await axios.post(API_URL + '/auth/signup', userData, {
         withCredentials: true,
       });
 
-      if (response.status !== 201) throw new Error('Failed to register user.');
+      if (response.status !== 201) throw response;
 
-      console.log('User registered successfully');
+      return response.data;
     } catch (error: any) {
       if (error.response?.data) {
-        const customError: CustomError = {
+        const customError: ResponseError = {
           message: error.response.data.message || 'An error occurred',
           code: error.response.status?.toString(),
           details: error.response.data,
@@ -97,7 +97,7 @@ function AuthWrapper({ children }: { children: ReactNode }) {
       } else {
         throw {
           message: error.message || 'Unknown error occurred',
-        } as CustomError;
+        } as ResponseError;
       }
     } finally {
       setLoading(false);
@@ -119,17 +119,28 @@ function AuthWrapper({ children }: { children: ReactNode }) {
 
     try {
       // get token and store it
-      const { data } = await axios.post(API_URL + '/auth/login', requestBody);
+      const response = await axios.post(API_URL + '/auth/login', requestBody);
 
-      if (!data) return;
+      if (response.status !== 200) throw response;
 
-      setToken(data.jwt);
-      window.localStorage.setItem('chatToken', data.jwt);
+      setToken(response.data.jwt);
+      window.localStorage.setItem('chatToken', response.data.jwt);
 
       // get user and store it
-      await storeUserData(data.jwt);
-    } catch (error) {
-      throw new Error("Couldn't login");
+      await storeUserData(response.data.jwt);
+    } catch (error: any) {
+      if (error.response?.data) {
+        const customError: ResponseError = {
+          message: error.response.data.message || 'An error occurred',
+          code: error.response.status?.toString(),
+          details: error.response.data,
+        };
+        throw customError;
+      } else {
+        throw {
+          message: error.message || 'Unknown error occurred',
+        } as ResponseError;
+      }
     } finally {
       setLoading(false);
     }

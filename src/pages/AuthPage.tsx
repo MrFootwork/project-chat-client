@@ -13,9 +13,11 @@ import {
   Stack,
   TextInput,
 } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
 import { useDisclosure } from '@mantine/hooks';
 
 import { AuthContext } from '../contexts/AuthWrapper';
+import { ResponseError } from '../types/error';
 
 const AuthPage = () => {
   const { user, login, signup } = useContext(AuthContext);
@@ -37,12 +39,40 @@ const AuthPage = () => {
   });
 
   const handleLogin = async (values: typeof formLogin.values) => {
-    if (!user) login(values);
+    try {
+      await login(values);
+
+      notifications.show({
+        title: 'Login successful',
+        message: 'You successfully logged in! 🎉',
+      });
+    } catch (error: unknown) {
+      console.error('Error during login:', error);
+
+      notifications.show({
+        title: 'Regsitration failed',
+        message: (error as any).message,
+        color: 'red',
+      });
+
+      if (
+        (error as ResponseError).code === '401' &&
+        (error as ResponseError).details?.error === 'wrong_credentials'
+      ) {
+        formLogin.setFieldError('credential', (error as ResponseError).message);
+        formLogin.setFieldError('password', (error as ResponseError).message);
+      }
+    }
   };
 
   /************
    * REGISTER
    ***********/
+  const [
+    wantToRegister,
+    { open: openModalRegister, close: closeModalRegister },
+  ] = useDisclosure(false);
+
   const formRegister = useForm({
     mode: 'uncontrolled',
     initialValues: {
@@ -54,7 +84,7 @@ const AuthPage = () => {
 
     validate: {
       email: value => (/^\S+@\S+$/.test(value) ? null : 'Invalid email'),
-      confirmPassword: matchesField('password', 'Passwords are not the same'),
+      confirmPassword: matchesField('password', 'Passwords do not match.'),
     },
   });
 
@@ -64,19 +94,44 @@ const AuthPage = () => {
     const requestBody = { name, email, password };
 
     try {
-      if (!user) await signup(requestBody);
+      await signup(requestBody);
+
+      closeModalRegister();
+      formRegister.reset();
+
+      // FIXME Send confirmation mail
+      notifications.show({
+        title: 'Registration successful',
+        message:
+          'You successfully registered! Check your email for confirmation.',
+        color: 'green',
+      });
     } catch (error) {
-      // FIXME Handle the duplicate email error
       console.error('Error during registration:', error);
+
+      notifications.show({
+        title: 'Regsitration failed',
+        message: (error as any).message,
+        color: 'red',
+      });
+
+      if (
+        (error as ResponseError).code === '409' &&
+        (error as ResponseError).details?.target.includes('email')
+      ) {
+        formRegister.setFieldError('email', 'Email taken. Try again.');
+      }
+
+      if (
+        (error as ResponseError).code === '409' &&
+        (error as ResponseError).details?.target.includes('name')
+      ) {
+        formRegister.setFieldError('name', 'Name taken. Try again.');
+      }
     }
   };
 
   // FIXME Add social login buttons
-
-  const [
-    wantToRegister,
-    { open: openModalRegister, close: closeModalRegister },
-  ] = useDisclosure(false);
 
   return (
     <>

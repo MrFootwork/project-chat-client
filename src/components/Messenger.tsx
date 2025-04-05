@@ -257,7 +257,7 @@ const Messenger = () => {
         >
           <p>
             Are you sure you want to delete this room? The room and all its
-            messages will be deleted. This is irrevertable.
+            messages will be deleted. This is irreversible.
           </p>
 
           <div className='button-container'>

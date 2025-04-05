@@ -5,3 +5,14 @@ header.auth-header {
   justify-content: center;
   margin-bottom: 3rem;
 }
+
+.form-container form {
+  p {
+    margin-top: 0.75rem;
+    text-align: end;
+
+    .button-register {
+      color: var(--mantine-primary-color);
+    }
+  }
+}

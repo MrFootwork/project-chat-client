@@ -9,6 +9,8 @@ export type User = {
   updatedAt: string;
 };
 
+export type UserSignUp = Pick<User, 'email' | 'name' | 'password'>;
+
 export type RoomMember = Omit<User, 'password' | 'createdAt' | 'updatedAt'> & {
   avatarUrl: string;
   isAdmin: boolean;

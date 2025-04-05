@@ -62,7 +62,9 @@ const NavBar = () => {
 
   return (
     <nav className='navbar-container'>
-      <h1>Messenger</h1>
+      <h1 style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
+        Messenger
+      </h1>
 
       {config.ENV === 'development' ? (
         <p className='navbar-text'>

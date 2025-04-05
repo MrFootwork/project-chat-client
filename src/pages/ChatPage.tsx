@@ -54,7 +54,6 @@ const ChatPage = () => {
   }
 
   // Create new room
-  // FIXME Provide modal form for user input (room name, members)
   const [wantToCreateRoom, { open: openRoomCreate, close: closeRoomCreate }] =
     useDisclosure(false);
 
@@ -63,7 +62,6 @@ const ChatPage = () => {
     initialValues: { name: '' },
   });
 
-  // FIXME Sort rooms correctly by latest updated message in descending order
   async function handleRoomCreation(values: typeof formRoomCreation.values) {
     try {
       const newRoom = await createRoom(values.name);

@@ -5,7 +5,7 @@ import { Room } from '../types/room';
 import { Message } from '../types/message';
 import { AuthContext } from './AuthWrapper';
 
-const API_URL = config.API_URL;
+const { API_URL } = config;
 
 const defaultStore = {
   rooms: null,
@@ -35,7 +35,7 @@ const RoomsContext = React.createContext<RoomsContextType>(defaultStore);
 
 function RoomsWrapper({ children }: { children: ReactNode }) {
   const [store, setStore] = useState<RoomsContextType>(defaultStore);
-  const { logout } = useContext(AuthContext);
+  const { logout, user } = useContext(AuthContext);
 
   // Reset to default, if user logs out
   useEffect(() => {
@@ -73,8 +73,14 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
         }
       );
 
-      console.log('New room created successfully: ', data);
-      setStore(s => ({ ...s, rooms: [...s.rooms!, data] }));
+      console.info('New room created successfully: ', data);
+
+      setStore(s => {
+        const updatedRooms = [...s.rooms!, data];
+        const sortedRooms = sortRooms(updatedRooms);
+
+        return { ...s, rooms: sortedRooms };
+      });
 
       return data;
     } catch (err) {
@@ -127,23 +133,9 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
         },
       });
 
-      data.sort((a, b) => {
-        function getLatestMessageDate(room: Room) {
-          if (!room.messages || room.messages.length === 0)
-            return new Date(room.createdAt).getTime();
-
-          return Math.max(
-            ...room.messages.map(m => new Date(m.updatedAt).getTime())
-          );
-        }
-
-        const aDate = getLatestMessageDate(a);
-        const bDate = getLatestMessageDate(b);
-
-        return bDate - aDate;
-      });
-
       console.log('Rooms fetched successfully: ', data);
+
+      sortRooms(data);
       setStore(s => ({ ...s, rooms: data, selectedRoomID: data[0]?.id }));
 
       return data;
@@ -210,26 +202,61 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
   async function pushMessage(message: Message) {
     // Dependencies on state should address those inside the setter
     // using prevStore to avoid stale closures
+    // BUG Set this message to being read for the current user if in current room
     setStore(prevStore => {
       if (!prevStore.rooms) return prevStore;
 
       const updatedRooms = prevStore.rooms.map(room => {
-        if (room.id === message.roomId) {
+        if (room.id === message.roomId)
           return { ...room, messages: [...room.messages, message] };
-        }
+
         return room;
       });
+
+      // Sort so ChatPage would order the newest on top
+      const sortedRooms = sortRooms(updatedRooms);
 
       const isCurrentRoom = prevStore.currentRoom?.id === message.roomId;
 
       return {
         ...prevStore,
-        rooms: updatedRooms,
+        rooms: sortedRooms,
         currentRoom: isCurrentRoom
           ? updatedRooms.find(r => r.id === message.roomId) || null
           : prevStore.currentRoom,
       };
     });
+  }
+
+  /**
+   * Sorts an array of rooms in place based on the latest message date or creation date.
+   * Only messages sent by the current user are considered for determining the latest activity.
+   * Rooms with the most recent activity are placed at the beginning of the array.
+   *
+   * @param rooms - The array of rooms to sort.
+   * @returns The sorted array of rooms.
+   */
+  function sortRooms(rooms: Room[]) {
+    return rooms.sort((a, b) => {
+      const latestDateA = getLatestMessageDate(a);
+      const latestDateB = getLatestMessageDate(b);
+
+      return latestDateB - latestDateA;
+    });
+
+    function getLatestMessageDate(room: Room) {
+      if (!room.messages || room.messages.length === 0)
+        return new Date(room.createdAt).getTime();
+
+      const latestMessageDates = room.messages.map(m => {
+        // Only consider messages sent by the current user
+        if (m.author.id === user?.id) return new Date(m.createdAt).getTime();
+
+        return -Infinity;
+      });
+
+      return Math.max(...latestMessageDates);
+    }
   }
 
   return (

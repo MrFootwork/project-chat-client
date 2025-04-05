@@ -34,7 +34,7 @@ export default function ThemeWrapper({ children }: { children: ReactNode }) {
   return (
     <ThemeContext.Provider value={null}>
       <MantineProvider defaultColorScheme='auto' theme={theme}>
-        <Notifications limit={10} autoClose={6000} position='top-right' />
+        <Notifications limit={10} autoClose={4000} position='top-right' />
         {children}
       </MantineProvider>
     </ThemeContext.Provider>

@@ -93,6 +93,7 @@ function AuthWrapper({ children }: { children: ReactNode }) {
           code: error.response.status?.toString(),
           details: error.response.data,
         };
+
         throw customError;
       } else {
         throw {
@@ -135,6 +136,7 @@ function AuthWrapper({ children }: { children: ReactNode }) {
           code: error.response.status?.toString(),
           details: error.response.data,
         };
+
         throw customError;
       } else {
         throw {

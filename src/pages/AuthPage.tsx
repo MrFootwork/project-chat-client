@@ -83,7 +83,9 @@ const AuthPage = () => {
     },
 
     validate: {
+      name: value => (value.length < 3 ? 'Name too short' : null),
       email: value => (/^\S+@\S+$/.test(value) ? null : 'Invalid email'),
+      password: value => (value.length < 3 ? 'Password too short' : null),
       confirmPassword: matchesField('password', 'Passwords do not match.'),
     },
   });
@@ -177,6 +179,7 @@ const AuthPage = () => {
             <Stack mb='lg'>
               <TextInput
                 withAsterisk
+                data-autofocus
                 label='Username'
                 description='This will be your display name'
                 placeholder='Your Username'
@@ -195,7 +198,7 @@ const AuthPage = () => {
               <PasswordInput
                 withAsterisk
                 label='Password'
-                placeholder='Input placeholder'
+                placeholder='Your Password'
                 key={formRegister.key('password')}
                 {...formRegister.getInputProps('password')}
               />
@@ -203,7 +206,7 @@ const AuthPage = () => {
               <PasswordInput
                 withAsterisk
                 label='Repeat Password'
-                placeholder='Input placeholder'
+                placeholder='Your Password'
                 key={formRegister.key('confirmPassword')}
                 {...formRegister.getInputProps('confirmPassword')}
               />

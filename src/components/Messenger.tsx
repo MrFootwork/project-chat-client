@@ -156,12 +156,21 @@ const Messenger = () => {
     closeModalDelete();
   }
 
+  // Members count and display message
+  const membersCountRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!currentRoom?.members) return;
+
+    if (currentRoom?.members.length === 1) membersCountRef.current = '1 Member';
+    else membersCountRef.current = `${currentRoom?.members.length} Members`;
+  }, [currentRoom?.members.length]);
+
   return (
     <div className='messenger-container'>
       <header>
         <div>
           <h3>{currentRoom?.name}</h3>
-          <p>{`${currentRoom?.members.length} Members`}</p>
+          <p>{membersCountRef.current || ''}</p>
         </div>
 
         {/* FIXME Add members to this room */}

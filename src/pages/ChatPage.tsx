@@ -9,6 +9,10 @@ import { RoomsContext } from '../contexts/RoomsWrapper';
 import Messenger from '../components/Messenger';
 import IndicatorUnread from '../components/IndicatorUnread';
 import { Room } from '../types/room';
+import { notifications } from '@mantine/notifications';
+import { Button, Group, Modal, Stack, TextInput } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
+import { useForm } from '@mantine/form';
 
 const ChatPage = () => {
   const navigate = useNavigate();
@@ -49,12 +53,37 @@ const ChatPage = () => {
     fetchSelectedRoom(roomID);
   }
 
+  // Create new room
   // FIXME Provide modal form for user input (room name, members)
-  async function handleRoomCreation() {
-    console.log('Creating new room...');
-    const newRoom = await createRoom('🐞🐞🐞🚀');
+  const [wantToCreateRoom, { open: openRoomCreate, close: closeRoomCreate }] =
+    useDisclosure(false);
 
-    // FIXME Sort rooms correctly by latest updated message in descending order
+  const formRoomCreation = useForm({
+    mode: 'uncontrolled',
+    initialValues: { name: '' },
+  });
+
+  // FIXME Sort rooms correctly by latest updated message in descending order
+  async function handleRoomCreation(values: typeof formRoomCreation.values) {
+    try {
+      const newRoom = await createRoom(values.name);
+      console.log(`🚀 ~ handleRoomCreation ~ newRoom:`, newRoom);
+
+      notifications.show({
+        title: 'Room creation',
+        message: 'Room created!',
+      });
+    } catch (error: unknown) {
+      console.error('Error during login:', error);
+
+      notifications.show({
+        title: 'Room creation failed',
+        message: (error as any).message,
+        color: 'red',
+      });
+    } finally {
+      closeRoomCreate();
+    }
   }
 
   /**********
@@ -82,7 +111,7 @@ const ChatPage = () => {
           {/* TODO Make all icon-buttons a component */}
           <div
             className='button-create-room icon-button'
-            onClick={handleRoomCreation}
+            onClick={openRoomCreate}
             title='Create new room'
           >
             <IconCopyPlus />
@@ -122,6 +151,34 @@ const ChatPage = () => {
       <section className='messenger-container'>
         <Messenger key={selectedRoomID} />
       </section>
+
+      <Modal
+        opened={wantToCreateRoom}
+        onClose={closeRoomCreate}
+        title={`Create new room`}
+        yOffset='10rem'
+        className='modal-delete-room'
+      >
+        <form onSubmit={formRoomCreation.onSubmit(handleRoomCreation)}>
+          <Stack mb='lg'>
+            <TextInput
+              withAsterisk
+              label='Room name'
+              placeholder='Choose a nice name for your room'
+              data-autofocus
+              key={formRoomCreation.key('name')}
+              {...formRoomCreation.getInputProps('name')}
+            />
+          </Stack>
+
+          <Group justify='flex-end' mt='sm'>
+            <Button variant='outline' onClick={closeRoomCreate}>
+              Cancel
+            </Button>
+            <Button type='submit'>Create</Button>
+          </Group>
+        </form>
+      </Modal>
     </div>
   );
 };

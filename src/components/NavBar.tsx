@@ -1,12 +1,11 @@
 import './NavBar.css';
 import config from '../../config';
 
-import { JSX, useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Button,
   MantineColorScheme,
-  useComputedColorScheme,
   useMantineColorScheme,
 } from '@mantine/core';
 

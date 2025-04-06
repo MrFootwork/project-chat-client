@@ -19,7 +19,7 @@ const Messenger = () => {
    **************************/
   const { user } = useContext(AuthContext);
   const { socket } = useContext(SocketContext);
-  const { createRoom, currentRoom, deleteRoom, selectedRoomID, pushMessage } =
+  const { createRoom, currentRoom, deleteRoom, pushMessage } =
     useContext(RoomsContext);
 
   // Input
@@ -99,7 +99,6 @@ const Messenger = () => {
   // => scroll down
   useEffect(() => {
     const sentByMyself = currentRoom?.messages.at(-1)?.author.id === user?.id;
-
     if (movedUpView && sentByMyself) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
@@ -272,7 +271,7 @@ const Messenger = () => {
           </p>
 
           <div className='button-container'>
-            <Button onClick={closeModalDelete} variant='light'>
+            <Button onClick={closeModalDelete} variant='outline'>
               Cancel
             </Button>
             <Button onClick={handleRoomDeletion} variant='filled' color='red'>

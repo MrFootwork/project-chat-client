@@ -125,14 +125,14 @@ const ChatPage = () => {
         </header>
 
         <ol className='room-button-container'>
-          {rooms?.map((room, firstElement) => {
+          {rooms?.map(room => {
             const hasUnreadMessage = roomHasUnreadMessages(room);
             const isSelectedRoom = room.id === selectedRoomID;
 
             return (
               <li key={room.id}>
                 <input
-                  defaultChecked={!firstElement}
+                  checked={isSelectedRoom}
                   type='radio'
                   name='room'
                   id={`room-${room.id}`}

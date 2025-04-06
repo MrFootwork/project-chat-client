@@ -49,12 +49,12 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
 
   // Set Current Room on each selection change
   useEffect(() => {
-    // HACK doesn't load initially without this
+    // BUG This runs twice on each selection change
     setStore(prevStore => {
-      console.log('Selection changed: ', prevStore.selectedRoomID);
       const selectedRoom = prevStore.rooms?.find(
         r => r.id === prevStore.selectedRoomID
       );
+
       if (!selectedRoom) return prevStore;
 
       return { ...prevStore, currentRoom: selectedRoom };
@@ -73,10 +73,8 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
         }
       );
 
-      console.info('New room created successfully: ', data);
-
       setStore(s => {
-        const updatedRooms = [...s.rooms!, data];
+        const updatedRooms = [...(s.rooms || []), data];
         const sortedRooms = sortRooms(updatedRooms);
 
         return { ...s, rooms: sortedRooms };
@@ -90,26 +88,28 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
 
   async function deleteRoom(roomID: string) {
     try {
-      const { data } = await axios.delete<Room>(
-        `${API_URL}/api/rooms/${roomID}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('chatToken')}`,
-          },
-        }
-      );
-
-      console.log('Room deleted successfully: ', data);
+      await axios.delete<Room>(`${API_URL}/api/rooms/${roomID}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('chatToken')}`,
+        },
+      });
 
       setStore(s => {
-        const updatedRooms =
-          s.rooms?.filter(room => room.id !== roomID) || null;
+        const updatedRooms = s.rooms?.filter(room => room.id !== roomID) || [];
 
-        console.log('rooms state after deletion:', updatedRooms);
+        if (updatedRooms.length === 0)
+          return { ...s, rooms: null, selectedRoomID: null, currentRoom: null };
+
+        const mewSelectedRoomID = updatedRooms[0].id;
+        const newCurrentRoom = updatedRooms.find(
+          room => room.id === mewSelectedRoomID
+        );
 
         return {
           ...s,
           rooms: updatedRooms,
+          selectedRoomID: mewSelectedRoomID,
+          currentRoom: newCurrentRoom || s.currentRoom,
         };
       });
     } catch (err) {

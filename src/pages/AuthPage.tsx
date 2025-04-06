@@ -65,6 +65,17 @@ const AuthPage = () => {
     }
   };
 
+  useEffect(() => {
+    if (Object.keys(formLogin.errors).length === 0) return;
+
+    console.log(
+      '❌ ERRORS detected',
+      formLogin.errors,
+      formLogin.getInputProps('credential').error
+    );
+    formLogin.getInputProps('credential').error;
+  }, [formLogin.errors]);
+
   /************
    * REGISTER
    ***********/
@@ -72,6 +83,11 @@ const AuthPage = () => {
     wantToRegister,
     { open: openModalRegister, close: closeModalRegister },
   ] = useDisclosure(false);
+
+  // Clear form when modal is closed
+  useEffect(() => {
+    if (!wantToRegister) formRegister.reset();
+  }, [wantToRegister]);
 
   const formRegister = useForm({
     mode: 'uncontrolled',
@@ -94,6 +110,7 @@ const AuthPage = () => {
     console.log('REGSITRATION: ', values);
     const { name, email, password } = values;
     const requestBody = { name, email, password };
+    formRegister.validate();
 
     try {
       await signup(requestBody);
@@ -140,6 +157,7 @@ const AuthPage = () => {
       <header className='auth-header'>
         <h1>Login to get started!</h1>
       </header>
+
       <div className='form-container'>
         <form onSubmit={formLogin.onSubmit(handleLogin)}>
           <TextInput
@@ -147,6 +165,9 @@ const AuthPage = () => {
             placeholder='your@email.com'
             key={formLogin.key('credential')}
             {...formLogin.getInputProps('credential')}
+            className={`${
+              formLogin.getInputProps('credential').error ? 'error' : ''
+            }`}
           />
 
           <PasswordInput
@@ -154,6 +175,9 @@ const AuthPage = () => {
             placeholder='Input placeholder'
             key={formLogin.key('password')}
             {...formLogin.getInputProps('password')}
+            className={`${
+              formLogin.getInputProps('password').error ? 'error' : ''
+            }`}
           />
 
           <p>
@@ -185,6 +209,9 @@ const AuthPage = () => {
                 placeholder='Your Username'
                 key={formRegister.key('name')}
                 {...formRegister.getInputProps('name')}
+                className={`${
+                  formRegister.getInputProps('name').error ? 'error' : ''
+                }`}
               />
 
               <TextInput
@@ -193,6 +220,9 @@ const AuthPage = () => {
                 placeholder='your@email.com'
                 key={formRegister.key('email')}
                 {...formRegister.getInputProps('email')}
+                className={`${
+                  formRegister.getInputProps('email').error ? 'error' : ''
+                }`}
               />
 
               <PasswordInput
@@ -201,20 +231,28 @@ const AuthPage = () => {
                 placeholder='Your Password'
                 key={formRegister.key('password')}
                 {...formRegister.getInputProps('password')}
+                className={`${
+                  formRegister.getInputProps('password').error ? 'error' : ''
+                }`}
               />
 
               <PasswordInput
                 withAsterisk
-                label='Repeat Password'
+                label='Confirm Password'
                 placeholder='Your Password'
                 key={formRegister.key('confirmPassword')}
                 {...formRegister.getInputProps('confirmPassword')}
+                className={`${
+                  formRegister.getInputProps('confirmPassword').error
+                    ? 'error'
+                    : ''
+                }`}
               />
             </Stack>
 
             <div className='button-container'>
               <Group justify='flex-end' mt='sm'>
-                <Button onClick={closeModalRegister} variant='light'>
+                <Button onClick={closeModalRegister} variant='outline'>
                   Cancel
                 </Button>
                 <Button type='submit'>Register</Button>

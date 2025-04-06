@@ -57,9 +57,16 @@ const ChatPage = () => {
   const [wantToCreateRoom, { open: openRoomCreate, close: closeRoomCreate }] =
     useDisclosure(false);
 
+  useEffect(() => {
+    if (!wantToCreateRoom) formRoomCreation.reset();
+  }, [wantToCreateRoom]);
+
   const formRoomCreation = useForm({
     mode: 'uncontrolled',
     initialValues: { name: '' },
+    validate: {
+      name: value => (value.length < 3 ? 'Name too short' : null),
+    },
   });
 
   async function handleRoomCreation(values: typeof formRoomCreation.values) {
@@ -81,6 +88,7 @@ const ChatPage = () => {
       });
     } finally {
       closeRoomCreate();
+      formRoomCreation.reset();
     }
   }
 
@@ -166,6 +174,9 @@ const ChatPage = () => {
               data-autofocus
               key={formRoomCreation.key('name')}
               {...formRoomCreation.getInputProps('name')}
+              className={`${
+                formRoomCreation.getInputProps('name').error ? 'error' : ''
+              }`}
             />
           </Stack>
 

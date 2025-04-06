@@ -2,6 +2,7 @@ import './AuthPage.css';
 
 import { useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 import { matchesField, useForm } from '@mantine/form';
 import {
@@ -49,11 +50,15 @@ const AuthPage = () => {
     } catch (error: unknown) {
       console.error('Error during login:', error);
 
-      notifications.show({
-        title: 'Regsitration failed',
-        message: (error as any).message,
-        color: 'red',
-      });
+      if (axios.isAxiosError(error)) {
+        notifications.show({
+          title: 'Login failed',
+          message: 'The server is down. Please try again later.',
+          color: 'red',
+        });
+
+        return;
+      }
 
       if (
         (error as ResponseError).code === '401' &&
@@ -62,6 +67,12 @@ const AuthPage = () => {
         formLogin.setFieldError('credential', (error as ResponseError).message);
         formLogin.setFieldError('password', (error as ResponseError).message);
       }
+
+      notifications.show({
+        title: 'Login failed',
+        message: (error as any).message,
+        color: 'red',
+      });
     }
   };
 
@@ -127,6 +138,16 @@ const AuthPage = () => {
       });
     } catch (error) {
       console.error('Error during registration:', error);
+
+      if (axios.isAxiosError(error)) {
+        notifications.show({
+          title: 'Registration failed',
+          message: 'The server is down. Please try again later.',
+          color: 'red',
+        });
+
+        return;
+      }
 
       notifications.show({
         title: 'Regsitration failed',

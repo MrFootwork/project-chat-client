@@ -45,11 +45,18 @@ function AuthWrapper({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    // FIXME Handle server down error
-    // Failed to validate token: Error: Error: Failed to fetch user from token: AxiosError: Network Error
-    validateToken().catch(error =>
-      console.log(`Failed to validate token: ${error}`)
-    );
+    // This runs twice in development mode, but not in production
+    validateToken().catch(error => {
+      console.error(error);
+
+      if (error.code === 'ERR_NETWORK')
+        notifications.show({
+          title: 'Token validation failed',
+          message: 'It seems the server is down. Please try again later.',
+          color: 'red',
+          autoClose: false,
+        });
+    });
   }, []);
 
   async function logout() {
@@ -96,9 +103,7 @@ function AuthWrapper({ children }: { children: ReactNode }) {
 
         throw customError;
       } else {
-        throw {
-          message: error.message || 'Unknown error occurred',
-        } as ResponseError;
+        throw error;
       }
     } finally {
       setLoading(false);
@@ -139,9 +144,7 @@ function AuthWrapper({ children }: { children: ReactNode }) {
 
         throw customError;
       } else {
-        throw {
-          message: error.message || 'Unknown error occurred',
-        } as ResponseError;
+        throw error;
       }
     } finally {
       setLoading(false);
@@ -158,7 +161,7 @@ function AuthWrapper({ children }: { children: ReactNode }) {
     try {
       await storeUserData(token);
     } catch (error) {
-      throw new Error(`${error}`);
+      throw error;
     }
   }
 
@@ -168,9 +171,10 @@ function AuthWrapper({ children }: { children: ReactNode }) {
         withCredentials: true,
         headers: { Authorization: `Bearer ${token}` },
       });
+
       setUser(response.data);
     } catch (error) {
-      throw new Error(`Failed to fetch user from token: ${error}`);
+      throw error;
     } finally {
       setLoading(false);
     }

@@ -155,8 +155,6 @@ const Messenger = () => {
     closeModalDelete();
   }
 
-  // FIXME Set room of currentRoom to checked after deletion
-
   // Members count and display message
   const membersCountRef = useRef<string | null>(null);
   useEffect(() => {

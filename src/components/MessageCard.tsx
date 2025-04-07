@@ -38,7 +38,13 @@ const MessageCard: React.FC<MessageCardProps> = ({ messages }) => {
       {isFirst.current && (
         <>
           <div className='image-container'>
-            <img src={currentMessage.author.avatarUrl} alt='' />
+            {currentMessage.author.avatarUrl && (
+              <img src={currentMessage.author.avatarUrl} alt='' />
+            )}
+            {/* FIXME Add user initials if no avatar vailable */}
+            {!currentMessage.author.avatarUrl && (
+              <p>{currentMessage.author.name}</p>
+            )}
           </div>
           <h5>{currentMessage.author.name}</h5>
         </>

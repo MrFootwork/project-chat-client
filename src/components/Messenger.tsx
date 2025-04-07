@@ -5,7 +5,7 @@ import { KeyboardEvent, useContext, useEffect, useRef, useState } from 'react';
 import { Button, Modal, Textarea } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useForm } from '@mantine/form';
-import { IconTrashX } from '@tabler/icons-react';
+import { IconTrashX, IconUsersPlus } from '@tabler/icons-react';
 import MessageCard from './MessageCard';
 import IndicatorUnread from './IndicatorUnread';
 
@@ -161,6 +161,17 @@ const Messenger = () => {
     closeModalDelete();
   }
 
+  // Add member modal
+  const [wantToAddMember, { open: openMemberAdd, close: closeMemberAdd }] =
+    useDisclosure(false);
+
+  // Add member handler
+  function handleMemberAddition() {
+    // FIXME Add members to this room
+
+    console.log('Adding member to room...');
+  }
+
   // Members count and display message
   const membersCountRef = useRef<string | null>(null);
   useEffect(() => {
@@ -178,18 +189,24 @@ const Messenger = () => {
           <p>{membersCountRef.current || ''}</p>
         </div>
 
-        {/* FIXME Add members to this room */}
         <div className='members-container'>
           {currentRoom?.members.map(member => {
             return (
               <div key={`member-${member.id}`} className='avatar-container'>
-                <img src={member.avatarUrl} alt={member.name} />
+                <img src={member.avatarUrl || ''} alt={member.name} />
               </div>
             );
           })}
         </div>
 
         <div className='button-container'>
+          <div
+            className='button-add-member icon-button'
+            onClick={openMemberAdd}
+            title='Add member to this room'
+          >
+            <IconUsersPlus />
+          </div>
           <div
             className='button-delete-room icon-button'
             onClick={openModalDelete}
@@ -259,6 +276,28 @@ const Messenger = () => {
           )}
         </form>
       </div>
+
+      {/* Add member Modal */}
+      {wantToAddMember ? (
+        <Modal
+          opened={wantToAddMember}
+          onClose={closeMemberAdd}
+          title={`Add Member to room ${currentRoom?.name}?`}
+          yOffset='10rem'
+          className='modal-delete-room'
+        >
+          <div className='button-container'>
+            <Button onClick={closeMemberAdd} variant='outline'>
+              Cancel
+            </Button>
+            <Button onClick={handleMemberAddition} variant='filled'>
+              Add
+            </Button>
+          </div>
+        </Modal>
+      ) : (
+        ''
+      )}
 
       {/* Delete Modal */}
       {wantToDelete ? (

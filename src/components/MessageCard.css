@@ -21,22 +21,9 @@
   position: relative;
 
   .image-container {
-    --image-size: 3rem;
     position: absolute;
-    overflow: hidden;
-    border-radius: 50%;
-    height: var(--image-size);
-    width: var(--image-size);
-
     top: -0.25rem;
     left: -0.5rem;
-
-    object-position: center;
-    object-fit: cover;
-
-    img {
-      width: var(--image-size);
-    }
   }
 
   /* Changes for cards of myself */

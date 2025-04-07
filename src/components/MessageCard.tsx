@@ -1,7 +1,10 @@
 import './MessageCard.css';
-import type { Message } from '../types/message';
+
 import { useContext, useRef } from 'react';
+
+import TheAvatar from './TheAvatar';
 import { AuthContext } from '../contexts/AuthWrapper';
+import type { Message } from '../types/message';
 
 interface MessageCardProps {
   messages: {
@@ -38,14 +41,9 @@ const MessageCard: React.FC<MessageCardProps> = ({ messages }) => {
       {isFirst.current && (
         <>
           <div className='image-container'>
-            {currentMessage.author.avatarUrl && (
-              <img src={currentMessage.author.avatarUrl} alt='' />
-            )}
-            {/* FIXME Add user initials if no avatar vailable */}
-            {!currentMessage.author.avatarUrl && (
-              <p>{currentMessage.author.name}</p>
-            )}
+            <TheAvatar user={messages.this.author} />
           </div>
+
           <h5>{currentMessage.author.name}</h5>
         </>
       )}

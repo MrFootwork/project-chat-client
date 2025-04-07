@@ -2,7 +2,7 @@ import './Messenger.css';
 import { Message } from '../types/message';
 
 import { KeyboardEvent, useContext, useEffect, useRef, useState } from 'react';
-import { Button, Modal, Textarea } from '@mantine/core';
+import { AvatarGroup, Button, Modal, Textarea } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useForm } from '@mantine/form';
 import { IconTrashX, IconUsersPlus } from '@tabler/icons-react';
@@ -12,6 +12,7 @@ import IndicatorUnread from './IndicatorUnread';
 import { SocketContext } from '../contexts/SocketWrapper';
 import { AuthContext } from '../contexts/AuthWrapper';
 import { RoomsContext } from '../contexts/RoomsWrapper';
+import TheAvatar from './TheAvatar';
 
 const Messenger = () => {
   /**************************
@@ -189,15 +190,11 @@ const Messenger = () => {
           <p>{membersCountRef.current || ''}</p>
         </div>
 
-        <div className='members-container'>
+        <AvatarGroup spacing='1.5rem'>
           {currentRoom?.members.map(member => {
-            return (
-              <div key={`member-${member.id}`} className='avatar-container'>
-                <img src={member.avatarUrl || ''} alt={member.name} />
-              </div>
-            );
+            return <TheAvatar key={member.id} user={member} size='3rem' />;
           })}
-        </div>
+        </AvatarGroup>
 
         <div className='button-container'>
           <div

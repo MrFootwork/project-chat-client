@@ -12,7 +12,6 @@ export type User = {
 export type UserSignUp = Pick<User, 'email' | 'name' | 'password'>;
 
 export type RoomMember = Omit<User, 'password' | 'createdAt' | 'updatedAt'> & {
-  avatarUrl: string;
   isAdmin: boolean;
   userLeft: boolean;
 };

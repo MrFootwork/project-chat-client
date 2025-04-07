@@ -1,9 +1,12 @@
 import axios from 'axios';
 import React, { ReactNode, useContext, useEffect, useState } from 'react';
 import config from '../../config';
+
+import { AuthContext } from './AuthWrapper';
+
+import { MessageAuthor } from '../types/user';
 import { Room } from '../types/room';
 import { Message } from '../types/message';
-import { AuthContext } from './AuthWrapper';
 
 const { API_URL } = config;
 
@@ -18,6 +21,7 @@ const defaultStore = {
   selectedRoomID: null,
   currentRoom: null,
   pushMessage: async (message: Message) => {},
+  setMessageAsRead: async (message: Message) => {},
 };
 
 type RoomsContextType = {
@@ -29,6 +33,7 @@ type RoomsContextType = {
   selectedRoomID: string | null;
   currentRoom: Room | null;
   pushMessage: (message: Message) => Promise<void>;
+  setMessageAsRead: (message: Message) => Promise<void>;
 };
 
 const RoomsContext = React.createContext<RoomsContextType>(defaultStore);
@@ -153,20 +158,11 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
    */
   async function fetchSelectedRoom(roomID: string) {
     try {
-      const response = await axios.put(
-        ` ${API_URL}/api/rooms/${roomID}/read`,
-        null,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('chatToken')}`,
-          },
-        }
-      );
-
-      if (response)
-        console.info(
-          `Entering Room ${roomID} | message: ${response.data.message}`
-        );
+      await axios.put(` ${API_URL}/api/rooms/${roomID}/read`, null, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('chatToken')}`,
+        },
+      });
 
       const { data } = await axios.get<Room>(`${API_URL}/api/rooms/${roomID}`, {
         headers: {
@@ -198,11 +194,51 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
     }
   }
 
+  async function setMessageAsRead(message: Message) {
+    // Virtual update of the store
+    setStore(s => {
+      if (!s.rooms || !user) return s;
+
+      const updatedRooms = s.rooms.map(room => {
+        if (room.id !== message.roomId) return room;
+
+        const updatedMessages = room.messages.map(m => {
+          if (m.id !== message.id) return m;
+
+          const userAsReader: MessageAuthor = {
+            id: user.id,
+            name: user.name,
+            isDeleted: user.isDeleted,
+            avatarUrl: user.avatarUrl,
+          };
+
+          return { ...m, readers: [...m.readers, userAsReader] };
+        });
+
+        return { ...room, messages: updatedMessages };
+      });
+
+      return { ...s, rooms: updatedRooms };
+    });
+
+    // Persisting message read status
+    try {
+      await axios.put<Room>(
+        `${API_URL}/api/messages/${message.id}/read`,
+        null,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('chatToken')}`,
+          },
+        }
+      );
+    } catch (err) {
+      throw err;
+    }
+  }
+
   // Push a new message to the correct room
   async function pushMessage(message: Message) {
-    // Dependencies on state should address those inside the setter
-    // using prevStore to avoid stale closures
-    // BUG Set this message to being read for the current user if in current room
     setStore(prevStore => {
       if (!prevStore.rooms) return prevStore;
 
@@ -222,7 +258,7 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
         ...prevStore,
         rooms: sortedRooms,
         currentRoom: isCurrentRoom
-          ? updatedRooms.find(r => r.id === message.roomId) || null
+          ? sortedRooms.find(r => r.id === message.roomId) || null
           : prevStore.currentRoom,
       };
     });
@@ -250,6 +286,7 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
 
       const latestMessageDates = room.messages.map(m => {
         // Only consider messages sent by the current user
+        // That said, messages sent by other users don't affect the order
         if (m.author.id === user?.id) return new Date(m.createdAt).getTime();
 
         return -Infinity;
@@ -268,6 +305,7 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
         fetchRooms,
         fetchSelectedRoom,
         pushMessage,
+        setMessageAsRead,
       }}
     >
       {children}

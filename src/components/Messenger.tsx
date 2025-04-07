@@ -19,7 +19,7 @@ const Messenger = () => {
    **************************/
   const { user } = useContext(AuthContext);
   const { socket } = useContext(SocketContext);
-  const { createRoom, currentRoom, deleteRoom, pushMessage } =
+  const { createRoom, currentRoom, deleteRoom, pushMessage, setMessageAsRead } =
     useContext(RoomsContext);
 
   // Input
@@ -111,19 +111,25 @@ const Messenger = () => {
   useEffect(() => {
     // console.log('MESSAGE LISTENER ON', socket?.id);
     socket?.on('receive-message', handleReceiveMessage);
-    // console.log('SOCKET LISTENER', currentRoom?.messages);
 
     return () => {
       // console.log('MESSAGE LISTENER OFF');
       socket?.off('receive-message', handleReceiveMessage);
     };
-    //
-  }, [socket?.connected, currentRoom?.messages.length, createRoom]);
+  }, [
+    socket?.connected,
+    currentRoom?.messages.length,
+    createRoom,
+    movedUpView,
+  ]);
+  // BUG Try movedUpView as useMemo. Currently listener toggling is to much!
 
   /** Handles how received messages are managed. */
-  function handleReceiveMessage(message: Message) {
-    console.log('RECEIVE MESSAGE', message.author.name, message.content);
+  async function handleReceiveMessage(message: Message) {
     pushMessage(message);
+
+    if (currentRoom?.id === message.roomId && !movedUpView)
+      setMessageAsRead(message);
   }
 
   // Receiving messages while moved up

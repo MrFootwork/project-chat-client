@@ -118,7 +118,6 @@ const AuthPage = () => {
   });
 
   const handleRegister = async (values: typeof formRegister.values) => {
-    console.log('REGSITRATION: ', values);
     const { name, email, password } = values;
     const requestBody = { name, email, password };
     formRegister.validate();

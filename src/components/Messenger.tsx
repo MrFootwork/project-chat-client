@@ -1,8 +1,22 @@
 import './Messenger.css';
 import { Message } from '../types/message';
 
-import { KeyboardEvent, useContext, useEffect, useRef, useState } from 'react';
-import { AvatarGroup, Button, Modal, Textarea } from '@mantine/core';
+import {
+  KeyboardEvent,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import {
+  AvatarGroup,
+  Button,
+  Group,
+  Modal,
+  MultiSelect,
+  Textarea,
+} from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useForm } from '@mantine/form';
 import { IconTrashX, IconUsersPlus } from '@tabler/icons-react';
@@ -22,6 +36,11 @@ const Messenger = () => {
   const { socket } = useContext(SocketContext);
   const { createRoom, currentRoom, deleteRoom, pushMessage, setMessageAsRead } =
     useContext(RoomsContext);
+
+  const friendsData = useMemo(
+    () => user?.friends.map(f => ({ value: f.id, label: f.name })) || [],
+    [user?.friends]
+  );
 
   // Input
   const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -175,6 +194,7 @@ const Messenger = () => {
 
   // Members count and display message
   const membersCountRef = useRef<string | null>(null);
+
   useEffect(() => {
     if (!currentRoom?.members) return;
 
@@ -279,17 +299,26 @@ const Messenger = () => {
         <Modal
           opened={wantToAddMember}
           onClose={closeMemberAdd}
-          title={`Add Member to room ${currentRoom?.name}?`}
+          title={`Add members to room ${currentRoom?.name}`}
           yOffset='10rem'
-          className='modal-delete-room'
+          className='modal-add-member'
         >
           <div className='button-container'>
-            <Button onClick={closeMemberAdd} variant='outline'>
-              Cancel
-            </Button>
-            <Button onClick={handleMemberAddition} variant='filled'>
-              Add
-            </Button>
+            <MultiSelect
+              data={friendsData}
+              label='Which friends do you want to join this room?'
+              placeholder='Invite some friends'
+              searchable
+            />
+
+            <Group justify='flex-end'>
+              <Button onClick={closeMemberAdd} variant='outline'>
+                Cancel
+              </Button>
+              <Button onClick={handleMemberAddition} variant='filled'>
+                Add
+              </Button>
+            </Group>
           </div>
         </Modal>
       ) : (

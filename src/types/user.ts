@@ -7,6 +7,7 @@ export type User = {
   isDeleted: boolean;
   createdAt: string;
   updatedAt: string;
+  friends: MessageAuthor[];
 };
 
 export type UserSignUp = Pick<User, 'email' | 'name' | 'password'>;

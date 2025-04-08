@@ -25,6 +25,14 @@ div.messenger-container {
   }
 }
 
+.modal-add-member {
+  & .button-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+}
+
 .modal-delete-room {
   & .button-container {
     display: flex;

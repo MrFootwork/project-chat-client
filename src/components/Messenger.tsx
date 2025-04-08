@@ -55,6 +55,9 @@ const Messenger = () => {
   /**************************
    * Messenger display
    **************************/
+  // Members count and display message
+  const membersCountRef = useRef<string | null>(null);
+
   // Jump to the bottom on mount & when room has changed
   useEffect(() => {
     if (!messagesDisplay.current) return;
@@ -169,7 +172,7 @@ const Messenger = () => {
   }, [currentRoom?.messages.length]);
 
   /**************************
-   * Rooms
+   * Modal Delete Room
    **************************/
   // Delete room modal
   const [wantToDelete, { open: openModalDelete, close: closeModalDelete }] =
@@ -181,9 +184,22 @@ const Messenger = () => {
     closeModalDelete();
   }
 
+  /**************************
+   * Modal Add Member
+   **************************/
   // Add member modal
   const [wantToAddMember, { open: openMemberAdd, close: closeMemberAdd }] =
     useDisclosure(false);
+
+  const friendsData = useMemo(
+    () =>
+      user?.friends.map(f => ({
+        value: f.id,
+        label: f.name,
+        avatar: f.avatarUrl,
+      })) || [],
+    [user?.friends]
+  );
 
   // Add member handler
   function handleMemberAddition() {

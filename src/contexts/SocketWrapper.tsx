@@ -5,6 +5,9 @@ import config from '../../config';
 
 import { AuthContext } from './AuthWrapper';
 import { RoomsContext } from './RoomsWrapper';
+import { notifications } from '@mantine/notifications';
+import { IconCopyPlus } from '@tabler/icons-react';
+import { User } from '../types/user';
 
 type SocketType = Socket | null;
 
@@ -28,9 +31,24 @@ function SocketWrapper({ children }: { children: ReactNode }) {
 
     const socket = setupSocket();
     connectSocket(socket);
+    listenForRoomInvitations(socket);
 
     return () => disconnectSocket(socket);
   }, [rooms?.length]);
+
+  function listenForRoomInvitations(socket: SocketType) {
+    if (!socket) return;
+
+    socket.on('invited-to-room', (roomID: string, host: User) => {
+      console.log(`You have been invited to room ${roomID} by ${host.name}`);
+
+      notifications.show({
+        title: 'Room invitation',
+        message: `You have been invited to a room: ${roomID}`,
+        icon: <IconCopyPlus />,
+      });
+    });
+  }
 
   function connectSocket(socket: SocketType) {
     if (!socket) return;

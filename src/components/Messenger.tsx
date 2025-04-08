@@ -1,22 +1,8 @@
 import './Messenger.css';
 import { Message } from '../types/message';
 
-import {
-  KeyboardEvent,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import {
-  AvatarGroup,
-  Button,
-  Group,
-  Modal,
-  MultiSelect,
-  Textarea,
-} from '@mantine/core';
+import { KeyboardEvent, useContext, useEffect, useRef, useState } from 'react';
+import { AvatarGroup, Button, Group, Modal, Textarea } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useForm } from '@mantine/form';
 import { IconTrashX, IconUsersPlus } from '@tabler/icons-react';
@@ -27,6 +13,8 @@ import { SocketContext } from '../contexts/SocketWrapper';
 import { AuthContext } from '../contexts/AuthWrapper';
 import { RoomsContext } from '../contexts/RoomsWrapper';
 import TheAvatar from './TheAvatar';
+import { SearchableMultiSelect } from './SearchableMultiSelect';
+import { User } from '../types/user';
 
 const Messenger = () => {
   /**************************
@@ -36,11 +24,6 @@ const Messenger = () => {
   const { socket } = useContext(SocketContext);
   const { createRoom, currentRoom, deleteRoom, pushMessage, setMessageAsRead } =
     useContext(RoomsContext);
-
-  const friendsData = useMemo(
-    () => user?.friends.map(f => ({ value: f.id, label: f.name })) || [],
-    [user?.friends]
-  );
 
   // Input
   const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -191,26 +174,23 @@ const Messenger = () => {
   const [wantToAddMember, { open: openMemberAdd, close: closeMemberAdd }] =
     useDisclosure(false);
 
-  const friendsData = useMemo(
-    () =>
-      user?.friends.map(f => ({
-        value: f.id,
-        label: f.name,
-        avatar: f.avatarUrl,
-      })) || [],
-    [user?.friends]
-  );
+  const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
 
   // Add member handler
   function handleMemberAddition() {
     // FIXME Add members to this room
 
-    console.log('Adding member to room...');
+    console.log('Adding member to room...', selectedFriends);
+
+    if (!socket || socket?.disconnected) {
+      console.error('Socket not connected!');
+      return;
+    }
+
+    socket.emit('invite-to-room', currentRoom?.id, selectedFriends);
   }
 
-  // Members count and display message
-  const membersCountRef = useRef<string | null>(null);
-
+  // Update member count for current room
   useEffect(() => {
     if (!currentRoom?.members) return;
 
@@ -320,11 +300,9 @@ const Messenger = () => {
           className='modal-add-member'
         >
           <div className='button-container'>
-            <MultiSelect
-              data={friendsData}
-              label='Which friends do you want to join this room?'
-              placeholder='Invite some friends'
-              searchable
+            <SearchableMultiSelect
+              list={selectedFriends}
+              setList={setSelectedFriends}
             />
 
             <Group justify='flex-end'>

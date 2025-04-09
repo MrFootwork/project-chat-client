@@ -1,13 +1,14 @@
+import config from '../../config';
+import { User } from '../types/user';
+import { Room } from '../types/room';
+
 import React, { ReactNode, useContext, useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
-
-import config from '../../config';
+import { notifications } from '@mantine/notifications';
+import { IconCopyPlus } from '@tabler/icons-react';
 
 import { AuthContext } from './AuthWrapper';
 import { RoomsContext } from './RoomsWrapper';
-import { notifications } from '@mantine/notifications';
-import { IconCopyPlus } from '@tabler/icons-react';
-import { User } from '../types/user';
 
 type SocketType = Socket | null;
 
@@ -19,7 +20,7 @@ const SocketContext = React.createContext<SocketContextType>({
 
 function SocketWrapper({ children }: { children: ReactNode }) {
   const { user, token } = useContext(AuthContext);
-  const { rooms } = useContext(RoomsContext);
+  const { rooms, addRoom } = useContext(RoomsContext);
 
   const [socketServer, setSocket] = useState<SocketType>(null);
 
@@ -32,6 +33,7 @@ function SocketWrapper({ children }: { children: ReactNode }) {
     const socket = setupSocket();
     connectSocket(socket);
     listenForRoomInvitations(socket);
+    // BUG Listen for new room members
 
     return () => disconnectSocket(socket);
   }, [rooms?.length]);
@@ -39,12 +41,14 @@ function SocketWrapper({ children }: { children: ReactNode }) {
   function listenForRoomInvitations(socket: SocketType) {
     if (!socket) return;
 
-    socket.on('invited-to-room', (roomID: string, host: User) => {
-      console.log(`You have been invited to room ${roomID} by ${host.name}`);
+    socket.on('invited-to-room', (room: Room, host: User) => {
+      console.log(`You have been invited to room ${room.name} by ${host.name}`);
+
+      addRoom(room);
 
       notifications.show({
         title: 'Room invitation',
-        message: `You have been invited to a room: ${roomID}`,
+        message: `You have been invited to a room: ${room.name}`,
         icon: <IconCopyPlus />,
       });
     });

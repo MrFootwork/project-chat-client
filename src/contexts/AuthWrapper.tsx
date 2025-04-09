@@ -133,7 +133,7 @@ function AuthWrapper({ children }: { children: ReactNode }) {
       window.localStorage.setItem('chatToken', response.data.jwt);
 
       // get user and store it
-      await storeUserData(response.data.jwt);
+      await _storeUserData(response.data.jwt);
     } catch (error: any) {
       if (error.response?.data) {
         const customError: ResponseError = {
@@ -159,13 +159,13 @@ function AuthWrapper({ children }: { children: ReactNode }) {
     setToken(token);
 
     try {
-      await storeUserData(token);
+      await _storeUserData(token);
     } catch (error) {
       throw error;
     }
   }
 
-  async function storeUserData(token: string) {
+  async function _storeUserData(token: string) {
     try {
       const response = await axios.get(API_URL + '/api/users/me', {
         withCredentials: true,

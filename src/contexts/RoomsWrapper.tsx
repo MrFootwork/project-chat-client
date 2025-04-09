@@ -17,7 +17,8 @@ const defaultStore = {
   },
   deleteRoom: async (roomID: string) => {},
   fetchRooms: async () => [],
-  fetchSelectedRoom: async (roomID: string) => {},
+  addRoom: async (room: Room) => {},
+  selectRoom: async (roomID: string) => {},
   selectedRoomID: null,
   currentRoom: null,
   pushMessage: async (message: Message) => {},
@@ -29,7 +30,8 @@ type RoomsContextType = {
   createRoom: (roomName: string) => Promise<Room | undefined>;
   deleteRoom: (roomID: string) => Promise<void>;
   fetchRooms: () => Promise<Room[]>;
-  fetchSelectedRoom: (roomID: string) => Promise<void>;
+  addRoom: (room: Room) => Promise<void>;
+  selectRoom: (roomID: string) => Promise<void>;
   selectedRoomID: string | null;
   currentRoom: Room | null;
   pushMessage: (message: Message) => Promise<void>;
@@ -56,6 +58,8 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
   useEffect(() => {
     // BUG This runs twice on each selection change
     setStore(prevStore => {
+      console.log('selectedRoomID changed: ', prevStore.selectedRoomID);
+
       const selectedRoom = prevStore.rooms?.find(
         r => r.id === prevStore.selectedRoomID
       );
@@ -150,13 +154,25 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
     }
   }
 
+  async function addRoom(room: Room) {
+    setStore(s => {
+      const updatedRooms = [...(s.rooms || []), room];
+      const sortedRooms = sortRooms(updatedRooms);
+
+      console.log('addRoom called. Current store:', s);
+      return { ...s, rooms: sortedRooms };
+    });
+  }
+
   /**
    * Fetches the details of a selected room by its ID and updates the store.
    *
    * @param roomID - The ID of the room to fetch.
    * @returns Resolves when the room is successfully fetched and the store is updated.
    */
-  async function fetchSelectedRoom(roomID: string) {
+  async function selectRoom(roomID: string) {
+    console.log('selectRoom called with roomID:', roomID);
+
     try {
       await axios.put(` ${API_URL}/api/rooms/${roomID}/read`, null, {
         headers: {
@@ -170,7 +186,7 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
         },
       });
 
-      // console.log('Selected room fetched successfully: ', data);
+      console.log('Selected room fetched successfully: ', data);
 
       setStore(s => {
         if (!s.rooms) return s;
@@ -242,6 +258,9 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
     setStore(prevStore => {
       if (!prevStore.rooms) return prevStore;
 
+      // BUG Invited person has error when receiving first message after invitation
+      console.log('TRYING TO PUSH MESSAGE', store.rooms);
+
       const updatedRooms = prevStore.rooms.map(room => {
         if (room.id === message.roomId)
           return { ...room, messages: [...room.messages, message] };
@@ -303,7 +322,8 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
         createRoom,
         deleteRoom,
         fetchRooms,
-        fetchSelectedRoom,
+        addRoom,
+        selectRoom,
         pushMessage,
         setMessageAsRead,
       }}

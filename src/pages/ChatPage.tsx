@@ -1,18 +1,20 @@
 import './ChatPage.css';
-import { useContext, useEffect } from 'react';
+import { Room } from '../types/room';
+
+import { useContext, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { IconCopyPlus } from '@tabler/icons-react';
 
 import { AuthContext } from '../contexts/AuthWrapper';
 import { RoomsContext } from '../contexts/RoomsWrapper';
 
-import Messenger from '../components/Messenger';
-import IndicatorUnread from '../components/IndicatorUnread';
-import { Room } from '../types/room';
-import { notifications } from '@mantine/notifications';
+import { IconCopyPlus } from '@tabler/icons-react';
 import { Button, Group, Modal, Stack, TextInput } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
+import { notifications } from '@mantine/notifications';
 import { useForm } from '@mantine/form';
+
+import Messenger from '../components/Messenger';
+import IndicatorUnread from '../components/IndicatorUnread';
 
 const ChatPage = () => {
   const navigate = useNavigate();
@@ -20,9 +22,10 @@ const ChatPage = () => {
   /**********
    * AUTH
    **********/
-  const { user, validateToken } = useContext(AuthContext);
+  const { user, token, validateToken } = useContext(AuthContext);
 
   useEffect(() => {
+    if (user && token) return;
     validateToken();
     if (!user) navigate('/');
   }, []);
@@ -30,7 +33,7 @@ const ChatPage = () => {
   /**********
    * ROOMS
    **********/
-  const { rooms, createRoom, fetchRooms, fetchSelectedRoom, selectedRoomID } =
+  const { rooms, createRoom, fetchRooms, selectRoom, selectedRoomID } =
     useContext(RoomsContext);
 
   // Initial page load
@@ -39,18 +42,23 @@ const ChatPage = () => {
     fetchRooms();
   }, []);
 
+  const firstRoomFetchedInitially = useRef(false);
+
   // After initial load, fetch the first room messages & set messages to being read
   // Needs this effect to access the rooms from before
   useEffect(() => {
-    if (rooms?.length) {
+    if (rooms?.length && !firstRoomFetchedInitially.current) {
       console.log('Fetch selected room from ChatPage...', rooms?.length);
-      fetchSelectedRoom(rooms[0]?.id || '');
+      selectRoom(rooms[0]?.id || '');
+      // Only run once after initial load
+      // Otherwise, it would also run, when new rooms are added
+      firstRoomFetchedInitially.current = true;
     }
   }, [rooms && rooms.length]);
 
   // Fetch selected room messages
   function handleRoomSelection(roomID: string) {
-    fetchSelectedRoom(roomID);
+    selectRoom(roomID);
   }
 
   // Create new room
@@ -78,6 +86,8 @@ const ChatPage = () => {
         title: 'Room creation',
         message: 'Room created!',
       });
+
+      if (newRoom) selectRoom(newRoom.id);
     } catch (error: unknown) {
       console.error('Error during login:', error);
 

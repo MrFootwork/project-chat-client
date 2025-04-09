@@ -14,7 +14,6 @@ import { AuthContext } from '../contexts/AuthWrapper';
 import { RoomsContext } from '../contexts/RoomsWrapper';
 import TheAvatar from './TheAvatar';
 import { SearchableMultiSelect } from './SearchableMultiSelect';
-import { User } from '../types/user';
 
 const Messenger = () => {
   /**************************
@@ -22,8 +21,14 @@ const Messenger = () => {
    **************************/
   const { user } = useContext(AuthContext);
   const { socket } = useContext(SocketContext);
-  const { createRoom, currentRoom, deleteRoom, pushMessage, setMessageAsRead } =
-    useContext(RoomsContext);
+  const {
+    currentRoom,
+    selectRoom,
+    createRoom,
+    deleteRoom,
+    pushMessage,
+    setMessageAsRead,
+  } = useContext(RoomsContext);
 
   // Input
   const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -113,6 +118,7 @@ const Messenger = () => {
   /**************************
    * Receive messages
    **************************/
+  // TODO Move this listner to the socket context
   // Setup socket listener for incoming messages
   useEffect(() => {
     // console.log('MESSAGE LISTENER ON', socket?.id);
@@ -167,6 +173,8 @@ const Messenger = () => {
     closeModalDelete();
   }
 
+  // FIXME Restrict deletion and adding members to admins
+
   /**************************
    * Modal Add Member
    **************************/
@@ -177,17 +185,20 @@ const Messenger = () => {
   const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
 
   // Add member handler
-  function handleMemberAddition() {
+  async function handleMemberAddition() {
     // FIXME Add members to this room
 
     console.log('Adding member to room...', selectedFriends);
 
-    if (!socket || socket?.disconnected) {
+    if (!socket || socket?.disconnected || !currentRoom?.id) {
       console.error('Socket not connected!');
       return;
     }
 
-    socket.emit('invite-to-room', currentRoom?.id, selectedFriends);
+    socket.emit('invite-to-room', currentRoom.id, selectedFriends);
+
+    await selectRoom(currentRoom.id);
+    closeMemberAdd();
   }
 
   // Update member count for current room
@@ -196,6 +207,8 @@ const Messenger = () => {
 
     if (currentRoom?.members.length === 1) membersCountRef.current = '1 Member';
     else membersCountRef.current = `${currentRoom?.members.length} Members`;
+
+    console.log('Member count updated: ', membersCountRef.current);
   }, [currentRoom?.members.length]);
 
   return (

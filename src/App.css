@@ -18,16 +18,43 @@
 
   cursor: pointer;
   border-radius: 50%;
-  padding: 0.75rem;
+  padding: 0.6rem;
   border: none;
   background-color: inherit;
+
+  transition: all 0.1s ease-in-out;
 
   /* TODO Add click animation */
   &:hover {
     background-color: hsl(from var(--color-primary) h s l / 15%);
+    transform: translateY(-0.1rem);
 
     & svg {
       fill: var(--color-primary);
+      filter: drop-shadow(3px 3px 2px rgba(0, 0, 0, 0.7));
+    }
+  }
+
+  &:active {
+    background-color: hsl(from var(--color-primary) h s l / 15%);
+    transform: translateY(-0.01rem);
+
+    & svg {
+      fill: var(--color-primary);
+      filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.7));
+    }
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+
+    &:hover {
+      background-color: inherit;
+      transform: none;
+
+      & svg {
+        fill: none;
+      }
     }
   }
 }

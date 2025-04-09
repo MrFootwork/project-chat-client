@@ -81,6 +81,13 @@ const Messenger = () => {
     if (currentPosition >= 0.99) setMovedUpView(false);
   }
 
+  // Disable admin buttons if not admin
+  const isAdmin = useMemo(() => {
+    if (!currentRoom?.members) return false;
+    const admin = currentRoom.members.find(m => m.id === user?.id);
+    return admin?.isAdmin || false;
+  }, [currentRoom?.members.length, user?.id]);
+
   // Remove indicator when at bottom
   useEffect(() => {
     if (!movedUpView) setHasUnreadMessages(false);
@@ -172,13 +179,15 @@ const Messenger = () => {
    * Modal Delete Room
    **************************/
   // Delete room modal
-  const [wantToDelete, { open: openModalDelete, close: closeModalDelete }] =
-    useDisclosure(false);
+  const [
+    wantToDelete,
+    { open: openModalDeleteRoom, close: closeModalDeleteRoom },
+  ] = useDisclosure(false);
 
   // Delete room handler
   function handleRoomDeletion() {
     deleteRoom(currentRoom?.id || '');
-    closeModalDelete();
+    closeModalDeleteRoom();
   }
 
   // FIXME Restrict deletion and adding members to admins
@@ -247,20 +256,36 @@ const Messenger = () => {
         </AvatarGroup>
 
         <div className='button-container'>
-          <div
+          <button
             className='button-add-member icon-button'
-            onClick={openModalAddMember}
-            title='Add member to this room'
+            onClick={() => {
+              setTimeout(() => {
+                openModalAddMember();
+              }, 200);
+            }}
+            title={
+              isAdmin
+                ? 'Add members to this room'
+                : 'Only admins can add members'
+            }
+            disabled={!isAdmin}
           >
             <IconUsersPlus />
-          </div>
-          <div
+          </button>
+          <button
             className='button-delete-room icon-button'
-            onClick={openModalDelete}
-            title='Delete this room'
+            onClick={() => {
+              setTimeout(() => {
+                openModalDeleteRoom();
+              }, 200);
+            }}
+            title={
+              isAdmin ? 'Delete this room' : 'Only admins can delete this room'
+            }
+            disabled={!isAdmin}
           >
             <IconTrashX />
-          </div>
+          </button>
         </div>
       </header>
 
@@ -357,7 +382,7 @@ const Messenger = () => {
       {wantToDelete ? (
         <Modal
           opened={wantToDelete}
-          onClose={closeModalDelete}
+          onClose={closeModalDeleteRoom}
           title={`Delete Room ${currentRoom?.name}?`}
           yOffset='10rem'
           className='modal-delete-room'
@@ -368,7 +393,7 @@ const Messenger = () => {
           </p>
 
           <div className='button-container'>
-            <Button onClick={closeModalDelete} variant='outline'>
+            <Button onClick={closeModalDeleteRoom} variant='outline'>
               Cancel
             </Button>
             <Button onClick={handleRoomDeletion} variant='filled' color='red'>

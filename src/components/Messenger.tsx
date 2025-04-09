@@ -192,10 +192,14 @@ const Messenger = () => {
     { open: openModalAddMember, close: closeModalAddMember },
   ] = useDisclosure(false);
 
-  const defaultRoomMembers = getSelectedFriends(currentRoom);
+  function getSelectedFriends(room: Room | undefined | null) {
+    return room?.members.map(m => m.id).filter(id => id !== user?.id) || [];
+  }
+  const defaultRoomMembers = useRef(() => getSelectedFriends(currentRoom));
 
-  const [selectedFriends, setSelectedFriends] =
-    useState<string[]>(defaultRoomMembers);
+  const [selectedFriends, setSelectedFriends] = useState<string[]>(
+    defaultRoomMembers.current
+  );
 
   // Add member handler
   async function handleMemberInvitations() {
@@ -216,10 +220,6 @@ const Messenger = () => {
     // Clean up
     closeModalAddMember();
     setSelectedFriends(currentMembers);
-  }
-
-  function getSelectedFriends(room: Room | undefined | null) {
-    return room?.members.map(m => m.id).filter(id => id !== user?.id) || [];
   }
 
   // Update member count for current room

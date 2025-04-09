@@ -17,7 +17,7 @@ const defaultStore = {
   },
   deleteRoom: async (roomID: string) => {},
   fetchRooms: async () => [],
-  addRoom: async (room: Room) => {},
+  addRoom: (room: Room) => {},
   selectRoom: async (roomID: string) => {
     throw new Error('selectRoom is not implemented in defaultStore');
   },
@@ -32,7 +32,7 @@ type RoomsContextType = {
   createRoom: (roomName: string) => Promise<Room | undefined>;
   deleteRoom: (roomID: string) => Promise<void>;
   fetchRooms: () => Promise<Room[]>;
-  addRoom: (room: Room) => Promise<void>;
+  addRoom: (room: Room) => void;
   selectRoom: (roomID: string) => Promise<Room | undefined>;
   selectedRoomID: string | null;
   currentRoom: Room | null;
@@ -144,8 +144,6 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
         },
       });
 
-      console.log('Rooms fetched successfully: ', data);
-
       sortRooms(data);
       setStore(s => ({ ...s, rooms: data, selectedRoomID: data[0]?.id }));
 
@@ -156,12 +154,26 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
     }
   }
 
-  async function addRoom(room: Room) {
+  function addRoom(room: Room) {
     setStore(s => {
-      const updatedRooms = [...(s.rooms || []), room];
+      let updatedRooms: Room[];
+
+      if (s.rooms?.some(r => r.id === room.id)) {
+        updatedRooms = s.rooms.map(r => {
+          if (r.id === room.id) return room;
+          return r;
+        });
+      } else {
+        updatedRooms = [...(s.rooms || []), room];
+      }
+
       const sortedRooms = sortRooms(updatedRooms);
 
-      console.log('addRoom called. Current store:', s);
+      // Also update currentRoom for host
+      if (s.selectedRoomID === room.id)
+        return { ...s, rooms: sortedRooms, currentRoom: room };
+
+      // Only add room to store because the invitee should not enter new room automatically
       return { ...s, rooms: sortedRooms };
     });
   }

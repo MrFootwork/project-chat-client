@@ -33,7 +33,6 @@ function SocketWrapper({ children }: { children: ReactNode }) {
     const socket = setupSocket();
     connectSocket(socket);
     listenForRoomInvitations(socket);
-    // BUG Listen for new room members
 
     return () => disconnectSocket(socket);
   }, [rooms?.length]);
@@ -42,15 +41,16 @@ function SocketWrapper({ children }: { children: ReactNode }) {
     if (!socket) return;
 
     socket.on('invited-to-room', (room: Room, host: User) => {
-      console.log(`You have been invited to room ${room.name} by ${host.name}`);
-
+      // Add room to store so it can be displayed in the UI
       addRoom(room);
 
-      notifications.show({
-        title: 'Room invitation',
-        message: `You have been invited to a room: ${room.name}`,
-        icon: <IconCopyPlus />,
-      });
+      if (host.id !== user?.id) {
+        notifications.show({
+          title: 'Room invitation',
+          message: `You have been invited to a room: ${room.name}`,
+          icon: <IconCopyPlus />,
+        });
+      }
     });
   }
 

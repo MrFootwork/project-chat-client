@@ -1,4 +1,5 @@
 import './Messenger.css';
+import { Room } from '../types/room';
 import { Message } from '../types/message';
 
 import {
@@ -15,13 +16,12 @@ import { useForm } from '@mantine/form';
 import { IconTrashX, IconUsersPlus } from '@tabler/icons-react';
 import MessageCard from './MessageCard';
 import IndicatorUnread from './IndicatorUnread';
+import { SearchableMultiSelect } from './SearchableMultiSelect';
+import TheAvatar from './TheAvatar';
 
 import { SocketContext } from '../contexts/SocketWrapper';
 import { AuthContext } from '../contexts/AuthWrapper';
 import { RoomsContext } from '../contexts/RoomsWrapper';
-import TheAvatar from './TheAvatar';
-import { SearchableMultiSelect } from './SearchableMultiSelect';
-import { Room } from '../types/room';
 
 const Messenger = () => {
   /**************************

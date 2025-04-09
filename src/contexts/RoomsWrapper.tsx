@@ -18,7 +18,9 @@ const defaultStore = {
   deleteRoom: async (roomID: string) => {},
   fetchRooms: async () => [],
   addRoom: async (room: Room) => {},
-  selectRoom: async (roomID: string) => {},
+  selectRoom: async (roomID: string) => {
+    throw new Error('selectRoom is not implemented in defaultStore');
+  },
   selectedRoomID: null,
   currentRoom: null,
   pushMessage: async (message: Message) => {},
@@ -31,7 +33,7 @@ type RoomsContextType = {
   deleteRoom: (roomID: string) => Promise<void>;
   fetchRooms: () => Promise<Room[]>;
   addRoom: (room: Room) => Promise<void>;
-  selectRoom: (roomID: string) => Promise<void>;
+  selectRoom: (roomID: string) => Promise<Room | undefined>;
   selectedRoomID: string | null;
   currentRoom: Room | null;
   pushMessage: (message: Message) => Promise<void>;
@@ -205,6 +207,8 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
           currentRoom: data,
         };
       });
+
+      return data;
     } catch (err) {
       console.error('Error fetching selected room: ', err);
     }
@@ -239,27 +243,20 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
 
     // Persisting message read status
     try {
-      await axios.put<Room>(
-        `${API_URL}/api/messages/${message.id}/read`,
-        null,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('chatToken')}`,
-          },
-        }
-      );
+      await axios.put(`${API_URL}/api/messages/${message.id}/read`, null, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('chatToken')}`,
+        },
+      });
     } catch (err) {
       throw err;
     }
   }
 
-  // Push a new message to the correct room
+  /** Push a new message to the correct room */
   async function pushMessage(message: Message) {
     setStore(prevStore => {
       if (!prevStore.rooms) return prevStore;
-
-      // BUG Invited person has error when receiving first message after invitation
-      console.log('TRYING TO PUSH MESSAGE', store.rooms);
 
       const updatedRooms = prevStore.rooms.map(room => {
         if (room.id === message.roomId)

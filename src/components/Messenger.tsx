@@ -1,7 +1,14 @@
 import './Messenger.css';
 import { Message } from '../types/message';
 
-import { KeyboardEvent, useContext, useEffect, useRef, useState } from 'react';
+import {
+  KeyboardEvent,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { AvatarGroup, Button, Group, Modal, Textarea } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useForm } from '@mantine/form';
@@ -14,6 +21,7 @@ import { AuthContext } from '../contexts/AuthWrapper';
 import { RoomsContext } from '../contexts/RoomsWrapper';
 import TheAvatar from './TheAvatar';
 import { SearchableMultiSelect } from './SearchableMultiSelect';
+import { Room } from '../types/room';
 
 const Messenger = () => {
   /**************************
@@ -179,15 +187,18 @@ const Messenger = () => {
    * Modal Add Member
    **************************/
   // Add member modal
-  const [wantToAddMember, { open: openMemberAdd, close: closeMemberAdd }] =
-    useDisclosure(false);
+  const [
+    wantToAddMember,
+    { open: openModalAddMember, close: closeModalAddMember },
+  ] = useDisclosure(false);
 
-  const [selectedFriends, setSelectedFriends] = useState<string[]>([]);
+  const defaultRoomMembers = getSelectedFriends(currentRoom);
+
+  const [selectedFriends, setSelectedFriends] =
+    useState<string[]>(defaultRoomMembers);
 
   // Add member handler
-  async function handleMemberAddition() {
-    // FIXME Add members to this room
-
+  async function handleMemberInvitations() {
     console.log('Adding member to room...', selectedFriends);
 
     if (!socket || socket?.disconnected || !currentRoom?.id) {
@@ -195,10 +206,20 @@ const Messenger = () => {
       return;
     }
 
+    // Emit invitations
     socket.emit('invite-to-room', currentRoom.id, selectedFriends);
 
-    await selectRoom(currentRoom.id);
-    closeMemberAdd();
+    // Update room members
+    const updatedRoom = await selectRoom(currentRoom.id);
+    const currentMembers = getSelectedFriends(updatedRoom);
+
+    // Clean up
+    closeModalAddMember();
+    setSelectedFriends(currentMembers);
+  }
+
+  function getSelectedFriends(room: Room | undefined | null) {
+    return room?.members.map(m => m.id).filter(id => id !== user?.id) || [];
   }
 
   // Update member count for current room
@@ -228,7 +249,7 @@ const Messenger = () => {
         <div className='button-container'>
           <div
             className='button-add-member icon-button'
-            onClick={openMemberAdd}
+            onClick={openModalAddMember}
             title='Add member to this room'
           >
             <IconUsersPlus />
@@ -307,22 +328,22 @@ const Messenger = () => {
       {wantToAddMember ? (
         <Modal
           opened={wantToAddMember}
-          onClose={closeMemberAdd}
+          onClose={closeModalAddMember}
           title={`Add members to room ${currentRoom?.name}`}
           yOffset='10rem'
           className='modal-add-member'
         >
           <div className='button-container'>
             <SearchableMultiSelect
-              list={selectedFriends}
+              list={[...selectedFriends]}
               setList={setSelectedFriends}
             />
 
             <Group justify='flex-end'>
-              <Button onClick={closeMemberAdd} variant='outline'>
+              <Button onClick={closeModalAddMember} variant='outline'>
                 Cancel
               </Button>
-              <Button onClick={handleMemberAddition} variant='filled'>
+              <Button onClick={handleMemberInvitations} variant='filled'>
                 Add
               </Button>
             </Group>

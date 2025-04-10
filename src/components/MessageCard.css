@@ -3,7 +3,6 @@
   --br-card-small: 5px;
   --m-base: 2px;
 
-  background-color: var(--bg-bubble-them);
   box-shadow: 6px 6px 10px -1px rgba(0, 0, 0, 0.4);
 
   margin: var(--m-base);
@@ -14,7 +13,6 @@
   padding-left: 3rem;
 
   & h5 {
-    color: var(--color-bubble-them);
     font-weight: bold;
   }
 
@@ -28,15 +26,12 @@
 
   /* Changes for cards of myself */
   &.its-me {
-    background-color: var(--bg-bubble-me);
-
     margin: var(--m-base);
     margin-left: auto;
     padding: 0.5rem 1rem;
     padding-right: 3.5rem;
 
     & h5 {
-      color: var(--color-bubble-me);
       text-align: right;
     }
 

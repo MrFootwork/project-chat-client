@@ -1,12 +1,10 @@
 import './MessageCard.css';
-import { User } from '../types/user';
 import type { Message } from '../types/message';
 
-import { useContext, useMemo, useRef } from 'react';
+import { useContext, useRef } from 'react';
 import TheAvatar from './TheAvatar';
 
 import { AuthContext } from '../contexts/AuthWrapper';
-import { RoomsContext } from '../contexts/RoomsWrapper';
 
 interface MessageCardProps {
   messages: {
@@ -14,25 +12,15 @@ interface MessageCardProps {
     this: Message;
     next?: Message;
   };
+  baseColor: React.CSSProperties['backgroundColor'];
+  authorLabelColor: React.CSSProperties['color'];
 }
 
-const MessageCard: React.FC<MessageCardProps> = ({ messages }) => {
-  // Color map per member
-  // FIXME implement a color map for each member
-  const { currentRoom } = useContext(RoomsContext);
-
-  const memberColorMap = useMemo(() => {
-    if (!currentRoom?.members) return {};
-
-    const members = currentRoom.members.map(m => m.id);
-    const colors = members.reduce((acc, member) => {
-      acc[member] = `#${Math.floor(Math.random() * 16777215).toString(16)}`;
-      return acc;
-    }, {} as Record<User['id'], string>);
-
-    return colors;
-  }, []);
-
+const MessageCard: React.FC<MessageCardProps> = ({
+  messages,
+  baseColor,
+  authorLabelColor,
+}) => {
   const {
     pre: previousMessage,
     this: currentMessage,
@@ -55,6 +43,7 @@ const MessageCard: React.FC<MessageCardProps> = ({ messages }) => {
         ${itsMe.current ? ' its-me' : ''} 
         ${isFirst.current ? 'first' : ''}
         ${isLast.current ? 'last' : ''}`}
+      style={{ backgroundColor: baseColor }}
     >
       {isFirst.current && (
         <>
@@ -62,7 +51,9 @@ const MessageCard: React.FC<MessageCardProps> = ({ messages }) => {
             <TheAvatar user={messages.this.author} />
           </div>
 
-          <h5>{currentMessage.author.name}</h5>
+          <h5 style={{ color: authorLabelColor }}>
+            {currentMessage.author.name}
+          </h5>
         </>
       )}
       <p>{currentMessage.content || ''}</p>

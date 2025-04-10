@@ -10,7 +10,14 @@ import {
   useRef,
   useState,
 } from 'react';
-import { AvatarGroup, Button, Group, Modal, Textarea } from '@mantine/core';
+import {
+  AvatarGroup,
+  Button,
+  Group,
+  Modal,
+  Textarea,
+  useComputedColorScheme,
+} from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useForm } from '@mantine/form';
 import { IconTrashX, IconUsersPlus } from '@tabler/icons-react';
@@ -22,6 +29,7 @@ import TheAvatar from './TheAvatar';
 import { SocketContext } from '../contexts/SocketWrapper';
 import { AuthContext } from '../contexts/AuthWrapper';
 import { RoomsContext } from '../contexts/RoomsWrapper';
+import { User } from '../types/user';
 
 const Messenger = () => {
   /**************************
@@ -51,6 +59,47 @@ const Messenger = () => {
   /**************************
    * Messenger display
    **************************/
+  // Card color map per member
+  const computedScheme = useComputedColorScheme();
+
+  const memberCardColorMap = useMemo(() => {
+    if (!currentRoom?.members) return {};
+
+    const members = currentRoom.members.map(m => m.id);
+    const totalMembers = members.length;
+    const baseColor = Math.floor(Math.random() * 360);
+
+    const colors = members.reduce((acc, member, index) => {
+      const hue = Math.floor(baseColor + (index / totalMembers) * 360); // Random hue (0-360)
+      const saturation = computedScheme === 'dark' ? 20 : 30; // Fixed saturation (e.g., 70%)
+      const lightness = computedScheme === 'dark' ? 30 : 75; // Fixed lightness (e.g., 50%)
+      acc[member] = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+
+      return acc;
+    }, {} as Record<User['id'], React.CSSProperties['backgroundColor']>);
+
+    return colors;
+  }, [computedScheme]);
+
+  // Author label color map per user
+  const authorLabelColorMap = useMemo(() => {
+    if (!currentRoom?.members) return {};
+
+    const members = currentRoom.members.map(m => m.id);
+
+    const colors = members.reduce((acc, member) => {
+      const color = memberCardColorMap[member];
+      const hue = color!.match(/hsl\((\d+),/)?.[1] || 0;
+      const saturation = computedScheme === 'dark' ? 40 : 100;
+      const lightness = computedScheme === 'dark' ? 80 : 15;
+      acc[member] = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+
+      return acc;
+    }, {} as Record<User['id'], React.CSSProperties['color']>);
+
+    return colors;
+  }, [computedScheme, memberCardColorMap]);
+
   // Members count and display message
   const membersCountRef = useRef<string | null>(null);
 
@@ -306,7 +355,11 @@ const Messenger = () => {
 
               return (
                 <li key={`${message.id}-${currentRoom.messages.length}`}>
-                  <MessageCard messages={messagesProp} />
+                  <MessageCard
+                    messages={messagesProp}
+                    baseColor={memberCardColorMap[message.author.id]}
+                    authorLabelColor={authorLabelColorMap[message.author.id]}
+                  />
                 </li>
               );
             })

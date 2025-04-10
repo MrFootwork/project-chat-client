@@ -36,10 +36,6 @@ button {
   --bg-color-messenger-header: hsl(from var(--color-light) h s 85%);
 
   /* Messenger */
-  --bg-bubble-me: hsl(from var(--color-muted) h s calc(l + 2));
-  --bg-bubble-them: hsl(from var(--color-accent) h s l);
-  --color-bubble-me: hsl(from var(--bg-bubble-me) h s calc(30%));
-  --color-bubble-them: hsl(from var(--bg-bubble-them) h s calc(30%));
   --input-bg: var(--mantine-color-white);
 
   /****************
@@ -54,10 +50,6 @@ button {
     --bg-color-messenger-header: hsl(from var(--color-dark-base) h s 18%);
 
     /* Messenger */
-    --bg-bubble-me: hsl(from var(--color-muted) h s 25%);
-    --bg-bubble-them: hsl(from var(--color-accent) h 35% 35%);
-    --color-bubble-me: hsl(from var(--bg-bubble-me) h s 70%);
-    --color-bubble-them: hsl(from var(--bg-bubble-them) h s 80%);
     --input-bg: var(--mantine-color-dark-6);
   }
 

@@ -23,6 +23,8 @@ const NavBar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // FIXME User should be able to add friends
+
   /**********
    * AUTH
    *********/

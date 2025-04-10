@@ -79,7 +79,7 @@ const Messenger = () => {
     }, {} as Record<User['id'], React.CSSProperties['backgroundColor']>);
 
     return colors;
-  }, [computedScheme]);
+  }, [computedScheme, currentRoom?.members]);
 
   // Author label color map per user
   const authorLabelColorMap = useMemo(() => {
@@ -98,7 +98,7 @@ const Messenger = () => {
     }, {} as Record<User['id'], React.CSSProperties['color']>);
 
     return colors;
-  }, [computedScheme, memberCardColorMap]);
+  }, [memberCardColorMap]);
 
   // Members count and display message
   const membersCountRef = useRef<string | null>(null);
@@ -239,11 +239,11 @@ const Messenger = () => {
     closeModalDeleteRoom();
   }
 
-  // FIXME Restrict deletion and adding members to admins
-
   /**************************
    * Modal Add Member
    **************************/
+  // FIXME Also set users to removed, when removed from room
+
   // Add member modal
   const [
     wantToAddMember,

@@ -1,11 +1,13 @@
 import './NavBar.css';
 import config from '../../config';
 
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Button,
+  Group,
   MantineColorScheme,
+  Modal,
   useMantineColorScheme,
 } from '@mantine/core';
 
@@ -14,6 +16,10 @@ import { SocketContext } from '../contexts/SocketWrapper';
 import { RoomsContext } from '../contexts/RoomsWrapper';
 
 import { IconMoon, IconSun, IconSunMoon } from '@tabler/icons-react';
+import { useDisclosure } from '@mantine/hooks';
+import { SearchableMultiSelect } from './SearchableMultiSelect';
+import axios from 'axios';
+import { User } from '../types/user';
 
 const NavBar = () => {
   const { user, logout } = useContext(AuthContext);
@@ -61,6 +67,50 @@ const NavBar = () => {
     });
   }
 
+  /******************
+   * Add Friend
+   ******************/
+  async function handleAddFriend() {
+    console.log('Add friend clicked');
+  }
+
+  // Add member modal
+  const [
+    wantToAddFriend,
+    { open: openModalAddFriend, close: closeModalAddFriend },
+  ] = useDisclosure(false);
+
+  const { token } = useContext(AuthContext);
+
+  async function getAllUserIDs() {
+    try {
+      const response = await axios.get<User[]>(`${config.API_URL}/api/users`, {
+        withCredentials: true,
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      return response.data.map(user => user.id);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      return [] as User['id'][];
+    }
+  }
+
+  const [userIDs, setUserIDs] = useState<string[]>([]);
+
+  // Initialize users
+  useEffect(() => {
+    if (!token) return;
+
+    getAllUserIDs()
+      .then(userIDs => {
+        setUserIDs(userIDs);
+      })
+      .catch(error => {
+        console.error('Error fetching users:', error);
+      });
+  }, [token]);
+
   return (
     <nav className='navbar-container'>
       <h1 style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
@@ -79,7 +129,7 @@ const NavBar = () => {
       )}
 
       <div className='button-container'>
-        <div
+        <button
           className='button-theme-toggler icon-button'
           onClick={handleNextTheme}
           title='Cycle themes through auto, dark, and light'
@@ -91,7 +141,11 @@ const NavBar = () => {
               light: <IconSun />,
             }[currentTheme]
           }
-        </div>
+        </button>
+
+        <button onClick={openModalAddFriend} title='Add a friend'>
+          add friend
+        </button>
 
         {isOnAuthPage ? (
           ''
@@ -101,6 +155,33 @@ const NavBar = () => {
           </Button>
         )}
       </div>
+
+      {/* Add friend Modal */}
+      {wantToAddFriend ? (
+        <Modal
+          opened={wantToAddFriend}
+          onClose={closeModalAddFriend}
+          title={`Add a friend`}
+          yOffset='10rem'
+          className='modal-add-friend'
+        >
+          <div className='button-container'>
+            {/* BUG Redesign MultiSelect to be reusable */}
+            <SearchableMultiSelect list={[...userIDs]} setList={setUserIDs} />
+
+            <Group justify='flex-end'>
+              <Button onClick={closeModalAddFriend} variant='outline'>
+                Cancel
+              </Button>
+              <Button onClick={handleAddFriend} variant='filled'>
+                Add
+              </Button>
+            </Group>
+          </div>
+        </Modal>
+      ) : (
+        ''
+      )}
     </nav>
   );
 };

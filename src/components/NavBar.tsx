@@ -72,6 +72,9 @@ const NavBar = () => {
    ******************/
   async function handleAddFriend() {
     console.log('Add friend clicked');
+
+    socket?.emit('add-friend', selectedUserIDs);
+    console.log(`🚀 ~ handleAddFriend ~ selectedUserIDs:`, selectedUserIDs);
   }
 
   // Add member modal
@@ -163,7 +166,7 @@ const NavBar = () => {
         <Modal
           opened={wantToAddFriend}
           onClose={closeModalAddFriend}
-          title={`Add a friend`}
+          title={`Add a user as friend`}
           yOffset='10rem'
           className='modal-add-friend'
         >
@@ -173,6 +176,7 @@ const NavBar = () => {
               selectionList={selectedUserIDs}
               setSelectionList={setSelectedUserIDs}
               optionsList={[...users]}
+              optionTarget='user'
             />
 
             <Group justify='flex-end'>

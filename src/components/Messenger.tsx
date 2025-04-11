@@ -416,6 +416,7 @@ const Messenger = () => {
               selectionList={[...selectedFriends]}
               setSelectionList={setSelectedFriends}
               optionsList={user?.friends || []}
+              optionTarget='friend'
             />
 
             <Group justify='flex-end'>

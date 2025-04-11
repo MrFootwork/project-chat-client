@@ -33,9 +33,26 @@ function SocketWrapper({ children }: { children: ReactNode }) {
     const socket = setupSocket();
     connectSocket(socket);
     listenForRoomInvitations(socket);
+    listenForNewFriends(socket);
 
     return () => disconnectSocket(socket);
   }, [rooms?.length]);
+
+  function listenForNewFriends(socket: SocketType) {
+    if (!socket) return;
+
+    socket.on('added-friend', (friend: User) => {
+      console.log(`🚀 ~ socket.on ~ added-friend:`, friend);
+
+      notifications.show({
+        title: 'New friend',
+        message: `You have a new friend: ${friend.name}`,
+        icon: <IconCopyPlus />,
+      });
+
+      // BUG update user and make a Messenger refresh
+    });
+  }
 
   function listenForRoomInvitations(socket: SocketType) {
     if (!socket) return;

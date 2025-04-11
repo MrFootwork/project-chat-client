@@ -11,16 +11,29 @@ import TheAvatar from './TheAvatar';
 
 import { MessageAuthor } from '../types/user';
 
+const labels = {
+  user: {
+    inputLabel: 'Make new friends',
+    inputPlaceholder: 'Search users',
+  },
+  friend: {
+    inputLabel: 'Invite your friends',
+    inputPlaceholder: 'Search friends',
+  },
+};
+
 type Props = {
   selectionList: string[];
   setSelectionList: React.Dispatch<React.SetStateAction<string[]>>;
   optionsList: MessageAuthor[];
+  optionTarget: 'user' | 'friend';
 };
 
 export function SearchableMultiSelect({
   selectionList,
   setSelectionList,
   optionsList,
+  optionTarget,
 }: Props) {
   const combobox = useCombobox({
     onDropdownClose: () => combobox.resetSelectedOption(),
@@ -70,7 +83,7 @@ export function SearchableMultiSelect({
       <Combobox.DropdownTarget>
         <PillsInput
           onClick={() => combobox.openDropdown()}
-          label='Invite your friends'
+          label={labels[optionTarget].inputLabel}
         >
           <Pill.Group>
             {values}
@@ -80,7 +93,7 @@ export function SearchableMultiSelect({
                 onFocus={() => combobox.openDropdown()}
                 onBlur={() => combobox.closeDropdown()}
                 value={search}
-                placeholder='Search friends'
+                placeholder={labels[optionTarget].inputPlaceholder}
                 onChange={event => {
                   combobox.updateSelectedOptionIndex();
                   setSearch(event.currentTarget.value);

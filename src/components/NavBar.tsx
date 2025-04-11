@@ -82,29 +82,31 @@ const NavBar = () => {
 
   const { token } = useContext(AuthContext);
 
-  async function getAllUserIDs() {
+  async function getAllUsers() {
     try {
       const response = await axios.get<User[]>(`${config.API_URL}/api/users`, {
         withCredentials: true,
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      return response.data.map(user => user.id);
+      return response.data;
     } catch (error) {
       console.error('Error fetching users:', error);
-      return [] as User['id'][];
+      return [] as User[];
     }
   }
 
-  const [userIDs, setUserIDs] = useState<string[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [selectedUserIDs, setSelectedUserIDs] = useState<User['id'][]>([]);
 
   // Initialize users
   useEffect(() => {
     if (!token) return;
 
-    getAllUserIDs()
-      .then(userIDs => {
-        setUserIDs(userIDs);
+    getAllUsers()
+      .then(users => {
+        setUsers(users);
+        setSelectedUserIDs(users.map(user => user.id));
       })
       .catch(error => {
         console.error('Error fetching users:', error);
@@ -167,7 +169,11 @@ const NavBar = () => {
         >
           <div className='button-container'>
             {/* BUG Redesign MultiSelect to be reusable */}
-            <SearchableMultiSelect list={[...userIDs]} setList={setUserIDs} />
+            <SearchableMultiSelect
+              selectionList={selectedUserIDs}
+              setSelectionList={setSelectedUserIDs}
+              optionsList={[...users]}
+            />
 
             <Group justify='flex-end'>
               <Button onClick={closeModalAddFriend} variant='outline'>

@@ -413,8 +413,9 @@ const Messenger = () => {
         >
           <div className='button-container'>
             <SearchableMultiSelect
-              list={[...selectedFriends]}
-              setList={setSelectedFriends}
+              selectionList={[...selectedFriends]}
+              setSelectionList={setSelectedFriends}
+              optionsList={user?.friends || []}
             />
 
             <Group justify='flex-end'>

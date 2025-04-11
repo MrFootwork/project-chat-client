@@ -1,4 +1,4 @@
-import { useContext, useMemo, useState } from 'react';
+import { useState } from 'react';
 import {
   CheckIcon,
   Combobox,
@@ -9,18 +9,19 @@ import {
 } from '@mantine/core';
 import TheAvatar from './TheAvatar';
 
-import { AuthContext } from '../contexts/AuthWrapper';
+import { MessageAuthor } from '../types/user';
 
 type Props = {
-  list: string[];
-  setList: React.Dispatch<React.SetStateAction<string[]>>;
+  selectionList: string[];
+  setSelectionList: React.Dispatch<React.SetStateAction<string[]>>;
+  optionsList: MessageAuthor[];
 };
 
-export function SearchableMultiSelect({ list, setList }: Props) {
-  const { user } = useContext(AuthContext);
-
-  const friends = useMemo(() => user?.friends || [], [user?.friends]);
-
+export function SearchableMultiSelect({
+  selectionList,
+  setSelectionList,
+  optionsList,
+}: Props) {
   const combobox = useCombobox({
     onDropdownClose: () => combobox.resetSelectedOption(),
     onDropdownOpen: () => combobox.updateSelectedOptionIndex('active'),
@@ -29,35 +30,37 @@ export function SearchableMultiSelect({ list, setList }: Props) {
   const [search, setSearch] = useState('');
 
   const handleValueSelect = (id: string) =>
-    setList(l => (l.includes(id) ? l.filter(v => v !== id) : [...l, id]));
+    setSelectionList(l =>
+      l.includes(id) ? l.filter(v => v !== id) : [...l, id]
+    );
 
   const handleValueRemove = (id: string) =>
-    setList(l => l.filter(v => v !== id));
+    setSelectionList(l => l.filter(v => v !== id));
 
-  const values = list.map(selectedID => (
+  const values = selectionList.map(selectedID => (
     <Pill
       key={selectedID}
       withRemoveButton
       onRemove={() => handleValueRemove(selectedID)}
     >
-      <span>{friends.find(f => f.id === selectedID)?.name}</span>
+      <span>{optionsList.find(f => f.id === selectedID)?.name}</span>
     </Pill>
   ));
 
-  const options = friends
-    .filter(friend =>
-      friend.name.toLowerCase().includes(search.trim().toLowerCase())
+  const options = optionsList
+    .filter(user =>
+      user.name.toLowerCase().includes(search.trim().toLowerCase())
     )
-    .map(friend => (
+    .map(user => (
       <Combobox.Option
-        value={friend.id}
-        key={friend.id}
-        active={list.includes(friend.id)}
+        value={user.id}
+        key={user.id}
+        active={selectionList.includes(user.id)}
       >
         <Group gap='sm'>
-          {list.includes(friend.id) ? <CheckIcon size={12} /> : null}
-          <TheAvatar user={friend} size={'xs'} />
-          <span>{friend.name}</span>
+          {selectionList.includes(user.id) ? <CheckIcon size={12} /> : null}
+          <TheAvatar user={user} size={'xs'} />
+          <span>{user.name}</span>
         </Group>
       </Combobox.Option>
     ));
@@ -85,7 +88,7 @@ export function SearchableMultiSelect({ list, setList }: Props) {
                 onKeyDown={event => {
                   if (event.key === 'Backspace' && search.length === 0) {
                     event.preventDefault();
-                    handleValueRemove(list[list.length - 1]);
+                    handleValueRemove(selectionList[selectionList.length - 1]);
                   }
                 }}
               />

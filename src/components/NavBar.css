@@ -21,7 +21,7 @@
   & .button-container {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 2px;
 
     height: 100%;
   }

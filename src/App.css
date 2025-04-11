@@ -8,6 +8,7 @@
   }
 }
 
+/* This is a button element as icon wrapper */
 .icon-button {
   display: flex;
   align-items: center;

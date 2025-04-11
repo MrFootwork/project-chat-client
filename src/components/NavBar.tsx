@@ -15,7 +15,14 @@ import { AuthContext } from '../contexts/AuthWrapper';
 import { SocketContext } from '../contexts/SocketWrapper';
 import { RoomsContext } from '../contexts/RoomsWrapper';
 
-import { IconMoon, IconSun, IconSunMoon } from '@tabler/icons-react';
+import {
+  IconLogin,
+  IconLogout,
+  IconMoon,
+  IconSun,
+  IconSunMoon,
+  IconUserSearch,
+} from '@tabler/icons-react';
 import { useDisclosure } from '@mantine/hooks';
 import { SearchableMultiSelect } from './SearchableMultiSelect';
 import axios from 'axios';
@@ -28,8 +35,6 @@ const NavBar = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
-
-  // FIXME User should be able to delete users from friends list
 
   /**********
    * AUTH
@@ -70,6 +75,7 @@ const NavBar = () => {
   /******************
    * Add Friend
    ******************/
+  // FIXME User should be able to delete users from friends list
   async function handleAddFriend() {
     console.log('Add friend clicked');
 
@@ -104,17 +110,21 @@ const NavBar = () => {
 
   // Initialize users
   useEffect(() => {
-    if (!token) return;
+    if (!token || !user?.friends) return;
 
     getAllUsers()
-      .then(users => {
-        setUsers(users);
-        setSelectedUserIDs(users.map(user => user.id));
+      .then(userIDs => {
+        const initialFriendIDs = userIDs
+          .map(user => user.id)
+          .filter(uID => user?.friends.some(f => f.id === uID));
+
+        setUsers(userIDs);
+        setSelectedUserIDs(initialFriendIDs);
       })
       .catch(error => {
         console.error('Error fetching users:', error);
       });
-  }, [token]);
+  }, [user?.friends, token]);
 
   return (
     <nav className='navbar-container'>
@@ -134,6 +144,16 @@ const NavBar = () => {
       )}
 
       <div className='button-container'>
+        {user && (
+          <button
+            onClick={openModalAddFriend}
+            title='Add a friend'
+            className='icon-button'
+          >
+            <IconUserSearch />
+          </button>
+        )}
+
         <button
           className='button-theme-toggler icon-button'
           onClick={handleNextTheme}
@@ -148,16 +168,12 @@ const NavBar = () => {
           }
         </button>
 
-        <button onClick={openModalAddFriend} title='Add a friend'>
-          add friend
-        </button>
-
         {isOnAuthPage ? (
           ''
         ) : (
-          <Button type='submit' onClick={authHandler}>
-            {user ? 'Logout' : 'Login'}
-          </Button>
+          <button type='submit' onClick={authHandler} className='icon-button'>
+            {user ? <IconLogout /> : <IconLogin />}
+          </button>
         )}
       </div>
 

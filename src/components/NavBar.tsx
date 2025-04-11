@@ -1,7 +1,7 @@
 import './NavBar.css';
 import config from '../../config';
 
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Button,
@@ -29,7 +29,7 @@ const NavBar = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // FIXME User should be able to add friends
+  // FIXME User should be able to delete users from friends list
 
   /**********
    * AUTH
@@ -171,7 +171,6 @@ const NavBar = () => {
           className='modal-add-friend'
         >
           <div className='button-container'>
-            {/* BUG Redesign MultiSelect to be reusable */}
             <SearchableMultiSelect
               selectionList={selectedUserIDs}
               setSelectionList={setSelectedUserIDs}

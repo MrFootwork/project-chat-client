@@ -1,5 +1,5 @@
 import config from '../../config';
-import { User } from '../types/user';
+import { MessageAuthor, User } from '../types/user';
 import { Room } from '../types/room';
 
 import React, { ReactNode, useContext, useEffect, useState } from 'react';
@@ -19,7 +19,7 @@ const SocketContext = React.createContext<SocketContextType>({
 });
 
 function SocketWrapper({ children }: { children: ReactNode }) {
-  const { user, token } = useContext(AuthContext);
+  const { user, setUser, token } = useContext(AuthContext);
   const { rooms, addRoom } = useContext(RoomsContext);
 
   const [socketServer, setSocket] = useState<SocketType>(null);
@@ -39,18 +39,23 @@ function SocketWrapper({ children }: { children: ReactNode }) {
   }, [rooms?.length]);
 
   function listenForNewFriends(socket: SocketType) {
-    if (!socket) return;
+    if (!socket || !user) return;
 
-    socket.on('added-friend', (friend: User) => {
-      console.log(`🚀 ~ socket.on ~ added-friend:`, friend);
-
+    socket.on('added-friend', (meUser: User, newFriend: MessageAuthor) => {
       notifications.show({
         title: 'New friend',
-        message: `You have a new friend: ${friend.name}`,
+        message: `You have a new friend: ${newFriend.name}`,
         icon: <IconCopyPlus />,
       });
 
-      // BUG update user and make a Messenger refresh
+      setUser(prevUser => {
+        if (!prevUser?.friends.some(f => f.id === newFriend.id)) {
+          // Using spread Operator would cause app to lose state of rooms etc.
+          prevUser!.friends.push(newFriend);
+        }
+
+        return prevUser;
+      });
     });
   }
 

@@ -40,7 +40,8 @@ const ChatPage = () => {
   useEffect(() => {
     console.log('Loading from ChatPage...');
     fetchRooms();
-  }, []);
+    // HACK Need to refetch after adding friends because adding friends cuase to loose rooms state
+  }, [user]);
 
   const firstRoomFetchedInitially = useRef(false);
 
@@ -48,7 +49,7 @@ const ChatPage = () => {
   // Needs this effect to access the rooms from before
   useEffect(() => {
     if (rooms?.length && !firstRoomFetchedInitially.current) {
-      console.log('Fetch selected room from ChatPage...', rooms?.length);
+      console.log('Fetch selected room on ChatPage...', rooms?.length);
       selectRoom(rooms[0]?.id || '');
       // Only run once after initial load
       // Otherwise, it would also run, when new rooms are added

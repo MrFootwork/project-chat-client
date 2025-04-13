@@ -1,6 +1,8 @@
 import './NavBar.css';
+import { User } from '../types/user';
 import config from '../../config';
 
+import axios from 'axios';
 import { useContext, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
@@ -10,11 +12,7 @@ import {
   Modal,
   useMantineColorScheme,
 } from '@mantine/core';
-
-import { AuthContext } from '../contexts/AuthWrapper';
-import { SocketContext } from '../contexts/SocketWrapper';
-import { RoomsContext } from '../contexts/RoomsWrapper';
-
+import { useDisclosure } from '@mantine/hooks';
 import {
   IconLogin,
   IconLogout,
@@ -23,10 +21,11 @@ import {
   IconSunMoon,
   IconUserSearch,
 } from '@tabler/icons-react';
-import { useDisclosure } from '@mantine/hooks';
 import { SearchableMultiSelect } from './SearchableMultiSelect';
-import axios from 'axios';
-import { User } from '../types/user';
+
+import { AuthContext } from '../contexts/AuthWrapper';
+import { SocketContext } from '../contexts/SocketWrapper';
+import { RoomsContext } from '../contexts/RoomsWrapper';
 
 const NavBar = () => {
   const { user, logout } = useContext(AuthContext);
@@ -77,10 +76,7 @@ const NavBar = () => {
    ******************/
   // FIXME User should be able to delete users from friends list
   async function handleAddFriend() {
-    console.log('Add friend clicked');
-
     socket?.emit('add-friend', selectedUserIDs);
-    console.log(`🚀 ~ handleAddFriend ~ selectedUserIDs:`, selectedUserIDs);
   }
 
   // Add member modal
@@ -113,16 +109,16 @@ const NavBar = () => {
     if (!token || !user?.friends) return;
 
     getAllUsers()
-      .then(userIDs => {
-        const initialFriendIDs = userIDs
+      .then(allUsers => {
+        const initialFriendIDs = allUsers
           .map(user => user.id)
-          .filter(uID => user?.friends.some(f => f.id === uID));
+          .filter(userID => user?.friends.some(f => f.id === userID));
 
-        setUsers(userIDs);
+        setUsers(allUsers);
         setSelectedUserIDs(initialFriendIDs);
       })
       .catch(error => {
-        console.error('Error fetching users:', error);
+        console.error('Error fetching friend IDs:', error);
       });
   }, [user?.friends, token]);
 
@@ -144,7 +140,7 @@ const NavBar = () => {
       )}
 
       <div className='button-container'>
-        {user && (
+        {user?.friends && (
           <button
             onClick={openModalAddFriend}
             title='Add a friend'

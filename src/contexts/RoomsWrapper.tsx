@@ -200,8 +200,6 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
         },
       });
 
-      console.log('Selected room fetched successfully: ', data);
-
       setStore(s => {
         if (!s.rooms) return s;
 

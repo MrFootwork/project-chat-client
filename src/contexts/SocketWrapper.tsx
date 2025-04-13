@@ -50,8 +50,10 @@ function SocketWrapper({ children }: { children: ReactNode }) {
 
       setUser(prevUser => {
         if (!prevUser?.friends.some(f => f.id === newFriend.id)) {
-          // Using spread Operator would cause app to lose state of rooms etc.
-          prevUser!.friends.push(newFriend);
+          return {
+            ...prevUser,
+            friends: [...prevUser!.friends, newFriend],
+          } as User;
         }
 
         return prevUser;

@@ -25,7 +25,7 @@
 
   transition: all 0.1s ease-in-out;
 
-  /* TODO Add click animation */
+  /* TODO Add click animation (check Firefox) */
   &:hover {
     background-color: hsl(from var(--color-primary) h s l / 15%);
     transform: translateY(-0.1rem);

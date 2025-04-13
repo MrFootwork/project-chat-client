@@ -271,13 +271,18 @@ const Messenger = () => {
     // Emit invitations
     socket.emit('invite-to-room', currentRoom.id, selectedFriends);
 
-    // Update room members
-    const updatedRoom = await selectRoom(currentRoom.id);
-    const currentMembers = getSelectedFriends(updatedRoom);
+    try {
+      // Update room members
+      const updatedRoom = (await selectRoom(currentRoom.id)) || ({} as Room);
+      const currentMembers = getSelectedFriends(updatedRoom);
+
+      setSelectedFriends(currentMembers);
+    } catch (error) {
+      console.error('Error during invitation:', error);
+    }
 
     // Clean up
     closeModalAddMember();
-    setSelectedFriends(currentMembers);
   }
 
   // Update member count for current room

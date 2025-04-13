@@ -291,8 +291,6 @@ const Messenger = () => {
 
     if (currentRoom?.members.length === 1) membersCountRef.current = '1 Member';
     else membersCountRef.current = `${currentRoom?.members.length} Members`;
-
-    console.log('Member count updated: ', membersCountRef.current);
   }, [currentRoom?.members.length]);
 
   return (

@@ -40,13 +40,16 @@ const theme = createTheme({
   colors: { primaryColor },
 });
 
+// breakpoint for mobile is 768px
+const BREAKPOINT_MOBILE = 620;
+
 export default function ThemeWrapper({ children }: { children: ReactNode }) {
   // Mobile
   const [isMobile, setIsMobile] = useState<boolean>(true);
 
   const handleResize = () => {
-    setIsMobile(window.innerWidth <= 768);
-    return window.innerWidth <= 768;
+    setIsMobile(window.innerWidth <= BREAKPOINT_MOBILE);
+    return window.innerWidth <= BREAKPOINT_MOBILE;
   };
 
   useEffect(() => {

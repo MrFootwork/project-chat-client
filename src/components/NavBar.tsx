@@ -131,12 +131,22 @@ const NavBar = () => {
 
   const { isMobile, toggleButtonContainer, showButtonContainer } =
     useContext(ThemeContext);
+
+  // buttonContainer toggler
   const [opened, { toggle }] = useDisclosure();
 
   function openMenu() {
     toggle();
     toggleButtonContainer();
   }
+
+  // Correct menu opened state showButtonContainer was changed
+  useEffect(() => {
+    const stateMismatch =
+      (!showButtonContainer && opened) || (showButtonContainer && !opened);
+
+    if (stateMismatch) toggle();
+  }, [showButtonContainer, opened, toggle]);
 
   return (
     <nav className='navbar-container'>

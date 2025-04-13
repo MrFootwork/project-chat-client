@@ -59,8 +59,16 @@ const ChatPage = () => {
   }, [rooms && rooms.length]);
 
   // Fetch selected room messages
+  const { isMobile, showButtonContainer, toggleButtonContainer } =
+    useContext(ThemeContext);
+
   function handleRoomSelection(roomID: string) {
     selectRoom(roomID);
+    if (showButtonContainer) {
+      setTimeout(() => {
+        toggleButtonContainer();
+      }, 500);
+    }
   }
 
   // Create new room
@@ -118,12 +126,9 @@ const ChatPage = () => {
       return !onReadersList;
     });
   }
-  const { isMobile, showButtonContainer } = useContext(ThemeContext);
 
   return (
-    <div className='chat-page-container'>
-      {/* FIXME make responsive */}
-
+    <div className={`chat-page-container ${isMobile ? 'mobile' : ''}`}>
       {/*************
        * Desktop
        ************/}

@@ -6,6 +6,7 @@ import axios from 'axios';
 import { useContext, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
+  Burger,
   Button,
   Group,
   MantineColorScheme,
@@ -16,6 +17,7 @@ import { useDisclosure } from '@mantine/hooks';
 import {
   IconLogin,
   IconLogout,
+  IconMenu2,
   IconMoon,
   IconSun,
   IconSunMoon,
@@ -23,9 +25,10 @@ import {
 } from '@tabler/icons-react';
 import { SearchableMultiSelect } from './SearchableMultiSelect';
 
+import { ThemeContext } from '../contexts/ThemeWrapper';
 import { AuthContext } from '../contexts/AuthWrapper';
-import { SocketContext } from '../contexts/SocketWrapper';
 import { RoomsContext } from '../contexts/RoomsWrapper';
+import { SocketContext } from '../contexts/SocketWrapper';
 
 const NavBar = () => {
   const { user, logout } = useContext(AuthContext);
@@ -110,11 +113,15 @@ const NavBar = () => {
 
     getAllUsers()
       .then(allUsers => {
-        const initialFriendIDs = allUsers
+        const allOtherUsers = allUsers.filter(
+          otherUser => otherUser.id !== user.id
+        );
+
+        const initialFriendIDs = allOtherUsers
           .map(user => user.id)
           .filter(userID => user?.friends.some(f => f.id === userID));
 
-        setUsers(allUsers);
+        setUsers(allOtherUsers);
         setSelectedUserIDs(initialFriendIDs);
       })
       .catch(error => {
@@ -122,18 +129,39 @@ const NavBar = () => {
       });
   }, [user?.friends, token]);
 
+  const { isMobile, toggleButtonContainer, showButtonContainer } =
+    useContext(ThemeContext);
+  const [opened, { toggle }] = useDisclosure();
+
+  function openMenu() {
+    toggle();
+    toggleButtonContainer();
+  }
+
   return (
     <nav className='navbar-container'>
-      <h1 style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
-        Messenger
-      </h1>
+      {isMobile ? (
+        // <IconMenu2 size={40} />
+        <Burger
+          size={25}
+          opened={opened}
+          onClick={openMenu}
+          aria-label='Toggle navigation'
+        />
+      ) : (
+        <h1 style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
+          Messenger
+        </h1>
+      )}
 
       {config.ENV === 'development' ? (
         <p className='navbar-text'>
-          Env: {config.API_URL} <br />
+          {/* Env: {config.API_URL} <br />
           User: "{user?.name}" {user?.id} <br />
           Socket: {socket?.id} <br />
-          Room: {selectedRoomID}
+          Room: {selectedRoomID} */}
+          Burger: {showButtonContainer ? 'true' : 'false'} <br />
+          isMobile: {isMobile ? 'true' : 'false'} <br />
         </p>
       ) : (
         ''

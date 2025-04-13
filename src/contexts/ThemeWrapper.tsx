@@ -1,4 +1,4 @@
-import { createContext, ReactNode } from 'react';
+import { createContext, ReactNode, useEffect, useState } from 'react';
 import {
   createTheme,
   MantineColorsTuple,
@@ -6,7 +6,17 @@ import {
 } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 
-const ThemeContext = createContext<string | null>(null);
+type ThemeContextType = {
+  isMobile: boolean;
+  showButtonContainer: boolean;
+  toggleButtonContainer: () => void;
+};
+
+export const ThemeContext = createContext<ThemeContextType>({
+  isMobile: true,
+  showButtonContainer: false,
+  toggleButtonContainer: () => {},
+});
 
 // Provide custom colors to the MantineProvider with 10 shades
 // https://mantine.dev/theming/colors/#adding-extra-colors
@@ -31,8 +41,34 @@ const theme = createTheme({
 });
 
 export default function ThemeWrapper({ children }: { children: ReactNode }) {
+  // Mobile
+  const [isMobile, setIsMobile] = useState<boolean>(true);
+
+  const handleResize = () => {
+    setIsMobile(window.innerWidth <= 768);
+    return window.innerWidth <= 768;
+  };
+
+  useEffect(() => {
+    handleResize(); // Set initial state
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  // Show Button Container
+  const [showButtonContainer, setShowButtonContainer] = useState(false);
+
+  function toggleButtonContainer() {
+    setShowButtonContainer(prev => !prev);
+  }
+
   return (
-    <ThemeContext.Provider value={null}>
+    <ThemeContext.Provider
+      value={{ isMobile, showButtonContainer, toggleButtonContainer }}
+    >
       <MantineProvider defaultColorScheme='auto' theme={theme}>
         <Notifications limit={10} autoClose={4000} position='top-right' />
         {children}

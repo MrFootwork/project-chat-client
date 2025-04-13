@@ -15,6 +15,7 @@ import { useForm } from '@mantine/form';
 
 import Messenger from '../components/Messenger';
 import IndicatorUnread from '../components/IndicatorUnread';
+import { ThemeContext } from '../contexts/ThemeWrapper';
 
 const ChatPage = () => {
   const navigate = useNavigate();
@@ -117,57 +118,122 @@ const ChatPage = () => {
       return !onReadersList;
     });
   }
+  const { isMobile, showButtonContainer } = useContext(ThemeContext);
 
   return (
     <div className='chat-page-container'>
       {/* FIXME make responsive */}
-      <nav className='rooms-container'>
-        <header>
-          <h1>Groups</h1>
 
-          {/* TODO Make all icon-buttons a component */}
-          <div
-            className='button-create-room icon-button'
-            onClick={openRoomCreate}
-            title='Create new room'
-          >
-            <IconCopyPlus />
-          </div>
-        </header>
+      {/*************
+       * Desktop
+       ************/}
+      {!isMobile && (
+        <>
+          <nav className='rooms-container'>
+            <header>
+              <h1>Groups</h1>
 
-        <ol className='room-button-container'>
-          {rooms?.map(room => {
-            const hasUnreadMessage = roomHasUnreadMessages(room);
-            const isSelectedRoom = room.id === selectedRoomID;
+              {/* TODO Make all icon-buttons a component */}
+              <div
+                className='button-create-room icon-button'
+                onClick={openRoomCreate}
+                title='Create new room'
+              >
+                <IconCopyPlus />
+              </div>
+            </header>
 
-            return (
-              <li key={room.id}>
-                <input
-                  checked={isSelectedRoom}
-                  type='radio'
-                  name='room'
-                  id={`room-${room.id}`}
-                  onChange={() => handleRoomSelection(room.id)}
-                />
-                <label htmlFor={`room-${room.id}`}>
-                  {room.name}
-                  <IndicatorUnread
-                    visible={hasUnreadMessage && !isSelectedRoom}
-                    position={{
-                      top: '1rem',
-                      right: '.5rem',
-                    }}
-                  />
-                </label>
-              </li>
-            );
-          })}
-        </ol>
-      </nav>
+            <ol className='room-button-container'>
+              {rooms?.map(room => {
+                const hasUnreadMessage = roomHasUnreadMessages(room);
+                const isSelectedRoom = room.id === selectedRoomID;
 
-      <section className='messenger-container'>
-        <Messenger key={selectedRoomID} />
-      </section>
+                return (
+                  <li key={room.id}>
+                    <input
+                      checked={isSelectedRoom}
+                      type='radio'
+                      name='room'
+                      id={`room-${room.id}`}
+                      onChange={() => handleRoomSelection(room.id)}
+                    />
+                    <label htmlFor={`room-${room.id}`}>
+                      {room.name}
+                      <IndicatorUnread
+                        visible={hasUnreadMessage && !isSelectedRoom}
+                        position={{
+                          top: '1rem',
+                          right: '.5rem',
+                        }}
+                      />
+                    </label>
+                  </li>
+                );
+              })}
+            </ol>
+          </nav>
+          <section className='messenger-container'>
+            <Messenger key={selectedRoomID} />
+          </section>{' '}
+        </>
+      )}
+
+      {/*************
+       * Mobile
+       ************/}
+      {isMobile && (
+        <>
+          {showButtonContainer ? (
+            <nav className='rooms-container'>
+              <header>
+                <h1>Groups</h1>
+
+                {/* TODO Make all icon-buttons a component */}
+                <div
+                  className='button-create-room icon-button'
+                  onClick={openRoomCreate}
+                  title='Create new room'
+                >
+                  <IconCopyPlus />
+                </div>
+              </header>
+
+              <ol className='room-button-container'>
+                {rooms?.map(room => {
+                  const hasUnreadMessage = roomHasUnreadMessages(room);
+                  const isSelectedRoom = room.id === selectedRoomID;
+
+                  return (
+                    <li key={room.id}>
+                      <input
+                        checked={isSelectedRoom}
+                        type='radio'
+                        name='room'
+                        id={`room-${room.id}`}
+                        onChange={() => handleRoomSelection(room.id)}
+                      />
+                      <label htmlFor={`room-${room.id}`}>
+                        {room.name}
+                        <IndicatorUnread
+                          visible={hasUnreadMessage && !isSelectedRoom}
+                          position={{
+                            top: '1rem',
+                            right: '.5rem',
+                          }}
+                        />
+                      </label>
+                    </li>
+                  );
+                })}
+              </ol>
+            </nav>
+          ) : (
+            <section className='messenger-container'>
+              <Messenger key={selectedRoomID} />
+            </section>
+          )}
+        </>
+      )}
 
       <Modal
         opened={wantToCreateRoom}

@@ -14,6 +14,11 @@
   height: 100%;
   width: clamp(18rem, 30vw, 60rem);
 
+  &.mobile {
+    display: none;
+    /* transform: translateX(-100%); */
+  }
+
   header {
     display: flex;
     justify-content: space-between;

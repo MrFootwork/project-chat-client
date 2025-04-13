@@ -64,6 +64,7 @@ const ChatPage = () => {
 
   function handleRoomSelection(roomID: string) {
     selectRoom(roomID);
+
     if (showButtonContainer) {
       setTimeout(() => {
         toggleButtonContainer();
@@ -97,7 +98,10 @@ const ChatPage = () => {
         message: 'Room created!',
       });
 
-      if (newRoom) selectRoom(newRoom.id);
+      if (newRoom) {
+        selectRoom(newRoom.id);
+        toggleButtonContainer();
+      }
     } catch (error: unknown) {
       console.error('Error during login:', error);
 
@@ -215,7 +219,8 @@ const ChatPage = () => {
                         type='radio'
                         name='room'
                         id={`room-${room.id}`}
-                        onChange={() => handleRoomSelection(room.id)}
+                        onChange={() => {}}
+                        onClick={() => handleRoomSelection(room.id)}
                       />
                       <label htmlFor={`room-${room.id}`}>
                         {room.name}

@@ -60,7 +60,9 @@ const NavBar = () => {
   // Set Mantine's color scheme whenever currentTheme changes
   useEffect(() => {
     setColorScheme(currentTheme);
-  }, [currentTheme, setColorScheme]);
+    console.log('Changing Theme');
+    // TESTING Run theme changer only once when changed
+  }, [currentTheme]);
 
   // Cycles themes through auto, dark, and light
   function handleNextTheme() {

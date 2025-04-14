@@ -1,14 +1,14 @@
 {
   "name": "Chat Messenger",
   "short_name": "Chat",
-  "start_url": "/index.html",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#ffffff",
+  "background_color": "#D5D0A9",
+  "theme_color": "#D5D0A9",
   "icons": [
     {
-      "src": "/public/vite.svg",
+      "src": "/vite.svg",
       "sizes": "192x192",
       "type": "image/png"
     }

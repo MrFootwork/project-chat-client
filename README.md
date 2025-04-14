@@ -39,11 +39,10 @@ Follow these steps to install and run the application locally:
 3. **Set Up Environment Variables**:
    Create a `.env` file in the root directory and add the following variables:
    ```env
-   VITE_API_URL=<your-backend-api-url>
-   VITE_SOCKET_URL=<your-socket-server-url>
+   VITE_API_URL=https://project-chat-server.onrender.com
    ```
 
-   Replace `<your-backend-api-url>` and `<your-socket-server-url>` with the appropriate URLs for your backend and Socket.IO server.
+   Replace `<your-backend-api-url>` with the appropriate URL for your backend or use my demo server.
 
 4. **Run the Application**:
    Start the development server:

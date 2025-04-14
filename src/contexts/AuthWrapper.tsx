@@ -167,7 +167,6 @@ function AuthWrapper({ children }: { children: ReactNode }) {
 
   async function _storeUserData(token: string) {
     try {
-      // BUG Omit password in server response
       const response = await axios.get(API_URL + '/api/users/me', {
         withCredentials: true,
         headers: { Authorization: `Bearer ${token}` },

@@ -1,6 +1,7 @@
 .chat-page-container {
   display: flex;
-  height: calc(100vh - var(--navbar-height));
+  /* BUG Distance to screen top appears too small */
+  height: calc(100dvh - var(--navbar-height));
 }
 
 .rooms-container {

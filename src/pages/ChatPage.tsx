@@ -4,6 +4,7 @@ import { Room } from '../types/room';
 import { useContext, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+import { ThemeContext } from '../contexts/ThemeWrapper';
 import { AuthContext } from '../contexts/AuthWrapper';
 import { RoomsContext } from '../contexts/RoomsWrapper';
 
@@ -15,7 +16,6 @@ import { useForm } from '@mantine/form';
 
 import Messenger from '../components/Messenger';
 import IndicatorUnread from '../components/IndicatorUnread';
-import { ThemeContext } from '../contexts/ThemeWrapper';
 
 const ChatPage = () => {
   const navigate = useNavigate();

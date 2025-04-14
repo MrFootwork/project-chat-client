@@ -166,12 +166,12 @@ const NavBar = () => {
 
       {config.ENV === 'development' ? (
         <p className='navbar-text'>
-          {/* Env: {config.API_URL} <br />
+          Env: {config.API_URL} <br />
           User: "{user?.name}" {user?.id} <br />
           Socket: {socket?.id} <br />
-          Room: {selectedRoomID} */}
-          Burger: {showButtonContainer ? 'true' : 'false'} <br />
-          isMobile: {isMobile ? 'true' : 'false'} <br />
+          Room: {selectedRoomID}
+          {/* Burger: {showButtonContainer ? 'true' : 'false'} <br />
+          isMobile: {isMobile ? 'true' : 'false'} <br /> */}
         </p>
       ) : (
         ''

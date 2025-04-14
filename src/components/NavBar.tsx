@@ -55,17 +55,8 @@ const NavBar = () => {
     keepTransitions: true,
   });
 
-  // TESTING use mantine's colorscheme to set the default value
-  // BUG PWA and mobile app overwrite scheme value when set to 'auto'
   const [currentTheme, setCurrentTheme] =
     useState<MantineColorScheme>(colorScheme);
-  // const [currentTheme, setCurrentTheme] = useState<MantineColorScheme>('auto');
-
-  // Set Mantine's color scheme whenever currentTheme changes
-  // useEffect(() => {
-  //   setColorScheme(currentTheme);
-  //   console.log('Changing Theme');
-  // }, [currentTheme]);
 
   // Cycles themes through auto, dark, and light
   function handleNextTheme() {

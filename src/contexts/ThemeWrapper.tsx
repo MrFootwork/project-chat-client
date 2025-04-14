@@ -40,7 +40,7 @@ const theme = createTheme({
   colors: { primaryColor },
 });
 
-// breakpoint for mobile is 768px
+// breakpoint for mobile is 620px
 const BREAKPOINT_MOBILE = 620;
 
 export default function ThemeWrapper({ children }: { children: ReactNode }) {

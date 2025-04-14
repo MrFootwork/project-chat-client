@@ -307,6 +307,7 @@ const Messenger = () => {
           })}
         </AvatarGroup>
 
+        {/* FIXME Add admin indicator */}
         <div className='button-container'>
           <button
             className='button-add-member icon-button'

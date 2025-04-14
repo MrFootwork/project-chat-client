@@ -51,11 +51,15 @@ const NavBar = () => {
   /******************
    * Theme Handling
    ******************/
-  const { setColorScheme } = useMantineColorScheme({
+  const { setColorScheme, colorScheme } = useMantineColorScheme({
     keepTransitions: true,
   });
 
-  const [currentTheme, setCurrentTheme] = useState<MantineColorScheme>('auto');
+  // TESTING use mantine's colorscheme to set the default value
+  // BUG PWA and mobile app overwrite scheme value when set to 'auto'
+  const [currentTheme, setCurrentTheme] =
+    useState<MantineColorScheme>(colorScheme);
+  // const [currentTheme, setCurrentTheme] = useState<MantineColorScheme>('auto');
 
   // Set Mantine's color scheme whenever currentTheme changes
   // useEffect(() => {
@@ -71,7 +75,6 @@ const NavBar = () => {
       const nextIndex = (currentIndex + 1) % themes.length;
       const nextTheme = themes[nextIndex];
 
-      // TESTING avoid useEffect
       setColorScheme(nextTheme);
 
       return nextTheme;

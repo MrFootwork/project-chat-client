@@ -58,11 +58,10 @@ const NavBar = () => {
   const [currentTheme, setCurrentTheme] = useState<MantineColorScheme>('auto');
 
   // Set Mantine's color scheme whenever currentTheme changes
-  useEffect(() => {
-    setColorScheme(currentTheme);
-    console.log('Changing Theme');
-    // TESTING Run theme changer only once when changed
-  }, [currentTheme]);
+  // useEffect(() => {
+  //   setColorScheme(currentTheme);
+  //   console.log('Changing Theme');
+  // }, [currentTheme]);
 
   // Cycles themes through auto, dark, and light
   function handleNextTheme() {
@@ -71,6 +70,9 @@ const NavBar = () => {
       const currentIndex = themes.indexOf(prevTheme);
       const nextIndex = (currentIndex + 1) % themes.length;
       const nextTheme = themes[nextIndex];
+
+      // TESTING avoid useEffect
+      setColorScheme(nextTheme);
 
       return nextTheme;
     });

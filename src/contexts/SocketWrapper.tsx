@@ -24,58 +24,78 @@ function SocketWrapper({ children }: { children: ReactNode }) {
 
   const [socketServer, setSocket] = useState<SocketType>(null);
 
-  // Connect and reconnect with new room after room creation
+  // Setup on mount
   useEffect(() => {
-    const isReadyToConnect = token && user && !!rooms?.length;
+    if (!token || !user) return;
+    if (socketServer) return; // Only setup once
 
-    if (!isReadyToConnect) return;
+    setupSocket();
+  }, [token, user?.id, socketServer]);
 
-    const socket = setupSocket();
-    connectSocket(socket);
-    listenForRoomInvitations(socket);
-    listenForNewFriends(socket);
+  // Connect socket & join rooms
+  useEffect(() => {
+    if (rooms && socketServer) {
+      connectSocket(socketServer);
+    }
 
-    return () => disconnectSocket(socket);
-  }, [rooms?.length]);
+    return () => disconnectSocket(socketServer);
+  }, [socketServer, rooms?.[0]?.id]);
 
-  function listenForNewFriends(socket: SocketType) {
-    if (!socket || !user) return;
+  // Listener for user friends
+  useEffect(() => {
+    if (!socketServer?.connected) return;
 
-    socket.on('added-friend', (meUser: User, newFriend: MessageAuthor) => {
-      notifications.show({
-        title: 'New friend',
-        message: `You have a new friend: ${newFriend.name}`,
-        icon: <IconCopyPlus />,
-      });
+    socketServer.on('added-friend', handleNewFriend);
 
-      setUser(prevUser => {
-        if (!prevUser?.friends.some(f => f.id === newFriend.id)) {
-          return {
-            ...prevUser,
-            friends: [...prevUser!.friends, newFriend],
-          } as User;
-        }
+    return () => {
+      socketServer.off('added-friend', handleNewFriend);
+    };
+  }, [socketServer?.connected, user?.friends]);
 
-        return prevUser;
-      });
+  // Listener for room members
+  useEffect(() => {
+    if (!socketServer?.connected) return;
+
+    socketServer.on('invited-to-room', handleNewRoomMember);
+
+    return () => {
+      socketServer.off('invited-to-room', handleNewRoomMember);
+    };
+  }, [
+    socketServer?.connected,
+    rooms?.map(r => ({ id: r.id, members: r.members })),
+  ]);
+
+  function handleNewFriend(meUser: User, newFriend: MessageAuthor) {
+    notifications.show({
+      title: 'New friend',
+      message: `You have a new friend: ${newFriend.name}`,
+      icon: <IconCopyPlus />,
+    });
+
+    setUser(prevUser => {
+      if (!prevUser?.friends.some(f => f.id === newFriend.id)) {
+        return {
+          ...prevUser,
+          friends: [...prevUser!.friends, newFriend],
+        } as User;
+      }
+
+      return prevUser;
     });
   }
 
-  function listenForRoomInvitations(socket: SocketType) {
-    if (!socket) return;
+  function handleNewRoomMember(room: Room, host: User) {
+    // Add room to store so it can be displayed in the UI
+    addRoom(room);
 
-    socket.on('invited-to-room', (room: Room, host: User) => {
-      // Add room to store so it can be displayed in the UI
-      addRoom(room);
-
-      if (host.id !== user?.id) {
-        notifications.show({
-          title: 'Room invitation',
-          message: `You have been invited to a room: ${room.name}`,
-          icon: <IconCopyPlus />,
-        });
-      }
-    });
+    if (host.id !== user?.id) {
+      notifications.show({
+        title: 'Room invitation',
+        message: `You have been invited to a room: ${room.name}`,
+        icon: <IconCopyPlus />,
+      });
+    }
   }
 
   function connectSocket(socket: SocketType) {
@@ -95,7 +115,6 @@ function SocketWrapper({ children }: { children: ReactNode }) {
       const roomIDs = rooms.map(room => room.id);
 
       socket.emit('join-room', roomIDs);
-      console.groupEnd();
       console.groupEnd();
     });
   }

@@ -187,24 +187,25 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
   async function selectRoom(roomID: string) {
     console.log('selectRoom called with roomID:', roomID);
 
+    const localToken = localStorage.getItem('chatToken');
+
     try {
-      await axios.put(` ${API_URL}/api/rooms/${roomID}/read`, null, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('chatToken')}`,
-        },
+      await axios.put(`${API_URL}/api/rooms/${roomID}/read`, null, {
+        headers: { Authorization: `Bearer ${localToken}` },
       });
 
-      const { data } = await axios.get<Room>(`${API_URL}/api/rooms/${roomID}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('chatToken')}`,
-        },
-      });
+      const { data: updatedRoom } = await axios.get<Room>(
+        `${API_URL}/api/rooms/${roomID}`,
+        {
+          headers: { Authorization: `Bearer ${localToken}` },
+        }
+      );
 
       setStore(s => {
         if (!s.rooms) return s;
 
         const updatedRooms = s.rooms.map(room => {
-          if (room.id === data.id) return data;
+          if (room.id === updatedRoom.id) return updatedRoom;
           return room;
         });
 
@@ -214,13 +215,16 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
           ...s,
           rooms: updatedRooms,
           selectedRoomID: roomID,
-          currentRoom: data,
+          currentRoom: updatedRoom,
         };
       });
 
-      return data;
+      return updatedRoom;
     } catch (err) {
       console.error('Error fetching selected room: ', err);
+      if (axios.isAxiosError(err)) {
+        console.error('Axios error details:', err.response?.data);
+      }
     }
   }
 

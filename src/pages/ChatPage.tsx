@@ -42,6 +42,9 @@ const ChatPage = () => {
     console.log('Loading from ChatPage...');
     fetchRooms();
     // HACK Need to refetch after adding friends because adding friends cuase to loose rooms state
+    // BUG This still doesn't fix the issue of rooms not being fetched after adding friends
+    // Also research if it happens when adding room members.
+    // Maybe the issue lies there and not in the friends list
   }, [user]);
 
   const firstRoomFetchedInitially = useRef(false);

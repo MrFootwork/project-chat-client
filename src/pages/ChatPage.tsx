@@ -3,6 +3,7 @@ import { Room } from '../types/room';
 
 import { useContext, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 import { ThemeContext } from '../contexts/ThemeWrapper';
 import { AuthContext } from '../contexts/AuthWrapper';
@@ -42,9 +43,8 @@ const ChatPage = () => {
     console.log('Loading from ChatPage...');
     fetchRooms();
     // HACK Need to refetch after adding friends because adding friends cuase to loose rooms state
-    // BUG This still doesn't fix the issue of rooms not being fetched after adding friends
-    // Also research if it happens when adding room members.
-    // Maybe the issue lies there and not in the friends list
+    // BUG In very rare occasions after adding new room members
+    // the room fetch goes wrong => workaround: reload page
   }, [user]);
 
   const firstRoomFetchedInitially = useRef(false);
@@ -65,13 +65,32 @@ const ChatPage = () => {
   const { isMobile, showButtonContainer, toggleButtonContainer } =
     useContext(ThemeContext);
 
-  function handleRoomSelection(roomID: string) {
-    selectRoom(roomID);
+  async function handleRoomSelection(roomID: string) {
+    try {
+      await selectRoom(roomID);
 
-    if (showButtonContainer) {
-      setTimeout(() => {
-        toggleButtonContainer();
-      }, 500);
+      if (showButtonContainer) {
+        setTimeout(() => {
+          toggleButtonContainer();
+        }, 500);
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        console.error('Axios error details:', error.response?.data);
+        if (error.response?.status === 404) {
+          // FIXME Host deleted the room
+          // remove it from store
+        }
+        return;
+      }
+
+      console.error('Unkown error during room Selection:', error);
+
+      notifications.show({
+        title: 'Room selection failed',
+        message: (error as any).message,
+        color: 'red',
+      });
     }
   }
 
@@ -106,7 +125,11 @@ const ChatPage = () => {
         toggleButtonContainer();
       }
     } catch (error: unknown) {
-      console.error('Error during login:', error);
+      console.error('Error during room creation:', error);
+
+      if (axios.isAxiosError(error)) {
+        console.error('Axios error details:', error.response?.data);
+      }
 
       notifications.show({
         title: 'Room creation failed',

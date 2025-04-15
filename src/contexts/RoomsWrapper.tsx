@@ -59,6 +59,7 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
   // Set Current Room on each selection change
   useEffect(() => {
     // BUG This runs twice on each selection change
+    // Check if this effect can be deleted
     setStore(prevStore => {
       console.log('selectedRoomID changed: ', prevStore.selectedRoomID);
 
@@ -221,10 +222,7 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
 
       return updatedRoom;
     } catch (err) {
-      console.error('Error fetching selected room: ', err);
-      if (axios.isAxiosError(err)) {
-        console.error('Axios error details:', err.response?.data);
-      }
+      throw err;
     }
   }
 

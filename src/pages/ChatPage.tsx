@@ -218,6 +218,7 @@ const ChatPage = () => {
        ************/}
       {isMobile && (
         <>
+          {/* FIXME Slide in and out animation */}
           {showButtonContainer ? (
             <nav className='rooms-container'>
               <header>
@@ -250,6 +251,7 @@ const ChatPage = () => {
                       />
                       <label htmlFor={`room-${room.id}`}>
                         {room.name}
+                        {/* FIXME make icon pulse and show count of unread messages */}
                         <IndicatorUnread
                           visible={hasUnreadMessage && !isSelectedRoom}
                           position={{

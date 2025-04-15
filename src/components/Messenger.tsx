@@ -304,6 +304,8 @@ const Messenger = () => {
           <p>{membersCountRef.current || ''}</p>
         </div>
 
+        {/* FIXME hover animation  */}
+        {/* FIXME indicate admins */}
         <AvatarGroup spacing='1.5rem'>
           {currentRoom?.members.map(member => {
             return <TheAvatar key={member.id} user={member} size='3rem' />;

@@ -150,7 +150,7 @@ const Messenger = () => {
     initialValues: { text: '' },
   });
 
-  function sendText(values: typeof form.values) {
+  async function sendText(values: typeof form.values) {
     if (!socket?.connected) {
       console.warn('No active socket connection to send messages!');
       return;
@@ -159,6 +159,7 @@ const Messenger = () => {
     console.log(
       `Sending the message: ${currentRoom?.id} | ${currentRoom?.name} | ${values.text}`
     );
+
     socket.emit('send-message', currentRoom?.id, values.text);
 
     form.reset();

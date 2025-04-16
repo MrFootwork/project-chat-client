@@ -2,6 +2,7 @@ import './MessageCard.css';
 import type { Message } from '../types/message';
 
 import { useContext, useRef } from 'react';
+import ReactMarkdown from 'react-markdown';
 import TheAvatar from './TheAvatar';
 
 import { AuthContext } from '../contexts/AuthWrapper';
@@ -56,7 +57,7 @@ const MessageCard: React.FC<MessageCardProps> = ({
           </h5>
         </>
       )}
-      <p>{currentMessage.content || ''}</p>
+      <ReactMarkdown>{currentMessage.content || ''}</ReactMarkdown>
     </div>
   );
 };

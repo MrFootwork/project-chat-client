@@ -6,6 +6,7 @@ import ReactMarkdown from 'react-markdown';
 import TheAvatar from './TheAvatar';
 
 import { AuthContext } from '../contexts/AuthWrapper';
+import { CodeHighlight, InlineCodeHighlight } from '@mantine/code-highlight';
 
 interface MessageCardProps {
   messages: {
@@ -27,7 +28,6 @@ const MessageCard: React.FC<MessageCardProps> = ({
     this: currentMessage,
     next: nextMessage,
   } = messages;
-
   const { user } = useContext(AuthContext);
 
   const itsMe = useRef(user?.id === currentMessage.author.id);
@@ -57,7 +57,42 @@ const MessageCard: React.FC<MessageCardProps> = ({
           </h5>
         </>
       )}
-      <ReactMarkdown>{currentMessage.content || ''}</ReactMarkdown>
+
+      <ReactMarkdown
+        components={{
+          code({ className, children, ...props }) {
+            const isBlock = !!className;
+            const language = className?.replace('language-', '') || 'txt';
+            const codeString = String(children).trim(); // Convert children to a string
+            const { ref, ...restProps } = props;
+
+            return isBlock ? (
+              <CodeHighlight
+                code={codeString}
+                language={language}
+                style={{
+                  borderRadius: '5px',
+                  width: 'fit-content',
+                  maxWidth: '100%',
+                  margin: '0 auto',
+                }}
+                {...restProps}
+              />
+            ) : (
+              <InlineCodeHighlight
+                code={codeString}
+                language={language}
+                style={{ borderRadius: '5px' }}
+                {...restProps}
+              />
+            );
+          },
+        }}
+      >
+        {/* BUG Research how line breaks are set in the DB and render them correctly */}
+        {currentMessage.content || ''}
+        {/* {(currentMessage.content || '').replace(/(?<!\n)\n(?!\n)/g, '\n\n')}  */}
+      </ReactMarkdown>
     </div>
   );
 };

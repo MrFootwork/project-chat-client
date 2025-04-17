@@ -46,7 +46,7 @@ div.messenger-container {
 
 .messages-display {
   overflow-y: scroll;
-  padding: 0 calc(1% * pow(1.8, 4));
+  padding: 0 calc(1% * pow(1.5, 4));
 
   ol {
     list-style-type: none;

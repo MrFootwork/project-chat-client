@@ -59,25 +59,6 @@ const Messenger = () => {
   /**************************
    * Messenger display
    **************************/
-  useEffect(() => {
-    const handleResize = () => {
-      const viewportHeight =
-        window.visualViewport?.height || window.innerHeight;
-      document.body.style.height = `${viewportHeight}px`;
-    };
-
-    // Listen for resize events (triggered when the keyboard appears/disappears)
-    window.visualViewport?.addEventListener('resize', handleResize);
-
-    // Set the initial height
-    handleResize();
-
-    return () => {
-      // Clean up the event listener
-      window.visualViewport?.removeEventListener('resize', handleResize);
-    };
-  }, []);
-
   // Card color map per member
   const computedScheme = useComputedColorScheme();
 

@@ -61,19 +61,20 @@ const Messenger = () => {
    **************************/
   useEffect(() => {
     const handleResize = () => {
-      // Adjust the height of the body to the inner height of the window
-      document.body.style.height = `${window.innerHeight}px`;
+      const viewportHeight =
+        window.visualViewport?.height || window.innerHeight;
+      document.body.style.height = `${viewportHeight}px`;
     };
 
     // Listen for resize events (triggered when the keyboard appears/disappears)
-    window.addEventListener('resize', handleResize);
+    window.visualViewport?.addEventListener('resize', handleResize);
 
     // Set the initial height
     handleResize();
 
     return () => {
       // Clean up the event listener
-      window.removeEventListener('resize', handleResize);
+      window.visualViewport?.removeEventListener('resize', handleResize);
     };
   }, []);
 

@@ -3,10 +3,8 @@ import type { Message } from '../types/message';
 
 import { useContext, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkBreaks from 'remark-breaks';
 import { CodeHighlight, InlineCodeHighlight } from '@mantine/code-highlight';
-import { unified } from 'unified';
-import remarkParse from 'remark-parse';
-import remarkStringify from 'remark-stringify';
 import TheAvatar from './TheAvatar';
 
 import { AuthContext } from '../contexts/AuthWrapper';
@@ -32,6 +30,7 @@ const MessageCard: React.FC<MessageCardProps> = ({
     next: nextMessage,
   } = messages;
 
+  console.log(JSON.stringify(messages.this.content));
   const { user } = useContext(AuthContext);
 
   const itsMe = useRef(user?.id === currentMessage.author.id);
@@ -93,47 +92,14 @@ const MessageCard: React.FC<MessageCardProps> = ({
         </>
       )}
 
-      <ReactMarkdown components={{ code: renderCode }}>
-        {currentMessage.content
-          ? preprocessMarkdown(currentMessage.content)
-          : ''}
+      <ReactMarkdown
+        components={{ code: renderCode }}
+        remarkPlugins={[remarkBreaks]}
+      >
+        {currentMessage.content || ''}
       </ReactMarkdown>
     </div>
   );
 };
 
 export default MessageCard;
-
-/**
- * Preprocesses Markdown content by replacing single line breaks with double line breaks
- * in non-code text nodes, ensuring proper paragraph formatting.
- *
- * @param {string} content - The raw Markdown content to preprocess.
- * @returns {string} - The transformed Markdown content.
- *
- * @example
- * const input = "Line 1\nLine 2\n\nParagraph";
- * const output = preprocessMarkdown(input);
- * // Output: "Line 1\n\nLine 2\n\nParagraph"
- */
-const preprocessMarkdown = (content: string): string => {
-  const processor = unified()
-    // Parse the Markdown content into AST
-    .use(remarkParse)
-    .use(() => tree => {
-      // Traverse the Markdown AST and modify non-code content
-      const visit = (node: any) => {
-        if (node.type === 'text') {
-          // Apply the transformation only to text nodes
-          node.value = node.value.replace(/(?<!\n)\n(?!\n)/g, '\n\n');
-        }
-        if (node.children) {
-          node.children.forEach(visit);
-        }
-      };
-      visit(tree);
-    })
-    .use(remarkStringify);
-
-  return processor.processSync(content).toString();
-};

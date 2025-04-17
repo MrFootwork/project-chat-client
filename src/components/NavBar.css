@@ -1,7 +1,7 @@
 .navbar-container {
-  position: fixed;
+  /* position: fixed; */
   /* TESTING */
-  /* position: sticky; */
+  position: sticky;
   top: 0;
   width: 100%;
   height: var(--navbar-height);

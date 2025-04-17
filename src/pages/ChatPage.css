@@ -3,7 +3,7 @@
   /* BUG Distance to screen top appears too small */
   /* TESTING */
   height: calc(100dvh - var(--navbar-height));
-  margin-top: var(--navbar-height);
+  /* margin-top: var(--navbar-height); */
 }
 
 .rooms-container {

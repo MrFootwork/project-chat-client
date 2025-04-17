@@ -30,7 +30,6 @@ const MessageCard: React.FC<MessageCardProps> = ({
     next: nextMessage,
   } = messages;
 
-  console.log(JSON.stringify(messages.this.content));
   const { user } = useContext(AuthContext);
 
   const itsMe = useRef(user?.id === currentMessage.author.id);

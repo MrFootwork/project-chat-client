@@ -394,6 +394,9 @@ const Messenger = () => {
             {...form.getInputProps('text')}
             className='textarea-custom'
             onKeyDown={e => submitFormOnEnter(e)}
+            autosize
+            minRows={2}
+            maxRows={6}
           />
           <Button type='submit'>Send</Button>
           {(scrollPosition || 0) < 0.99 ? (

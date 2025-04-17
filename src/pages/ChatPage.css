@@ -1,9 +1,13 @@
 .chat-page-container {
   display: flex;
-  /* BUG Distance to screen top appears too small */
-  /* TESTING */
   height: calc(100dvh - var(--navbar-height));
-  /* margin-top: var(--navbar-height); */
+}
+
+@media (max-width: 620px) {
+  .chat-page-container {
+    height: calc(100dvh);
+    padding-top: var(--navbar-height);
+  }
 }
 
 .rooms-container {

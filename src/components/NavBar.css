@@ -1,8 +1,5 @@
 .navbar-container {
-  /* position: fixed; */
-  /* TESTING */
-  position: sticky;
-  top: 0;
+  position: relative;
   width: 100%;
   height: var(--navbar-height);
   padding: 0 1.5rem;
@@ -26,6 +23,13 @@
     gap: 2px;
 
     height: 100%;
+  }
+}
+
+@media (max-width: 620px) {
+  .navbar-container {
+    position: sticky;
+    top: 0;
   }
 }
 

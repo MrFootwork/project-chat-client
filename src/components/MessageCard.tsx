@@ -72,9 +72,6 @@ const MessageCard: React.FC<MessageCardProps> = ({
                 language={language}
                 style={{
                   borderRadius: '5px',
-                  width: 'fit-content',
-                  maxWidth: '100%',
-                  margin: '0 auto',
                 }}
                 {...restProps}
               />

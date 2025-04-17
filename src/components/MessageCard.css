@@ -7,8 +7,7 @@
 
   margin: var(--m-base);
   margin-right: auto;
-  /* width: clamp(calc(13rem + 1vw * pow(1.5, 7)), 1vw * pow(1.7, 7), 25rem); */
-  width: fit-content;
+  width: clamp(calc(13rem + 1vw * pow(1.5, 7)), 1vw * pow(1.7, 7), 25rem);
   border-radius: var(--br-card-small);
   padding: 0.5rem 1rem;
   padding-left: 3rem;

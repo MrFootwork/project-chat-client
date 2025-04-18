@@ -237,7 +237,7 @@ const NavBar = () => {
               className='overlay'
               onClick={() => setProfileMenuOpened(false)}
             />
-            <ProfileMenu />
+            <ProfileMenu closeMenu={() => setProfileMenuOpened(false)} />
           </>
         )}
       </div>

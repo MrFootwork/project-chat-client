@@ -8,5 +8,34 @@
     padding: 1rem;
     border-radius: 5px;
     background-color: var(--bg-color-navbar);
+
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+
+    & h5 {
+      padding: 0.25rem 0;
+    }
+
+    & button.item {
+      background-color: var(--bg-color-navbar);
+      border: none;
+      cursor: pointer;
+
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.25rem 2rem 0.25rem 0.25rem;
+      border-radius: 0.25rem;
+
+      &:hover {
+        background-color: hsl(from var(--color-secondary) h s l / 15%);
+      }
+
+      & label {
+        cursor: pointer;
+      }
+    }
   }
 }

@@ -2,9 +2,10 @@ import './MessageCard.css';
 import type { Message } from '../types/message';
 
 import { useContext, useRef } from 'react';
+import { Loader } from '@mantine/core';
+import { CodeHighlight, InlineCodeHighlight } from '@mantine/code-highlight';
 import ReactMarkdown from 'react-markdown';
 import remarkBreaks from 'remark-breaks';
-import { CodeHighlight, InlineCodeHighlight } from '@mantine/code-highlight';
 import TheAvatar from './TheAvatar';
 
 import { AuthContext } from '../contexts/AuthWrapper';
@@ -39,6 +40,9 @@ const MessageCard: React.FC<MessageCardProps> = ({
   const isLast = useRef(
     !nextMessage || nextMessage.author.id !== currentMessage.author.id
   );
+
+  const botIsThinking =
+    currentMessage.author.id === 'chat-bot' && !currentMessage.content;
 
   // Code renderer
   const renderCode = ({
@@ -91,13 +95,16 @@ const MessageCard: React.FC<MessageCardProps> = ({
         </>
       )}
 
-      <ReactMarkdown
-        components={{ code: renderCode }}
-        remarkPlugins={[remarkBreaks]}
-      >
-        {/* FIXME add loading animation while empty */}
-        {currentMessage.content || ''}
-      </ReactMarkdown>
+      {botIsThinking ? (
+        <Loader type='dots' color={authorLabelColor} />
+      ) : (
+        <ReactMarkdown
+          components={{ code: renderCode }}
+          remarkPlugins={[remarkBreaks]}
+        >
+          {currentMessage.content || ''}
+        </ReactMarkdown>
+      )}
     </div>
   );
 };

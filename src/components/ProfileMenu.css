@@ -1,0 +1,12 @@
+.profile-menu-container {
+  position: absolute;
+  top: 3.5rem;
+  right: 1.5rem;
+  z-index: 1001;
+
+  & .menu {
+    padding: 1rem;
+    border-radius: 5px;
+    background-color: var(--bg-color-navbar);
+  }
+}

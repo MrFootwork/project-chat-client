@@ -1,10 +1,10 @@
 import './NavBar.css';
-import { User } from '../types/user';
+import { MessageAuthor, User } from '../types/user';
 import config from '../../config';
 
-import axios from 'axios';
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import {
   Burger,
   Button,
@@ -23,11 +23,13 @@ import {
   IconUserSearch,
 } from '@tabler/icons-react';
 import { SearchableMultiSelect } from './SearchableMultiSelect';
+import TheAvatar from './TheAvatar';
 
 import { ThemeContext } from '../contexts/ThemeWrapper';
 import { AuthContext } from '../contexts/AuthWrapper';
 import { RoomsContext } from '../contexts/RoomsWrapper';
 import { SocketContext } from '../contexts/SocketWrapper';
+import ProfileMenu from './ProfileMenu';
 
 const NavBar = () => {
   const { user, logout } = useContext(AuthContext);
@@ -146,10 +148,26 @@ const NavBar = () => {
     if (stateMismatch) toggle();
   }, [showButtonContainer, opened, toggle]);
 
+  /******************
+   * Profile Menu
+   ******************/
+  const meUser = useRef({} as MessageAuthor);
+
+  useEffect(() => {
+    if (!user) return;
+    meUser.current = {
+      id: user.id,
+      name: user.name,
+      avatarUrl: user.avatarUrl,
+      isDeleted: user.isDeleted,
+    };
+  }, [user]);
+
+  const [profileMenuOpened, setProfileMenuOpened] = useState(false);
+
   return (
     <nav className='navbar-container'>
       {isMobile ? (
-        // <IconMenu2 size={40} />
         <Burger
           size={25}
           opened={opened}
@@ -168,8 +186,6 @@ const NavBar = () => {
           User: "{user?.name}" {user?.id} <br />
           Socket: {socket?.id} <br />
           Room: {selectedRoomID}
-          {/* Burger: {showButtonContainer ? 'true' : 'false'} <br />
-          isMobile: {isMobile ? 'true' : 'false'} <br /> */}
         </p>
       ) : (
         ''
@@ -206,6 +222,23 @@ const NavBar = () => {
           <button type='submit' onClick={authHandler} className='icon-button'>
             {user ? <IconLogout /> : <IconLogin />}
           </button>
+        )}
+
+        <button
+          className='profile-settings'
+          onClick={() => setProfileMenuOpened(opened => !opened)}
+        >
+          <TheAvatar user={meUser.current} />
+        </button>
+
+        {profileMenuOpened && (
+          <>
+            <div
+              className='overlay'
+              onClick={() => setProfileMenuOpened(false)}
+            />
+            <ProfileMenu />
+          </>
         )}
       </div>
 

@@ -95,6 +95,7 @@ const MessageCard: React.FC<MessageCardProps> = ({
         components={{ code: renderCode }}
         remarkPlugins={[remarkBreaks]}
       >
+        {/* FIXME add loading animation while empty */}
         {currentMessage.content || ''}
       </ReactMarkdown>
     </div>

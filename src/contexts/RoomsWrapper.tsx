@@ -24,6 +24,11 @@ const defaultStore = {
   selectedRoomID: null,
   currentRoom: null,
   pushMessage: async (message: Message) => {},
+  pushMessageChunks: (
+    roomID: string | null,
+    messageID: string,
+    chunk: string
+  ) => {},
   setMessageAsRead: async (message: Message) => {},
 };
 
@@ -37,6 +42,11 @@ type RoomsContextType = {
   selectedRoomID: string | null;
   currentRoom: Room | null;
   pushMessage: (message: Message) => Promise<void>;
+  pushMessageChunks: (
+    roomID: string | null,
+    messageID: string,
+    chunk: string
+  ) => void;
   setMessageAsRead: (message: Message) => Promise<void>;
 };
 
@@ -292,6 +302,40 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
     });
   }
 
+  function pushMessageChunks(
+    roomID: string | null,
+    messageID: string,
+    chunk: string
+  ) {
+    if (!roomID) return;
+
+    setStore(prevStore => {
+      const updatedMessages = prevStore
+        .rooms!.find(r => r.id === roomID)!
+        .messages.map(m => {
+          if (m.id === messageID) return { ...m, content: m.content + chunk };
+          return m;
+        });
+
+      const updatedRooms = prevStore.rooms!.map(r => {
+        if (r.id === roomID) return { ...r, messages: updatedMessages };
+        return r;
+      });
+
+      if (prevStore.selectedRoomID === roomID) {
+        const updatedCurrentRoom = updatedRooms.find(r => r.id === roomID)!;
+
+        return {
+          ...prevStore,
+          rooms: updatedRooms,
+          currentRoom: updatedCurrentRoom,
+        };
+      } else {
+        return { ...prevStore, rooms: updatedRooms };
+      }
+    });
+  }
+
   /**
    * Sorts an array of rooms in place based on the latest message date or creation date.
    * Only messages sent by the current user are considered for determining the latest activity.
@@ -334,6 +378,7 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
         addRoom,
         selectRoom,
         pushMessage,
+        pushMessageChunks,
         setMessageAsRead,
       }}
     >

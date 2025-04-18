@@ -183,6 +183,13 @@ const Messenger = () => {
     }
   }, [currentRoom?.messages.length]);
 
+  // Scroll down while receiving AI stream
+  useEffect(() => {
+    if (!movedUpView) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [currentRoom?.messages.at(-1)?.content]);
+
   /**************************
    * Receive messages
    **************************/

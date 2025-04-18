@@ -20,7 +20,8 @@ const SocketContext = React.createContext<SocketContextType>({
 
 function SocketWrapper({ children }: { children: ReactNode }) {
   const { user, setUser, token } = useContext(AuthContext);
-  const { rooms, addRoom } = useContext(RoomsContext);
+  const { rooms, addRoom, selectedRoomID, pushMessageChunks } =
+    useContext(RoomsContext);
 
   const [socketServer, setSocket] = useState<SocketType>(null);
 
@@ -40,6 +41,20 @@ function SocketWrapper({ children }: { children: ReactNode }) {
 
     return () => disconnectSocket(socketServer);
   }, [socketServer, rooms?.[0]?.id]);
+
+  // Listener for AI stream
+  useEffect(() => {
+    if (!socketServer?.connected) return;
+
+    const handleAIStream = (messageID: string, chunk: string) =>
+      pushMessageChunks(selectedRoomID, messageID, chunk);
+
+    socketServer.on('stream-bot-message', handleAIStream);
+
+    return () => {
+      socketServer.off('stream-bot-message', handleAIStream);
+    };
+  }, [socketServer?.connected, user?.friends]);
 
   // Listener for user friends
   useEffect(() => {

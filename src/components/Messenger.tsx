@@ -121,13 +121,14 @@ const Messenger = () => {
   function updatePosition() {
     const { scrollTop, scrollHeight, clientHeight } = messagesDisplay.current!;
     const currentPosition = scrollTop / (scrollHeight - clientHeight);
+
     // pos = 0: at the top
     // pos = 1: at the bottom
 
     setScrollPosition(currentPosition);
 
-    if (currentPosition < 0.99) setMovedUpView(true);
-    if (currentPosition >= 0.99) setMovedUpView(false);
+    if (scrollHeight - scrollTop > 1000) setMovedUpView(true);
+    if (scrollHeight - scrollTop <= 1000) setMovedUpView(false);
   }
 
   // Disable admin buttons if not admin
@@ -138,6 +139,7 @@ const Messenger = () => {
   }, [currentRoom?.members.length, user?.id]);
 
   // Remove indicator when at bottom
+  // BUG Need to set messages to being read?
   useEffect(() => {
     if (!movedUpView) setHasUnreadMessages(false);
   }, [movedUpView]);
@@ -406,6 +408,7 @@ const Messenger = () => {
             maxRows={6}
           />
           <Button type='submit'>Send</Button>
+          {/* BUG sync to how movedUp is set */}
           {(scrollPosition || 0) < 0.99 ? (
             <button
               type='button'

@@ -6,6 +6,7 @@ import { Loader } from '@mantine/core';
 import { CodeHighlight, InlineCodeHighlight } from '@mantine/code-highlight';
 import ReactMarkdown from 'react-markdown';
 import remarkBreaks from 'remark-breaks';
+import remarkGfm from 'remark-gfm';
 import TheAvatar from './TheAvatar';
 
 import { AuthContext } from '../contexts/AuthWrapper';
@@ -75,6 +76,16 @@ const MessageCard: React.FC<MessageCardProps> = ({
     );
   };
 
+  // Table Renderer
+  const renderTable: React.FC<React.HTMLAttributes<HTMLTableElement>> = ({
+    children,
+    ...props
+  }) => (
+    <div className='table-container'>
+      <table {...props}>{children}</table>
+    </div>
+  );
+
   return (
     <div
       className={`message-card 
@@ -99,8 +110,11 @@ const MessageCard: React.FC<MessageCardProps> = ({
         <Loader type='dots' color={authorLabelColor} />
       ) : (
         <ReactMarkdown
-          components={{ code: renderCode }}
-          remarkPlugins={[remarkBreaks]}
+          components={{
+            code: renderCode,
+            table: renderTable,
+          }}
+          remarkPlugins={[remarkBreaks, remarkGfm]}
         >
           {currentMessage.content || ''}
         </ReactMarkdown>

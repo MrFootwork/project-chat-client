@@ -86,10 +86,10 @@ const MessageCard: React.FC<MessageCardProps> = ({
       {isFirst.current && (
         <>
           <div className='image-container'>
-            <TheAvatar user={messages.this.author} />
+            <TheAvatar user={messages.this.author} size={'2.8rem'} />
           </div>
 
-          <h5 style={{ color: authorLabelColor }}>
+          <h5 className='username-label' style={{ color: authorLabelColor }}>
             {currentMessage.author.name}
           </h5>
         </>

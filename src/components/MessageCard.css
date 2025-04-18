@@ -11,12 +11,6 @@
   border-radius: var(--br-card-small);
   padding: 0.5rem 1rem;
   padding-left: 2.5rem;
-  line-height: 1.5rem;
-
-  & h5 {
-    font-weight: bold;
-    font-size: 1rem;
-  }
 
   position: relative;
 
@@ -26,12 +20,44 @@
     left: -0.5rem;
   }
 
+  /* Text Rendering */
+  line-height: 1.4rem;
+
+  & h5.username-label {
+    padding-bottom: 0.5rem;
+  }
+
+  & h5 {
+    font-weight: bold;
+    font-size: 1rem;
+  }
+
+  & h3 {
+    margin: 1rem 0rem 0.5rem;
+  }
+
   & p + p {
     margin-top: 0.5rem;
   }
 
+  & li {
+    list-style-position: inside;
+    margin: 0.5rem 0;
+  }
+
   & hr {
     margin: 1rem 0;
+    border: none;
+  }
+
+  & hr::before {
+    content: '***';
+    display: block;
+    text-align: center;
+  }
+
+  & code {
+    line-height: 1rem;
   }
 
   /* Changes for cards of myself */
@@ -41,7 +67,7 @@
     padding: 0.5rem 1rem;
     padding-right: 3rem;
 
-    & h5 {
+    & h5.username-label {
       text-align: right;
     }
 
@@ -66,11 +92,18 @@
   &.last {
     border-bottom-left-radius: var(--br-card-small);
     border-bottom-right-radius: var(--br-card-round);
+    padding-bottom: 1rem;
   }
 
   /* Last MessageCard (me)*/
   &.its-me.last {
     border-bottom-left-radius: var(--br-card-round);
     border-bottom-right-radius: var(--br-card-small);
+  }
+}
+
+@media (max-width: 620px) {
+  .message-card {
+    width: 95%;
   }
 }

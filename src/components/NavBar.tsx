@@ -32,7 +32,7 @@ import { SocketContext } from '../contexts/SocketWrapper';
 import ProfileMenu from './ProfileMenu';
 
 const NavBar = () => {
-  const { user, logout } = useContext(AuthContext);
+  const { user, token, logout } = useContext(AuthContext);
   const { socket } = useContext(SocketContext);
   const { selectedRoomID } = useContext(RoomsContext);
 
@@ -76,19 +76,11 @@ const NavBar = () => {
   /******************
    * Add Friend
    ******************/
-  // FIXME User should be able to delete users from friends list
-  // FIXME Setup AI user as friend of all users (huggingface.co)
-  async function handleAddFriend() {
-    socket?.emit('add-friend', selectedUserIDs);
-  }
-
-  // Add member modal
+  // Add friend modal
   const [
     wantToAddFriend,
     { open: openModalAddFriend, close: closeModalAddFriend },
   ] = useDisclosure(false);
-
-  const { token } = useContext(AuthContext);
 
   async function getAllUsers() {
     try {
@@ -102,6 +94,13 @@ const NavBar = () => {
       console.error('Error fetching users:', error);
       return [] as User[];
     }
+  }
+
+  // FIXME User should be able to delete users from friends list
+  // FIXME Setup AI user as friend of all users
+  async function handleAddFriend() {
+    socket?.emit('add-friend', selectedUserIDs);
+    closeModalAddFriend();
   }
 
   const [users, setUsers] = useState<User[]>([]);
@@ -129,13 +128,16 @@ const NavBar = () => {
       });
   }, [user?.friends, token]);
 
+  /************************
+   * Burger Menu (mobile)
+   ************************/
   const { isMobile, toggleButtonContainer, showButtonContainer } =
     useContext(ThemeContext);
 
   // buttonContainer toggler
   const [opened, { toggle }] = useDisclosure();
 
-  function openMenu() {
+  function toggleMenu() {
     toggle();
     toggleButtonContainer();
   }
@@ -171,7 +173,7 @@ const NavBar = () => {
         <Burger
           size={25}
           opened={opened}
-          onClick={openMenu}
+          onClick={toggleMenu}
           aria-label='Toggle navigation'
         />
       ) : (

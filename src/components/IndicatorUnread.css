@@ -1,9 +1,17 @@
 .indicator-on {
   position: absolute;
-  width: 1rem;
-  height: 1rem;
+  width: 1.2rem;
+  height: 1.2rem;
   background-color: var(--mantine-primary-color-filled);
-  /* background-color: var(--color-primary); */
   border-radius: 50%;
   box-shadow: 0 0 0.5rem var(--color-primary);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  & p {
+    font-size: smaller;
+    color: black;
+  }
 }

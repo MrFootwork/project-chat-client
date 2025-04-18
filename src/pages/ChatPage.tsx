@@ -157,6 +157,14 @@ const ChatPage = () => {
     });
   }
 
+  function countUnreadMessages(room: Room) {
+    if (!room.messages) return null;
+
+    return room.messages.reduce((count, message) => {
+      return count + +!message.readers.some(r => r.id === user?.id) || 0;
+    }, 0);
+  }
+
   return (
     <div className={`chat-page-container ${isMobile ? 'mobile' : ''}`}>
       {/*************
@@ -197,9 +205,10 @@ const ChatPage = () => {
                       <IndicatorUnread
                         visible={hasUnreadMessage && !isSelectedRoom}
                         position={{
-                          top: '1rem',
+                          top: '0.9rem',
                           right: '.5rem',
                         }}
+                        content={countUnreadMessages(room)}
                       />
                     </label>
                   </li>

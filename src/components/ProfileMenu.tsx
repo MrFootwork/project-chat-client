@@ -25,6 +25,8 @@ const ProfileMenu = ({ closeMenu }: Props) => {
       <div className='menu'>
         <h5>Settings</h5>
 
+        {/* FIXME add Combobox for themes */}
+        {/* FIXME add Combobox for preferred AI */}
         <button className='item' id='item-test' onClick={authHandler}>
           <IconLogout size={18} />
           <label htmlFor='item-test'>Test</label>

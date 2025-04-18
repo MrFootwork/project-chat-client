@@ -3,13 +3,20 @@ import './IndicatorUnread.css';
 type Props = {
   visible: boolean;
   position?: { top: string; left?: string; right?: string };
+  content?: string | number | null;
 };
 
-const IndicatorUnread = (props: Props) => {
-  const { visible, position } = props;
-
+const IndicatorUnread = ({ visible, position, content }: Props) => {
   return (
-    <>{visible ? <div className='indicator-on' style={position} /> : ''}</>
+    <>
+      {visible ? (
+        <div className='indicator-on' style={position}>
+          <p>{content}</p>
+        </div>
+      ) : (
+        ''
+      )}
+    </>
   );
 };
 

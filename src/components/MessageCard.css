@@ -40,6 +40,29 @@
     margin-top: 0.5rem;
   }
 
+  & .image-wrapper {
+    border: 10px solid grey;
+    background-color: grey;
+    border-radius: 10px;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    & img {
+      width: 100%;
+      aspect-ratio: 1;
+      border-radius: 5px;
+    }
+  }
+
+  & ul ul,
+  ul ol,
+  ol ul,
+  ol ol {
+    padding-left: 1.5rem;
+  }
+
   & li {
     list-style-position: inside;
     margin: 0.5rem 0;

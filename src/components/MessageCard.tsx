@@ -4,7 +4,7 @@ import type { Message } from '../types/message';
 import { useContext, useRef } from 'react';
 import { Loader } from '@mantine/core';
 import { CodeHighlight, InlineCodeHighlight } from '@mantine/code-highlight';
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown, { Components } from 'react-markdown';
 import remarkBreaks from 'remark-breaks';
 import remarkGfm from 'remark-gfm';
 import TheAvatar from './TheAvatar';
@@ -77,14 +77,20 @@ const MessageCard: React.FC<MessageCardProps> = ({
   };
 
   // Table Renderer
-  const renderTable: React.FC<React.HTMLAttributes<HTMLTableElement>> = ({
-    children,
-    ...props
-  }) => (
+  const renderTable: Components['table'] = ({ node, ...props }) => (
     <div className='table-container'>
-      <table {...props}>{children}</table>
+      <table {...props}></table>
     </div>
   );
+
+  // Image Renderer
+  const renderImage: Components['img'] = ({ node, ...props }) => (
+    <div className='image-wrapper'>
+      <img {...props}></img>
+    </div>
+  );
+
+  console.log(currentMessage.content);
 
   return (
     <div
@@ -113,6 +119,7 @@ const MessageCard: React.FC<MessageCardProps> = ({
           components={{
             code: renderCode,
             table: renderTable,
+            img: renderImage,
           }}
           remarkPlugins={[remarkBreaks, remarkGfm]}
         >

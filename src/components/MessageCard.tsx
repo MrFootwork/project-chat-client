@@ -85,12 +85,10 @@ const MessageCard: React.FC<MessageCardProps> = ({
 
   // Image Renderer
   const renderImage: Components['img'] = ({ node, ...props }) => (
-    <div className='image-wrapper'>
+    <span className='image-wrapper'>
       <img {...props}></img>
-    </div>
+    </span>
   );
-
-  console.log(currentMessage.content);
 
   return (
     <div

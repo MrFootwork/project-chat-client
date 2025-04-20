@@ -21,6 +21,17 @@ div.messenger-container {
       display: flex;
       flex-direction: row;
       justify-content: flex-end;
+
+      & button.button-toggle-ai {
+        position: relative;
+
+        & label {
+          position: absolute;
+          top: -2px;
+          left: -4px;
+          cursor: pointer;
+        }
+      }
     }
   }
 }

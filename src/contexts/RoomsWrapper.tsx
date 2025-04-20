@@ -181,8 +181,9 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
       const sortedRooms = sortRooms(updatedRooms);
 
       // Also update currentRoom for host
-      if (s.selectedRoomID === room.id)
+      if (s.selectedRoomID === room.id) {
         return { ...s, rooms: sortedRooms, currentRoom: room };
+      }
 
       // Only add room to store because the invitee should not enter new room automatically
       return { ...s, rooms: sortedRooms };

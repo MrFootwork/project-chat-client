@@ -1,11 +1,11 @@
 import config from '../../config';
-import { MessageAuthor, User } from '../types/user';
 import { Room } from '../types/room';
+import { MessageAuthor, User } from '../types/user';
 
 import React, { ReactNode, useContext, useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { notifications } from '@mantine/notifications';
-import { IconCopyPlus } from '@tabler/icons-react';
+import { IconCopyPlus, IconDoorOff } from '@tabler/icons-react';
 
 import { AuthContext } from './AuthWrapper';
 import { RoomsContext } from './RoomsWrapper';
@@ -72,14 +72,42 @@ function SocketWrapper({ children }: { children: ReactNode }) {
     if (!socketServer?.connected) return;
 
     socketServer.on('invited-to-room', handleNewRoomMember);
+    socketServer.on('removed-from-room', handleRoomMemberRemoval);
 
     return () => {
       socketServer.off('invited-to-room', handleNewRoomMember);
+      socketServer.off('removed-from-room', handleRoomMemberRemoval);
     };
   }, [
     socketServer?.connected,
-    rooms?.map(r => ({ id: r.id, members: r.members })),
+    JSON.stringify(rooms?.map(r => ({ id: r.id, members: r.members }))),
   ]);
+
+  function handleRoomMemberRemoval(room: Room, host: User) {
+    // Add room to store so it can be displayed in the UI
+    addRoom(room);
+
+    if (room.members.find(m => m.id === user!.id)) {
+      notifications.show({
+        title: 'Room removal',
+        message: `You have been removed from room: ${room.name}`,
+        icon: <IconDoorOff />,
+      });
+    }
+  }
+
+  function handleNewRoomMember(room: Room, host: User) {
+    // Add room to store so it can be displayed in the UI
+    addRoom(room);
+
+    if (host.id !== user?.id) {
+      notifications.show({
+        title: 'Room invitation',
+        message: `You have been invited to a room: ${room.name}`,
+        icon: <IconCopyPlus />,
+      });
+    }
+  }
 
   function handleNewFriend(meUser: User, newFriend: MessageAuthor) {
     notifications.show({
@@ -98,19 +126,6 @@ function SocketWrapper({ children }: { children: ReactNode }) {
 
       return prevUser;
     });
-  }
-
-  function handleNewRoomMember(room: Room, host: User) {
-    // Add room to store so it can be displayed in the UI
-    addRoom(room);
-
-    if (host.id !== user?.id) {
-      notifications.show({
-        title: 'Room invitation',
-        message: `You have been invited to a room: ${room.name}`,
-        icon: <IconCopyPlus />,
-      });
-    }
   }
 
   function connectSocket(socket: SocketType) {
@@ -163,4 +178,4 @@ function SocketWrapper({ children }: { children: ReactNode }) {
   );
 }
 
-export { SocketWrapper, SocketContext };
+export { SocketContext, SocketWrapper };

@@ -20,7 +20,12 @@ import {
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { useForm } from '@mantine/form';
-import { IconTrashX, IconUsersPlus } from '@tabler/icons-react';
+import {
+  IconRobot,
+  IconRobotOff,
+  IconTrashX,
+  IconUsersPlus,
+} from '@tabler/icons-react';
 import MessageCard from './MessageCard';
 import IndicatorUnread from './IndicatorUnread';
 import { SearchableMultiSelect } from './SearchableMultiSelect';
@@ -302,9 +307,42 @@ const Messenger = () => {
   useEffect(() => {
     if (!currentRoom?.members) return;
 
-    if (currentRoom?.members.length === 1) membersCountRef.current = '1 Member';
-    else membersCountRef.current = `${currentRoom?.members.length} Members`;
-  }, [currentRoom?.members.length]);
+    const activeMembers = currentRoom.members.filter(m => !m.userLeft);
+
+    if (activeMembers.length === 1) membersCountRef.current = '1 Member';
+    else membersCountRef.current = `${activeMembers.length} Members`;
+  }, [currentRoom?.members]);
+
+  /**************************
+   * AI Toggler
+   **************************/
+  const [AIIsActive, setAIIsActive] = useState(false);
+
+  async function toggleAI() {
+    if (!socket || !currentRoom) return;
+
+    if (AIIsActive) {
+      console.log('remove bot');
+      socket.emit(`remove-from-room`, currentRoom.id, ['chat-bot']);
+    } else {
+      console.log('add bot');
+      socket.emit(`invite-to-room`, currentRoom.id, ['chat-bot']);
+    }
+  }
+
+  useEffect(() => {
+    setAIIsActive(
+      !currentRoom?.members.find(m => m.id === 'chat-bot')?.userLeft
+    );
+  }, [
+    JSON.stringify(
+      currentRoom?.members.find(m => m.id === 'chat-bot')?.userLeft
+    ),
+  ]);
+
+  useEffect(() => {
+    console.log('currentRoom.members updated:', currentRoom?.members);
+  }, [currentRoom?.members]);
 
   return (
     <div className='messenger-container'>
@@ -316,14 +354,28 @@ const Messenger = () => {
 
         {/* FIXME hover animation  */}
         {/* FIXME indicate admins */}
-        <AvatarGroup spacing='1.5rem'>
-          {currentRoom?.members.map(member => {
-            return <TheAvatar key={member.id} user={member} size='3rem' />;
-          })}
+        <AvatarGroup
+          key={currentRoom?.members.map(m => `${m.id}-${m.userLeft}`).join(',')}
+          spacing='1.5rem'
+        >
+          {currentRoom?.members
+            .filter(m => !m.userLeft)
+            .map(member => {
+              return <TheAvatar key={member.id} user={member} size='3rem' />;
+            })}
         </AvatarGroup>
 
         {/* FIXME Add admin indicator */}
         <div className='button-container'>
+          <button
+            className='button-toggle-ai icon-button'
+            onClick={toggleAI}
+            title={`Switch ${AIIsActive ? 'off' : 'on'} AI Chat Assistant`}
+            id='button-toggle-ai'
+          >
+            {AIIsActive ? <IconRobot /> : <IconRobotOff />}
+            {AIIsActive ? <label htmlFor='button-toggle-ai'>🌟</label> : ''}
+          </button>
           <button
             className='button-add-member icon-button'
             onClick={() => {

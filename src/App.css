@@ -15,11 +15,10 @@
   justify-content: center;
 
   aspect-ratio: 1;
-  width: 3rem;
 
   cursor: pointer;
   border-radius: 50%;
-  padding: 0.6rem;
+  padding: 0.4rem;
   border: none;
   background-color: inherit;
 
@@ -27,7 +26,7 @@
 
   /* TODO Add click animation (check Firefox) */
   &:hover {
-    background-color: hsl(from var(--color-primary) h s l / 15%);
+    background-color: hsl(from var(--color-secondary) h s l / 15%);
     transform: translateY(-0.1rem);
 
     & svg {
@@ -37,7 +36,7 @@
   }
 
   &:active {
-    background-color: hsl(from var(--color-primary) h s l / 15%);
+    background-color: hsl(from var(--color-secondary) h s l / 45%);
     transform: translateY(-0.01rem);
 
     & svg {

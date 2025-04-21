@@ -1,6 +1,6 @@
 import config from '../../config';
 import { Room } from '../types/room';
-import { MessageAuthor, User } from '../types/user';
+import { MessageAuthor, RoomMember, User } from '../types/user';
 
 import React, { ReactNode, useContext, useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
@@ -20,8 +20,13 @@ const SocketContext = React.createContext<SocketContextType>({
 
 function SocketWrapper({ children }: { children: ReactNode }) {
   const { user, setUser, token } = useContext(AuthContext);
-  const { rooms, addRoom, selectedRoomID, pushMessageChunks } =
-    useContext(RoomsContext);
+  const {
+    rooms,
+    updateRoomMemberStatus,
+    createOrUpdateMembers,
+    selectedRoomID,
+    pushMessageChunks,
+  } = useContext(RoomsContext);
 
   const [socketServer, setSocket] = useState<SocketType>(null);
 
@@ -43,6 +48,7 @@ function SocketWrapper({ children }: { children: ReactNode }) {
   }, [socketServer, rooms?.[0]?.id]);
 
   // Listener for AI stream
+  // BUG invitee of new room doesn't receive streams
   useEffect(() => {
     if (!socketServer?.connected) return;
 
@@ -83,11 +89,26 @@ function SocketWrapper({ children }: { children: ReactNode }) {
     JSON.stringify(rooms?.map(r => ({ id: r.id, members: r.members }))),
   ]);
 
-  function handleRoomMemberRemoval(room: Room, host: User) {
+  function handleRoomMemberRemoval(room: Room, IDsToRemove: string[]) {
     // Add room to store so it can be displayed in the UI
-    addRoom(room);
+    // addRoom(room);
 
-    if (room.members.find(m => m.id === user!.id)) {
+    console.log(
+      'Receive Removal:',
+      IDsToRemove,
+      room.members.map(m => ({ name: m.name, left: m.userLeft }))
+    );
+
+    const allMembers = room.members.map(m => ({
+      id: m.id,
+      userLeft: m.userLeft,
+    }));
+
+    const selectedMembers = allMembers.filter(m => IDsToRemove.includes(m.id));
+
+    updateRoomMemberStatus(room.id, selectedMembers);
+
+    if (IDsToRemove.includes(user!.id)) {
       notifications.show({
         title: 'Room removal',
         message: `You have been removed from room: ${room.name}`,
@@ -96,11 +117,15 @@ function SocketWrapper({ children }: { children: ReactNode }) {
     }
   }
 
-  function handleNewRoomMember(room: Room, host: User) {
+  function handleNewRoomMember(room: Room, addedMembers: RoomMember[]) {
+    console.log('Invited to new room', room.name);
     // Add room to store so it can be displayed in the UI
-    addRoom(room);
+    // addRoom(room);
+    const userEntersRoomFirstTime = !rooms!.map(r => r.id).includes(room.id);
 
-    if (host.id !== user?.id) {
+    createOrUpdateMembers(addedMembers, room);
+
+    if (addedMembers.map(m => m.id).includes(user!.id)) {
       notifications.show({
         title: 'Room invitation',
         message: `You have been invited to a room: ${room.name}`,

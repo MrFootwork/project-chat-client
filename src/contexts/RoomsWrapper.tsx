@@ -4,7 +4,7 @@ import config from '../../config';
 
 import { AuthContext } from './AuthWrapper';
 
-import { MessageAuthor } from '../types/user';
+import { MessageAuthor, RoomMember } from '../types/user';
 import { Room } from '../types/room';
 import { Message } from '../types/message';
 
@@ -18,6 +18,11 @@ const defaultStore = {
   deleteRoom: async (roomID: string) => {},
   fetchRooms: async () => [],
   addRoom: (room: Room) => {},
+  updateRoomMemberStatus: (
+    roomID: string,
+    IDsToRemove: { id: string; userLeft: boolean }[]
+  ) => {},
+  createOrUpdateMembers: (addedMembers: RoomMember[], room: Room) => {},
   selectRoom: async (roomID: string) => {
     throw new Error('selectRoom is not implemented in defaultStore');
   },
@@ -38,6 +43,11 @@ type RoomsContextType = {
   deleteRoom: (roomID: string) => Promise<void>;
   fetchRooms: () => Promise<Room[]>;
   addRoom: (room: Room) => void;
+  updateRoomMemberStatus: (
+    roomID: string,
+    IDsToRemove: { id: string; userLeft: boolean }[]
+  ) => void;
+  createOrUpdateMembers: (addedMembers: RoomMember[], room: Room) => void;
   selectRoom: (roomID: string) => Promise<Room | undefined>;
   selectedRoomID: string | null;
   currentRoom: Room | null;
@@ -67,25 +77,25 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
   }, [logout]);
 
   // Set Current Room on each selection change
-  useEffect(() => {
-    // BUG This runs twice on each selection change
-    // Check if this effect can be deleted
-    setStore(prevStore => {
-      console.log('selectedRoomID changed: ', prevStore.selectedRoomID);
+  // useEffect(() => {
+  //   // BUG This runs twice on each selection change
+  //   // Check if this effect can be deleted
+  //   setStore(prevStore => {
+  //     console.log('selectedRoomID changed: ', prevStore.selectedRoomID);
 
-      const selectedRoom = prevStore.rooms?.find(
-        r => r.id === prevStore.selectedRoomID
-      );
+  //     const selectedRoom = prevStore.rooms?.find(
+  //       r => r.id === prevStore.selectedRoomID
+  //     );
 
-      if (!selectedRoom) return prevStore;
+  //     if (!selectedRoom) return prevStore;
 
-      return { ...prevStore, currentRoom: selectedRoom };
-    });
-  }, [store.selectedRoomID]);
+  //     return { ...prevStore, currentRoom: selectedRoom };
+  //   });
+  // }, [store.selectedRoomID]);
 
   async function createRoom(roomName: string) {
     try {
-      const { data } = await axios.post<Room>(
+      const { data: newRoom } = await axios.post<Room>(
         `${API_URL}/api/rooms`,
         { name: roomName },
         {
@@ -96,13 +106,13 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
       );
 
       setStore(s => {
-        const updatedRooms = [...(s.rooms || []), data];
+        const updatedRooms = [...(s.rooms || []), newRoom];
         const sortedRooms = sortRooms(updatedRooms);
 
         return { ...s, rooms: sortedRooms };
       });
 
-      return data;
+      return newRoom;
     } catch (err) {
       console.error('Error creating new room: ', err);
     }
@@ -171,7 +181,7 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
 
       if (s.rooms?.some(r => r.id === room.id)) {
         updatedRooms = s.rooms.map(r => {
-          if (r.id === room.id) return room;
+          if (r.id === room.id) return { ...r, members: [...room.members] };
           return r;
         });
       } else {
@@ -182,11 +192,116 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
 
       // Also update currentRoom for host
       if (s.selectedRoomID === room.id) {
-        return { ...s, rooms: sortedRooms, currentRoom: room };
+        return {
+          ...s,
+          rooms: sortedRooms,
+          currentRoom: { ...room, members: [...room.members] },
+        };
       }
 
       // Only add room to store because the invitee should not enter new room automatically
       return { ...s, rooms: sortedRooms };
+    });
+  }
+
+  function createOrUpdateMembers(addedMembers: RoomMember[], room: Room) {
+    setStore(prevStore => {
+      if (!prevStore.rooms || !prevStore.currentRoom) return prevStore;
+
+      const targetRoom = prevStore.rooms.find(r => r.id === room.id) || room;
+
+      const updatedMembers = targetRoom.members.map(m => {
+        const replacingMember = addedMembers.find(am => am.id === m.id);
+        if (!!replacingMember)
+          return { ...m, userLeft: replacingMember.userLeft };
+        return m;
+      });
+
+      const firstTimeMembers = addedMembers.filter(
+        ftm => !targetRoom.members.map(m => m.id).includes(ftm.id)
+      );
+
+      console.log(
+        `🚀 ~ createOrUpdateMembers ~ updatedMembers:`,
+        updatedMembers
+      );
+      console.log(
+        `🚀 ~ createOrUpdateMembers ~ firstTimeMembers:`,
+        firstTimeMembers
+      );
+
+      const updatedRoom = {
+        ...targetRoom,
+        members: [...updatedMembers, ...firstTimeMembers],
+      };
+
+      let updatedRooms = prevStore.rooms.map(r => {
+        if (r.id === room.id) return updatedRoom;
+        return r;
+      });
+
+      if (!prevStore.rooms.some(r => r.id === room.id)) {
+        console.log('adding new room...');
+        updatedRooms = [...updatedRooms, room];
+      }
+
+      const sortedRooms = sortRooms(updatedRooms);
+
+      if (room.id === prevStore.selectedRoomID) {
+        return {
+          ...prevStore,
+          rooms: sortedRooms,
+          currentRoom: updatedRoom,
+        };
+      } else {
+        return {
+          ...prevStore,
+          rooms: sortedRooms,
+        };
+      }
+    });
+  }
+
+  function updateRoomMemberStatus(
+    roomID: string,
+    IDsToRemove: { id: string; userLeft: boolean }[]
+  ) {
+    setStore(prevStore => {
+      if (!prevStore.rooms) return prevStore;
+
+      const updatedRooms = prevStore.rooms.map(room => {
+        if (room.id !== roomID) return room;
+
+        // Create a new reference for the members array
+        const updatedMembers = room.members.map(member => {
+          const updatedMember = {
+            ...member,
+            userLeft:
+              IDsToRemove.find(item => item.id === member.id)?.userLeft ||
+              member.userLeft,
+          };
+
+          const memberIsRemoved = IDsToRemove.map(item => item.id).includes(
+            member.id
+          );
+
+          return memberIsRemoved ? updatedMember : member;
+        });
+
+        return { ...room, members: updatedMembers };
+      });
+
+      // Only update current room, if that was changed
+      const updatedCurrentRoom =
+        prevStore.currentRoom?.id === roomID
+          ? updatedRooms.find(room => room.id === roomID)
+          : prevStore.currentRoom;
+
+      return {
+        ...prevStore,
+        rooms: updatedRooms,
+        currentRoom: updatedCurrentRoom || null,
+      };
     });
   }
 
@@ -377,6 +492,8 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
         deleteRoom,
         fetchRooms,
         addRoom,
+        updateRoomMemberStatus,
+        createOrUpdateMembers,
         selectRoom,
         pushMessage,
         pushMessageChunks,

@@ -330,19 +330,19 @@ const Messenger = () => {
     }
   }
 
-  useEffect(() => {
-    setAIIsActive(
-      !currentRoom?.members.find(m => m.id === 'chat-bot')?.userLeft
-    );
-  }, [
-    JSON.stringify(
-      currentRoom?.members.find(m => m.id === 'chat-bot')?.userLeft
-    ),
-  ]);
+  const aiAsRoomMember = useMemo(() => {
+    return currentRoom?.members.find(m => m.id === 'chat-bot');
+  }, [currentRoom?.members]);
 
   useEffect(() => {
-    console.log('currentRoom.members updated:', currentRoom?.members);
-  }, [currentRoom?.members]);
+    setAIIsActive(ai => {
+      if (!aiAsRoomMember) return false;
+      return !aiAsRoomMember.userLeft;
+    });
+  }, [aiAsRoomMember]);
+
+  // BUG new room doesn't update for other members
+  // when bot was added first time
 
   return (
     <div className='messenger-container'>
@@ -355,7 +355,12 @@ const Messenger = () => {
         {/* FIXME hover animation  */}
         {/* FIXME indicate admins */}
         <AvatarGroup
-          key={currentRoom?.members.map(m => `${m.id}-${m.userLeft}`).join(',')}
+          key={currentRoom?.members
+            .map(m => {
+              // console.log('AvatarGroup: ', `${m.id}-${m.userLeft}`);
+              return `${m.id}-${m.userLeft}`;
+            })
+            .join(',')}
           spacing='1.5rem'
         >
           {currentRoom?.members

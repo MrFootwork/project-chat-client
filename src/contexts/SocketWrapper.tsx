@@ -26,6 +26,7 @@ function SocketWrapper({ children }: { children: ReactNode }) {
     createOrUpdateMembers,
     selectedRoomID,
     pushMessageChunks,
+    selectRoom,
   } = useContext(RoomsContext);
 
   const [socketServer, setSocket] = useState<SocketType>(null);
@@ -59,7 +60,13 @@ function SocketWrapper({ children }: { children: ReactNode }) {
     return () => {
       socketServer.off('stream-bot-message', handleAIStream);
     };
-  }, [socketServer?.connected, user?.friends]);
+  }, [
+    socketServer?.connected,
+    user?.friends,
+    selectRoom,
+    handleNewRoomMember,
+    handleRoomMemberRemoval,
+  ]);
 
   // Listener for user friends
   useEffect(() => {

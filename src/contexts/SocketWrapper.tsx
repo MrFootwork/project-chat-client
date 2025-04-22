@@ -89,9 +89,6 @@ function SocketWrapper({ children }: { children: ReactNode }) {
   ]);
 
   function handleRoomMemberRemoval(room: Room, IDsToRemove: string[]) {
-    // Add room to store so it can be displayed in the UI
-    // addRoom(room);
-
     console.log(
       'Receive Removal:',
       IDsToRemove,
@@ -105,6 +102,7 @@ function SocketWrapper({ children }: { children: ReactNode }) {
 
     const selectedMembers = allMembers.filter(m => IDsToRemove.includes(m.id));
 
+    // Add room to store so it can be displayed in the UI
     updateRoomMemberStatus(room.id, selectedMembers);
 
     if (IDsToRemove.includes(user!.id)) {
@@ -168,6 +166,9 @@ function SocketWrapper({ children }: { children: ReactNode }) {
 
       const roomIDs = rooms.map(room => room.id);
 
+      // BUG Decouple dependencies of room joins from socket connection
+      // => connection should stay stable, while room joins depend on rooms
+      // Issue: AI stream is lost when chatting and changing rooms in quick succession
       socket.emit('join-room', roomIDs);
       console.groupEnd();
     });

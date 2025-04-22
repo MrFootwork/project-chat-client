@@ -51,8 +51,6 @@ const ChatPage = () => {
     console.log('Loading from ChatPage...');
     fetchRooms();
     // HACK Need to refetch after adding friends because adding friends cuase to loose rooms state
-    // BUG In very rare occasions after adding new room members
-    // the room fetch goes wrong => workaround: reload page
   }, [user]);
 
   const firstRoomFetchedInitially = useRef(false);
@@ -200,7 +198,7 @@ const ChatPage = () => {
     return rooms?.map(room => {
       const hasUnreadMessage = roomHasUnreadMessages(room);
       const isSelectedRoom = room.id === selectedRoomID;
-      const userInRoom = room.members.find(m => m.id === user?.id);
+      const userInRoom = room?.members?.find(m => m.id === user?.id) || null; // Caused errors in new rooms
       const isKickedOut = !userInRoom || userInRoom.userLeft;
 
       return (

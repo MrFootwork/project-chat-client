@@ -76,23 +76,6 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
     }));
   }, [logout]);
 
-  // Set Current Room on each selection change
-  // useEffect(() => {
-  //   // BUG This runs twice on each selection change
-  //   // Check if this effect can be deleted
-  //   setStore(prevStore => {
-  //     console.log('selectedRoomID changed: ', prevStore.selectedRoomID);
-
-  //     const selectedRoom = prevStore.rooms?.find(
-  //       r => r.id === prevStore.selectedRoomID
-  //     );
-
-  //     if (!selectedRoom) return prevStore;
-
-  //     return { ...prevStore, currentRoom: selectedRoom };
-  //   });
-  // }, [store.selectedRoomID]);
-
   async function createRoom(roomName: string) {
     try {
       const { data: newRoom } = await axios.post<Room>(
@@ -125,6 +108,8 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
           Authorization: `Bearer ${localStorage.getItem('chatToken')}`,
         },
       });
+
+      // BUG Emit room deletion and handle in other clients, too
 
       setStore(s => {
         const updatedRooms = s.rooms?.filter(room => room.id !== roomID) || [];

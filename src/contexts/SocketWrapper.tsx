@@ -48,7 +48,6 @@ function SocketWrapper({ children }: { children: ReactNode }) {
   }, [socketServer, rooms?.[0]?.id]);
 
   // Listener for AI stream
-  // BUG invitee of new room doesn't receive streams
   useEffect(() => {
     if (!socketServer?.connected) return;
 

@@ -221,15 +221,6 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
         ftm => !targetRoom.members.map(m => m.id).includes(ftm.id)
       );
 
-      console.log(
-        `🚀 ~ createOrUpdateMembers ~ updatedMembers:`,
-        updatedMembers
-      );
-      console.log(
-        `🚀 ~ createOrUpdateMembers ~ firstTimeMembers:`,
-        firstTimeMembers
-      );
-
       const updatedRoom = {
         ...targetRoom,
         members: [...updatedMembers, ...firstTimeMembers],
@@ -241,7 +232,6 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
       });
 
       if (!prevStore.rooms.some(r => r.id === room.id)) {
-        console.log('adding new room...');
         updatedRooms = [...updatedRooms, room];
       }
 

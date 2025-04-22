@@ -21,6 +21,7 @@ import {
 import { useDisclosure } from '@mantine/hooks';
 import { useForm } from '@mantine/form';
 import {
+  IconDoorExit,
   IconRobot,
   IconRobotOff,
   IconTrashX,
@@ -49,6 +50,7 @@ const Messenger = () => {
     deleteRoom,
     pushMessage,
     setMessageAsRead,
+    updateRoomMemberStatus,
   } = useContext(RoomsContext);
 
   // Input
@@ -243,6 +245,33 @@ const Messenger = () => {
   }, [currentRoom?.messages.length]);
 
   /**************************
+   * Leave Room
+   **************************/
+  const kickedOut = useMemo(() => {
+    if (!currentRoom?.members.find(m => m.id === user?.id)) return true;
+    return currentRoom?.members.find(m => m.id === user?.id)?.userLeft;
+  }, [currentRoom?.members.find(m => m.id === user?.id)]);
+
+  function handleLeaveRoom() {
+    if (!user || !currentRoom || !socket) return;
+
+    socket.emit(`remove-from-room`, currentRoom.id, [user.id]);
+  }
+
+  const ButtonLeaveRoom = () => {
+    return (
+      <button
+        className='button-delete-room icon-button'
+        onClick={handleLeaveRoom}
+        title='Leave this room'
+        disabled={kickedOut}
+      >
+        <IconDoorExit />
+      </button>
+    );
+  };
+
+  /**************************
    * Modal Delete Room
    **************************/
   // Delete room modal
@@ -341,9 +370,6 @@ const Messenger = () => {
     });
   }, [aiAsRoomMember]);
 
-  // BUG new room doesn't update for other members
-  // when bot was added first time
-
   return (
     <div className='messenger-container'>
       <header>
@@ -377,6 +403,7 @@ const Messenger = () => {
             onClick={toggleAI}
             title={`Switch ${AIIsActive ? 'off' : 'on'} AI Chat Assistant`}
             id='button-toggle-ai'
+            disabled={kickedOut}
           >
             {AIIsActive ? <IconRobot /> : <IconRobotOff />}
             {AIIsActive ? <label htmlFor='button-toggle-ai'>🌟</label> : ''}
@@ -393,24 +420,30 @@ const Messenger = () => {
                 ? 'Add members to this room'
                 : 'Only admins can add members'
             }
-            disabled={!isAdmin}
+            disabled={!isAdmin || kickedOut}
           >
             <IconUsersPlus />
           </button>
-          <button
-            className='button-delete-room icon-button'
-            onClick={() => {
-              setTimeout(() => {
-                openModalDeleteRoom();
-              }, 200);
-            }}
-            title={
-              isAdmin ? 'Delete this room' : 'Only admins can delete this room'
-            }
-            disabled={!isAdmin}
-          >
-            <IconTrashX />
-          </button>
+          {isAdmin ? (
+            <button
+              className='button-delete-room icon-button'
+              onClick={() => {
+                setTimeout(() => {
+                  openModalDeleteRoom();
+                }, 200);
+              }}
+              title={
+                isAdmin
+                  ? 'Delete this room'
+                  : 'Only admins can delete this room'
+              }
+              disabled={!isAdmin || kickedOut}
+            >
+              <IconTrashX />
+            </button>
+          ) : (
+            ButtonLeaveRoom()
+          )}
         </div>
       </header>
 
@@ -455,7 +488,11 @@ const Messenger = () => {
           <Textarea
             ref={textAreaRef}
             radius='md'
-            placeholder='Enter your message here.'
+            placeholder={
+              kickedOut
+                ? 'You are no longer a member of this room.'
+                : 'Enter your message here.'
+            }
             key={form.key('text')}
             {...form.getInputProps('text')}
             className='textarea-custom'
@@ -463,8 +500,12 @@ const Messenger = () => {
             autosize
             minRows={2}
             maxRows={6}
+            disabled={kickedOut}
           />
-          <Button type='submit'>Send</Button>
+
+          <Button type='submit' disabled={kickedOut}>
+            Send
+          </Button>
           {/* BUG sync to how movedUp is set */}
           {(scrollPosition || 0) < 0.99 ? (
             <button

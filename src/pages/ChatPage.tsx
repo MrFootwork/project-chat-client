@@ -10,7 +10,14 @@ import { AuthContext } from '../contexts/AuthWrapper';
 import { RoomsContext } from '../contexts/RoomsWrapper';
 
 import { IconCopyPlus } from '@tabler/icons-react';
-import { Button, Group, Modal, Stack, TextInput } from '@mantine/core';
+import {
+  Button,
+  Group,
+  Modal,
+  Stack,
+  TextInput,
+  useMantineTheme,
+} from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import { useForm } from '@mantine/form';
@@ -20,6 +27,7 @@ import IndicatorUnread from '../components/IndicatorUnread';
 
 const ChatPage = () => {
   const navigate = useNavigate();
+  const theme = useMantineTheme();
 
   /**********
    * AUTH
@@ -165,6 +173,70 @@ const ChatPage = () => {
     }, 0);
   }
 
+  /**********
+   * Header
+   **********/
+  const Header = () => {
+    return (
+      <header>
+        <h1>Groups</h1>
+
+        {/* TODO Make all icon-buttons a component */}
+        <div
+          className='button-create-room icon-button'
+          onClick={openRoomCreate}
+          title='Create new room'
+        >
+          <IconCopyPlus />
+        </div>
+      </header>
+    );
+  };
+
+  /****************
+   * Room Buttons
+   ***************/
+  const RoomButtons = () => {
+    return rooms?.map(room => {
+      const hasUnreadMessage = roomHasUnreadMessages(room);
+      const isSelectedRoom = room.id === selectedRoomID;
+      const userInRoom = room.members.find(m => m.id === user?.id);
+      const isKickedOut = !userInRoom || userInRoom.userLeft;
+
+      return (
+        <li key={room.id}>
+          <input
+            checked={isSelectedRoom}
+            type='radio'
+            name='room'
+            id={`room-${room.id}`}
+            onChange={isMobile ? () => handleRoomSelection(room.id) : () => {}}
+            onClick={isMobile ? () => {} : () => handleRoomSelection(room.id)}
+          />
+
+          <label
+            htmlFor={`room-${room.id}`}
+            style={{
+              color: `${isKickedOut ? theme.colors.gray[6] : 'inherit'}`,
+            }}
+          >
+            {room.name}
+            {/* FIXME make icon pulse and show count of unread messages */}
+
+            <IndicatorUnread
+              visible={hasUnreadMessage && !isSelectedRoom}
+              position={{
+                top: `${isMobile ? '0.9rem' : '1rem'}`,
+                right: `${isMobile ? '.5rem' : '.5rem'}`,
+              }}
+              content={countUnreadMessages(room)}
+            />
+          </label>
+        </li>
+      );
+    });
+  };
+
   return (
     <div className={`chat-page-container ${isMobile ? 'mobile' : ''}`}>
       {/*************
@@ -173,48 +245,9 @@ const ChatPage = () => {
       {!isMobile && (
         <>
           <nav className='rooms-container'>
-            <header>
-              <h1>Groups</h1>
+            {Header()}
 
-              {/* TODO Make all icon-buttons a component */}
-              <div
-                className='button-create-room icon-button'
-                onClick={openRoomCreate}
-                title='Create new room'
-              >
-                <IconCopyPlus />
-              </div>
-            </header>
-
-            <ol className='room-button-container'>
-              {rooms?.map(room => {
-                const hasUnreadMessage = roomHasUnreadMessages(room);
-                const isSelectedRoom = room.id === selectedRoomID;
-
-                return (
-                  <li key={room.id}>
-                    <input
-                      checked={isSelectedRoom}
-                      type='radio'
-                      name='room'
-                      id={`room-${room.id}`}
-                      onChange={() => handleRoomSelection(room.id)}
-                    />
-                    <label htmlFor={`room-${room.id}`}>
-                      {room.name}
-                      <IndicatorUnread
-                        visible={hasUnreadMessage && !isSelectedRoom}
-                        position={{
-                          top: '0.9rem',
-                          right: '.5rem',
-                        }}
-                        content={countUnreadMessages(room)}
-                      />
-                    </label>
-                  </li>
-                );
-              })}
-            </ol>
+            <ol className='room-button-container'>{RoomButtons()}</ol>
           </nav>
           <section className='messenger-container'>
             <Messenger key={selectedRoomID} />
@@ -230,49 +263,9 @@ const ChatPage = () => {
           {/* FIXME Slide in and out animation */}
           {showButtonContainer ? (
             <nav className='rooms-container'>
-              <header>
-                <h1>Groups</h1>
+              {Header()}
 
-                {/* TODO Make all icon-buttons a component */}
-                <div
-                  className='button-create-room icon-button'
-                  onClick={openRoomCreate}
-                  title='Create new room'
-                >
-                  <IconCopyPlus />
-                </div>
-              </header>
-
-              <ol className='room-button-container'>
-                {rooms?.map(room => {
-                  const hasUnreadMessage = roomHasUnreadMessages(room);
-                  const isSelectedRoom = room.id === selectedRoomID;
-
-                  return (
-                    <li key={room.id}>
-                      <input
-                        checked={isSelectedRoom}
-                        type='radio'
-                        name='room'
-                        id={`room-${room.id}`}
-                        onChange={() => {}}
-                        onClick={() => handleRoomSelection(room.id)}
-                      />
-                      <label htmlFor={`room-${room.id}`}>
-                        {room.name}
-                        {/* FIXME make icon pulse and show count of unread messages */}
-                        <IndicatorUnread
-                          visible={hasUnreadMessage && !isSelectedRoom}
-                          position={{
-                            top: '1rem',
-                            right: '.5rem',
-                          }}
-                        />
-                      </label>
-                    </li>
-                  );
-                })}
-              </ol>
+              <ol className='room-button-container'>{RoomButtons()}</ol>
             </nav>
           ) : (
             <section className='messenger-container'>

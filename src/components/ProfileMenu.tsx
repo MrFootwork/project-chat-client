@@ -24,58 +24,57 @@ const ProfileMenu = ({ closeMenu }: Props) => {
     closeMenu();
   }
 
-  // Combobox
+  // Combobox for AI model selection
   const combobox = useCombobox({
     onDropdownClose: () => combobox.resetSelectedOption(),
   });
 
-  const models = ['deepseek', 'gpt', 'dall-e'];
+  const ComboBoxAIModel = () => {
+    const models = ['deepseek', 'gpt', 'dall-e'];
 
-  const options = models.map(item => (
-    <Combobox.Option value={item} key={item}>
-      {item}
-    </Combobox.Option>
-  ));
+    const options = models.map(item => (
+      <Combobox.Option value={item} key={item}>
+        {item}
+      </Combobox.Option>
+    ));
 
-  function handleBotSelection() {
-    console.log('Selecting Bot');
-  }
+    return (
+      <Combobox
+        store={combobox}
+        onOptionSubmit={val => {
+          setBotModel(val);
+          combobox.closeDropdown();
+        }}
+      >
+        <Combobox.Target>
+          <InputBase
+            component='button'
+            type='button'
+            pointer
+            rightSection={<Combobox.Chevron />}
+            rightSectionPointerEvents='none'
+            onClick={() => combobox.toggleDropdown()}
+          >
+            {botModel || <Input.Placeholder>Pick AI Model</Input.Placeholder>}
+          </InputBase>
+        </Combobox.Target>
+
+        <Combobox.Dropdown style={{ zIndex: '500' }}>
+          <Combobox.Options>{options}</Combobox.Options>
+        </Combobox.Dropdown>
+      </Combobox>
+    );
+  };
 
   return (
     <div className='profile-menu-container'>
       <div className='menu'>
         <h5>Settings</h5>
 
-        {/* FIXME add Combobox for themes */}
-        <button className='item' id='item-bot' onClick={handleBotSelection}>
+        <button className='item' id='item-bot'>
           <IconRobot size={18} />
           <label htmlFor='item-bot'>AI Model</label>
-          <Combobox
-            store={combobox}
-            onOptionSubmit={val => {
-              setBotModel(val);
-              combobox.closeDropdown();
-            }}
-          >
-            <Combobox.Target>
-              <InputBase
-                component='button'
-                type='button'
-                pointer
-                rightSection={<Combobox.Chevron />}
-                rightSectionPointerEvents='none'
-                onClick={() => combobox.toggleDropdown()}
-              >
-                {botModel || (
-                  <Input.Placeholder>Pick AI Model</Input.Placeholder>
-                )}
-              </InputBase>
-            </Combobox.Target>
-
-            <Combobox.Dropdown style={{ zIndex: '500' }}>
-              <Combobox.Options>{options}</Combobox.Options>
-            </Combobox.Dropdown>
-          </Combobox>
+          {ComboBoxAIModel()}
         </button>
 
         <button className='item' id='item-logout' onClick={authHandler}>

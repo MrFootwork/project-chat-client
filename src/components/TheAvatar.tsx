@@ -1,18 +1,20 @@
+import './TheAvatar.css';
 import { Avatar, AvatarProps } from '@mantine/core';
 import { MessageAuthor } from '../types/user';
 
 type Props = {
   user: MessageAuthor;
   size?: AvatarProps['size'];
+  children?: any;
 };
 
-const TheAvatar = ({ user, size }: Props) => {
+const TheAvatar = ({ user, size, children }: Props) => {
   function userHasAvatar(url: string | null): url is string {
     return !!url && typeof url === 'string' && url !== '';
   }
 
   return (
-    <>
+    <div className='avatar-wrapper'>
       {userHasAvatar(user.avatarUrl) ? (
         <Avatar size={size} src={user.avatarUrl} alt={user.name} />
       ) : (
@@ -25,7 +27,8 @@ const TheAvatar = ({ user, size }: Props) => {
           variant='filled'
         />
       )}
-    </>
+      <div className='children'>{children}</div>
+    </div>
   );
 };
 

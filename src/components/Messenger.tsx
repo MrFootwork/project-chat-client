@@ -14,6 +14,7 @@ import {
   AvatarGroup,
   Button,
   Group,
+  Indicator,
   Modal,
   Textarea,
   useComputedColorScheme,
@@ -24,6 +25,7 @@ import {
   IconDoorExit,
   IconRobot,
   IconRobotOff,
+  IconSettingsFilled,
   IconTrashX,
   IconUsersPlus,
 } from '@tabler/icons-react';
@@ -392,7 +394,18 @@ const Messenger = () => {
           {currentRoom?.members
             .filter(m => !m.userLeft)
             .map(member => {
-              return <TheAvatar key={member.id} user={member} size='3rem' />;
+              return (
+                <TheAvatar key={member.id} user={member} size='3rem'>
+                  {/* FIXME Add online indicator */}
+                  <IconSettingsFilled
+                    className='admin'
+                    display={member.isAdmin ? 'block' : 'none'}
+                    size='1rem'
+                  />
+                  {/* FIXME Setup member is online state */}
+                  <Indicator color='green' className='online' />
+                </TheAvatar>
+              );
             })}
         </AvatarGroup>
 

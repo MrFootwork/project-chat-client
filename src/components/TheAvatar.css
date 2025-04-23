@@ -1,0 +1,19 @@
+.avatar-wrapper {
+  position: relative;
+
+  & .children {
+    position: absolute;
+
+    & .admin {
+      position: absolute;
+      top: -3rem;
+      left: -1.25rem;
+    }
+
+    & .online {
+      position: absolute;
+      bottom: 0.25rem;
+      left: -0.75rem;
+    }
+  }
+}

@@ -12,10 +12,16 @@ import { RoomsContext } from './RoomsWrapper';
 
 type SocketType = Socket | null;
 
-type SocketContextType = { socket: SocketType };
+type SocketContextType = {
+  socket: SocketType;
+  botModel: string;
+  setBotModel: React.Dispatch<React.SetStateAction<string>>;
+};
 
 const SocketContext = React.createContext<SocketContextType>({
   socket: null,
+  botModel: 'gpt',
+  setBotModel: () => {},
 });
 
 function SocketWrapper({ children }: { children: ReactNode }) {
@@ -30,6 +36,7 @@ function SocketWrapper({ children }: { children: ReactNode }) {
   } = useContext(RoomsContext);
 
   const [socketServer, setSocket] = useState<SocketType>(null);
+  const [botModel, setBotModel] = useState<string>('gpt');
 
   // Setup on mount
   useEffect(() => {
@@ -46,6 +53,7 @@ function SocketWrapper({ children }: { children: ReactNode }) {
     }
 
     return () => disconnectSocket(socketServer);
+    // HACK rooms?.[0]?.id gives the best result
   }, [socketServer, rooms?.[0]?.id]);
 
   // Listener for AI stream
@@ -68,17 +76,6 @@ function SocketWrapper({ children }: { children: ReactNode }) {
     handleRoomMemberRemoval,
   ]);
 
-  // Listener for user friends
-  useEffect(() => {
-    if (!socketServer?.connected) return;
-
-    socketServer.on('added-friend', handleNewFriend);
-
-    return () => {
-      socketServer.off('added-friend', handleNewFriend);
-    };
-  }, [socketServer?.connected, user?.friends]);
-
   // Listener for room members
   useEffect(() => {
     if (!socketServer?.connected) return;
@@ -92,8 +89,20 @@ function SocketWrapper({ children }: { children: ReactNode }) {
     };
   }, [
     socketServer?.connected,
+    selectedRoomID,
     JSON.stringify(rooms?.map(r => ({ id: r.id, members: r.members }))),
   ]);
+
+  // Listener for user friends
+  useEffect(() => {
+    if (!socketServer?.connected) return;
+
+    socketServer.on('added-friend', handleNewFriend);
+
+    return () => {
+      socketServer.off('added-friend', handleNewFriend);
+    };
+  }, [socketServer?.connected, user?.friends]);
 
   function handleRoomMemberRemoval(room: Room, IDsToRemove: string[]) {
     console.log(
@@ -173,9 +182,6 @@ function SocketWrapper({ children }: { children: ReactNode }) {
 
       const roomIDs = rooms.map(room => room.id);
 
-      // BUG Decouple dependencies of room joins from socket connection
-      // => connection should stay stable, while room joins depend on rooms
-      // Issue: AI stream is lost when chatting and changing rooms in quick succession
       socket.emit('join-room', roomIDs);
       console.groupEnd();
     });
@@ -204,7 +210,9 @@ function SocketWrapper({ children }: { children: ReactNode }) {
   }
 
   return (
-    <SocketContext.Provider value={{ socket: socketServer }}>
+    <SocketContext.Provider
+      value={{ socket: socketServer, botModel, setBotModel }}
+    >
       {children}
     </SocketContext.Provider>
   );

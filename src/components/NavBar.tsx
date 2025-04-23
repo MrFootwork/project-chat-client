@@ -2,7 +2,7 @@ import './NavBar.css';
 import { MessageAuthor, User } from '../types/user';
 import config from '../../config';
 
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import {
@@ -153,17 +153,7 @@ const NavBar = () => {
   /******************
    * Profile Menu
    ******************/
-  const meUser = useRef({} as MessageAuthor);
-
-  useEffect(() => {
-    if (!user) return;
-    meUser.current = {
-      id: user.id,
-      name: user.name,
-      avatarUrl: user.avatarUrl,
-      isDeleted: user.isDeleted,
-    };
-  }, [user]);
+  const meUser = useMemo(() => user || ({} as User), [user]);
 
   const [profileMenuOpened, setProfileMenuOpened] = useState(false);
 
@@ -218,19 +208,13 @@ const NavBar = () => {
           }
         </button>
 
-        {isOnAuthPage ? (
-          ''
-        ) : (
-          <button type='submit' onClick={authHandler} className='icon-button'>
-            {user ? <IconLogout /> : <IconLogin />}
-          </button>
-        )}
-
         <button
           className='profile-settings'
-          onClick={() => setProfileMenuOpened(opened => !opened)}
+          onClick={() => {
+            if (user) setProfileMenuOpened(opened => !opened);
+          }}
         >
-          <TheAvatar user={meUser.current} />
+          <TheAvatar user={meUser} />
         </button>
 
         {profileMenuOpened && (

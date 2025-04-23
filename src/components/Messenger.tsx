@@ -42,7 +42,7 @@ const Messenger = () => {
    * States and Refs
    **************************/
   const { user } = useContext(AuthContext);
-  const { socket } = useContext(SocketContext);
+  const { socket, botModel } = useContext(SocketContext);
   const {
     currentRoom,
     selectRoom,
@@ -169,7 +169,7 @@ const Messenger = () => {
       `Sending the message: ${currentRoom?.id} | ${currentRoom?.name} | ${values.text}`
     );
 
-    socket.emit('send-message', currentRoom?.id, values.text);
+    socket.emit('send-message', currentRoom?.id, values.text, { botModel });
 
     form.reset();
     textAreaRef.current?.focus();

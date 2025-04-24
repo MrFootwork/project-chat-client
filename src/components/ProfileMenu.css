@@ -18,7 +18,7 @@
       padding: 0 0.25rem 0;
     }
 
-    & button.item {
+    & .item {
       background-color: var(--bg-color-navbar);
       border: none;
       cursor: pointer;
@@ -32,7 +32,8 @@
       padding: 0 0.25rem;
       border-radius: 0.25rem;
 
-      &:hover {
+      /* Hover effect only on items, which are button elements */
+      &:is(button):hover {
         background-color: hsl(from var(--color-secondary) h s l / 15%);
       }
 

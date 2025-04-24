@@ -71,11 +71,11 @@ const ProfileMenu = ({ closeMenu }: Props) => {
       <div className='menu'>
         <h5>Settings</h5>
 
-        <button className='item' id='item-bot'>
+        <div className='item' id='item-bot'>
           <IconRobot size={18} />
           <label htmlFor='item-bot'>AI Model</label>
           {ComboBoxAIModel()}
-        </button>
+        </div>
 
         <button className='item' id='item-logout' onClick={authHandler}>
           <IconLogout size={18} />

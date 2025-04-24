@@ -44,7 +44,7 @@ const Messenger = () => {
    * States and Refs
    **************************/
   const { user } = useContext(AuthContext);
-  const { socket, botModel } = useContext(SocketContext);
+  const { socket, botModel, online } = useContext(SocketContext);
   const {
     currentRoom,
     selectRoom,
@@ -52,7 +52,6 @@ const Messenger = () => {
     deleteRoom,
     pushMessage,
     setMessageAsRead,
-    updateRoomMemberStatus,
   } = useContext(RoomsContext);
 
   // Input
@@ -381,7 +380,6 @@ const Messenger = () => {
         </div>
 
         {/* FIXME hover animation  */}
-        {/* FIXME indicate admins */}
         <AvatarGroup
           key={currentRoom?.members
             .map(m => {
@@ -403,7 +401,15 @@ const Messenger = () => {
                     size='1rem'
                   />
                   {/* FIXME Setup member is online state */}
-                  <Indicator color='green' className='online' />
+                  <Indicator
+                    color='green'
+                    className='online'
+                    display={
+                      online[member.id] || member.id === 'chat-bot'
+                        ? 'block'
+                        : 'none'
+                    }
+                  />
                 </TheAvatar>
               );
             })}

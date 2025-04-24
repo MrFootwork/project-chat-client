@@ -16,12 +16,14 @@ type SocketContextType = {
   socket: SocketType;
   botModel: string;
   setBotModel: React.Dispatch<React.SetStateAction<string>>;
+  online: Record<string, boolean>;
 };
 
 const SocketContext = React.createContext<SocketContextType>({
   socket: null,
   botModel: 'gpt',
   setBotModel: () => {},
+  online: {},
 });
 
 function SocketWrapper({ children }: { children: ReactNode }) {
@@ -37,6 +39,7 @@ function SocketWrapper({ children }: { children: ReactNode }) {
 
   const [socketServer, setSocket] = useState<SocketType>(null);
   const [botModel, setBotModel] = useState<string>('gpt');
+  const [onlineMap, setOnlineMap] = useState<Record<string, boolean>>({});
 
   // Setup on mount
   useEffect(() => {
@@ -55,6 +58,46 @@ function SocketWrapper({ children }: { children: ReactNode }) {
     return () => disconnectSocket(socketServer);
     // HACK rooms?.[0]?.id gives the best result
   }, [socketServer, rooms?.[0]?.id]);
+
+  // Listener for users online and offline
+  useEffect(() => {
+    if (!socketServer?.connected) return;
+
+    const handleUserOnline = (userID: string) => {
+      setOnlineMap(prev => ({ ...prev, [userID]: true }));
+    };
+
+    const handleUserOffline = (userID: string) => {
+      setOnlineMap(prev => {
+        const updated = { ...prev };
+        delete updated[userID];
+        return updated;
+      });
+    };
+
+    const handleInitialOnlineStatus = (onlineUserIDs: string[]) => {
+      setOnlineMap(() => {
+        const initialMap: Record<string, boolean> = {};
+        onlineUserIDs.forEach(userID => {
+          initialMap[userID] = true;
+        });
+        return initialMap;
+      });
+    };
+
+    // Request initial online statuses
+    socketServer.emit('get-initial-online-status');
+
+    socketServer.on('initial-online-status', handleInitialOnlineStatus);
+    socketServer.on('user-online', handleUserOnline);
+    socketServer.on('user-offline', handleUserOffline);
+
+    return () => {
+      socketServer.off('initial-online-status', handleInitialOnlineStatus);
+      socketServer.off('user-online', handleUserOnline);
+      socketServer.off('user-offline', handleUserOffline);
+    };
+  }, [socketServer?.connected]);
 
   // Listener for AI stream
   useEffect(() => {
@@ -211,7 +254,7 @@ function SocketWrapper({ children }: { children: ReactNode }) {
 
   return (
     <SocketContext.Provider
-      value={{ socket: socketServer, botModel, setBotModel }}
+      value={{ socket: socketServer, botModel, setBotModel, online: onlineMap }}
     >
       {children}
     </SocketContext.Provider>

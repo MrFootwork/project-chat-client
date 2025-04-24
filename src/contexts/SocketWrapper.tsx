@@ -35,6 +35,7 @@ function SocketWrapper({ children }: { children: ReactNode }) {
     selectedRoomID,
     pushMessageChunks,
     selectRoom,
+    deleteRoom,
   } = useContext(RoomsContext);
 
   const [socketServer, setSocket] = useState<SocketType>(null);
@@ -118,6 +119,22 @@ function SocketWrapper({ children }: { children: ReactNode }) {
     handleNewRoomMember,
     handleRoomMemberRemoval,
   ]);
+
+  // Listener for room deletions
+  useEffect(() => {
+    if (!socketServer?.connected) return;
+
+    const handleRoomDeletion = (roomID: string) => {
+      console.log('🚮 Deleting room', roomID);
+      deleteRoom(roomID);
+    };
+
+    socketServer.on('deleted-room', handleRoomDeletion);
+
+    return () => {
+      socketServer.off('deleted-room', handleRoomDeletion);
+    };
+  }, [socketServer?.connected, rooms]);
 
   // Listener for room members
   useEffect(() => {

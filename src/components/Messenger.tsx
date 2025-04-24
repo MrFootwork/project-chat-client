@@ -1,7 +1,10 @@
 import './Messenger.css';
 import { Room } from '../types/room';
 import { Message } from '../types/message';
+import { User } from '../types/user';
+import config from '../../config';
 
+import axios from 'axios';
 import {
   KeyboardEvent,
   useContext,
@@ -37,7 +40,8 @@ import TheAvatar from './TheAvatar';
 import { SocketContext } from '../contexts/SocketWrapper';
 import { AuthContext } from '../contexts/AuthWrapper';
 import { RoomsContext } from '../contexts/RoomsWrapper';
-import { User } from '../types/user';
+
+const { API_URL } = config;
 
 const Messenger = () => {
   /**************************
@@ -46,6 +50,7 @@ const Messenger = () => {
   const { user } = useContext(AuthContext);
   const { socket, botModel, online } = useContext(SocketContext);
   const {
+    rooms,
     currentRoom,
     selectRoom,
     createRoom,
@@ -218,6 +223,7 @@ const Messenger = () => {
     currentRoom?.messages.length,
     createRoom,
     movedUpView,
+    rooms,
   ]);
   // BUG Try movedUpView as useMemo. Currently listener toggling is to much!
 
@@ -282,9 +288,27 @@ const Messenger = () => {
   ] = useDisclosure(false);
 
   // Delete room handler
-  function handleRoomDeletion() {
-    deleteRoom(currentRoom?.id || '');
-    closeModalDeleteRoom();
+  async function handleRoomDeletion() {
+    const roomID = currentRoom?.id;
+
+    try {
+      // Delete room physically
+      await axios.delete<Room>(`${API_URL}/api/rooms/${roomID}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('chatToken')}`,
+        },
+      });
+
+      // Notify others about deletion
+      socket?.emit('delete-room', roomID);
+
+      // Delete room in context store
+      deleteRoom(roomID);
+    } catch (error) {
+      console.error({ roomID }, error);
+    } finally {
+      closeModalDeleteRoom();
+    }
   }
 
   /**************************

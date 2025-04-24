@@ -15,7 +15,7 @@ const defaultStore = {
   createRoom: async (roomName: string) => {
     throw new Error('createNewRoom is not implemented in defaultStore');
   },
-  deleteRoom: async (roomID: string) => {},
+  deleteRoom: async (roomID: string | undefined) => {},
   fetchRooms: async () => [],
   addRoom: (room: Room) => {},
   updateRoomMemberStatus: (
@@ -40,7 +40,7 @@ const defaultStore = {
 type RoomsContextType = {
   rooms: Room[] | null;
   createRoom: (roomName: string) => Promise<Room | undefined>;
-  deleteRoom: (roomID: string) => Promise<void>;
+  deleteRoom: (roomID: string | undefined) => void;
   fetchRooms: () => Promise<Room[]>;
   addRoom: (room: Room) => void;
   updateRoomMemberStatus: (
@@ -101,37 +101,30 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
     }
   }
 
-  async function deleteRoom(roomID: string) {
-    try {
-      await axios.delete<Room>(`${API_URL}/api/rooms/${roomID}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('chatToken')}`,
-        },
-      });
-
-      // BUG Emit room deletion and handle in other clients, too
-
-      setStore(s => {
-        const updatedRooms = s.rooms?.filter(room => room.id !== roomID) || [];
-
-        if (updatedRooms.length === 0)
-          return { ...s, rooms: null, selectedRoomID: null, currentRoom: null };
-
-        const mewSelectedRoomID = updatedRooms[0].id;
-        const newCurrentRoom = updatedRooms.find(
-          room => room.id === mewSelectedRoomID
-        );
-
-        return {
-          ...s,
-          rooms: updatedRooms,
-          selectedRoomID: mewSelectedRoomID,
-          currentRoom: newCurrentRoom || s.currentRoom,
-        };
-      });
-    } catch (err) {
-      console.error('Error deleting room: ', err);
+  function deleteRoom(roomID: string | undefined) {
+    if (!roomID) {
+      console.warn(`Provide a valid room ID: ${roomID} cannot be deleted.`);
+      return;
     }
+
+    setStore(s => {
+      const updatedRooms = s.rooms?.filter(room => room.id !== roomID) || [];
+
+      if (updatedRooms.length === 0)
+        return { ...s, rooms: null, selectedRoomID: null, currentRoom: null };
+
+      const mewSelectedRoomID = updatedRooms[0].id;
+      const newCurrentRoom = updatedRooms.find(
+        room => room.id === mewSelectedRoomID
+      );
+
+      return {
+        ...s,
+        rooms: [...updatedRooms],
+        selectedRoomID: mewSelectedRoomID,
+        currentRoom: { ...(newCurrentRoom || s.currentRoom || ({} as Room)) },
+      };
+    });
   }
 
   /**

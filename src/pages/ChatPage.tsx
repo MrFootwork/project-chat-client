@@ -43,8 +43,14 @@ const ChatPage = () => {
   /**********
    * ROOMS
    **********/
-  const { rooms, createRoom, fetchRooms, selectRoom, selectedRoomID } =
-    useContext(RoomsContext);
+  const {
+    rooms,
+    createRoom,
+    deleteRoom,
+    fetchRooms,
+    selectRoom,
+    selectedRoomID,
+  } = useContext(RoomsContext);
 
   // Initial page load
   useEffect(() => {
@@ -82,10 +88,12 @@ const ChatPage = () => {
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        console.error('Axios error details:', error.response?.data);
+        console.warn('Axios error details:', error.response?.data);
+
         if (error.response?.status === 404) {
-          // FIXME Host deleted the room
-          // remove it from store
+          // Host deleted the room
+          // => remove it from store
+          deleteRoom(roomID);
         }
         return;
       }
@@ -195,6 +203,8 @@ const ChatPage = () => {
    * Room Buttons
    ***************/
   const RoomButtons = () => {
+    if (!rooms) return '';
+
     return rooms?.map(room => {
       const hasUnreadMessage = roomHasUnreadMessages(room);
       const isSelectedRoom = room.id === selectedRoomID;
@@ -203,13 +213,14 @@ const ChatPage = () => {
 
       return (
         <Indicator
+          key={room.id}
           position='middle-end'
           label={countUnreadMessages(room)}
           offset={20}
           size={20}
           disabled={!hasUnreadMessage || isSelectedRoom}
         >
-          <li key={room.id}>
+          <li>
             <input
               checked={isSelectedRoom}
               type='radio'

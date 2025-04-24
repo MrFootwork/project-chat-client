@@ -56,7 +56,7 @@ const ChatPage = () => {
   useEffect(() => {
     console.log('Loading from ChatPage...');
     fetchRooms();
-    // HACK Need to refetch after adding friends because adding friends cuase to loose rooms state
+    // HACK Need to refetch after adding friends because adding friends causes to lose rooms state
   }, [user]);
 
   const firstRoomFetchedInitially = useRef(false);
@@ -187,7 +187,6 @@ const ChatPage = () => {
       <header>
         <h1>Groups</h1>
 
-        {/* TODO Make all icon-buttons a component */}
         <div
           className='button-create-room icon-button'
           onClick={openRoomCreate}

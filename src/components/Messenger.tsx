@@ -231,7 +231,6 @@ const Messenger = () => {
     movedUpView,
     rooms,
   ]);
-  // BUG Try movedUpView as useMemo. Currently listener toggling is to much!
 
   /** Handles how received messages are managed. */
   async function handleReceiveMessage(message: Message) {
@@ -315,8 +314,6 @@ const Messenger = () => {
   /**************************
    * Modal Add Member
    **************************/
-  // FIXME Also set users to removed, when removed from room
-
   // Add member modal
   const [
     wantToAddMember,

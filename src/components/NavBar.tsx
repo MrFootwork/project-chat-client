@@ -97,7 +97,6 @@ const NavBar = () => {
   }
 
   // FIXME User should be able to delete users from friends list
-  // FIXME Setup AI user as friend of all users
   async function handleAddFriend() {
     socket?.emit('add-friend', selectedUserIDs);
     closeModalAddFriend();

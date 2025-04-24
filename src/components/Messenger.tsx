@@ -122,13 +122,15 @@ const Messenger = () => {
   // Click Handler to scroll down smoothly
   function onClickScroll() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    setMovedUpView(false);
   }
 
   // Listen and store scroll position on scroll event
   function updatePosition() {
-    const { scrollTop, scrollHeight, clientHeight } = messagesDisplay.current!;
-    const currentPosition = scrollTop / (scrollHeight - clientHeight);
+    const { scrollTop, scrollHeight } = messagesDisplay.current!;
+    // scrollHeight: possible scroll height, e.g. 30_000
+    // scrollTop: current scroll position,
+    //    top:    0
+    //    bottom: 29_700
 
     // pos = 0: at the top
     // pos = 1: at the bottom
@@ -523,7 +525,6 @@ const Messenger = () => {
           <Button type='submit' disabled={kickedOut}>
             Send
           </Button>
-          {/* BUG sync to how movedUp is set */}
           {movedUpView ? (
             <button
               type='button'
@@ -534,6 +535,7 @@ const Messenger = () => {
               <IndicatorUnread
                 visible={hasUnreadMessages}
                 position={{ top: '-0.3rem', left: '-0.3rem' }}
+                pulse={true}
               />
             </button>
           ) : (

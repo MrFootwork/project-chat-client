@@ -219,8 +219,6 @@ const ChatPage = () => {
             }}
           >
             {room.name}
-            {/* FIXME make icon pulse and show count of unread messages */}
-
             <IndicatorUnread
               visible={hasUnreadMessage && !isSelectedRoom}
               position={{

@@ -1,17 +1,51 @@
+:root {
+  --indicator-color: var(--color-primary);
+}
+
 .indicator-on {
+  --size: 1rem;
   position: absolute;
-  width: 1.2rem;
-  height: 1.2rem;
+  width: var(--size);
+  aspect-ratio: 1;
+
   background-color: var(--mantine-primary-color-filled);
   border-radius: 50%;
-  box-shadow: 0 0 0.5rem var(--color-primary);
+  box-shadow: 0 0 0.5rem var(--indicator-color);
 
   display: flex;
   align-items: center;
   justify-content: center;
 
+  & .pulse {
+    background: var(--indicator-color);
+    border-radius: 50%;
+    width: var(--size);
+    aspect-ratio: 1;
+
+    box-shadow: 0 0 0 0 var(--indicator-color);
+    transform: scale(1);
+    animation: pulse 2s infinite;
+  }
+
   & p {
     font-size: smaller;
     color: black;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 hsl(from var(--indicator-color) h s l / 0.7);
+  }
+
+  70% {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 10px hsl(from var(--indicator-color) h s l / 0);
+  }
+
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 hsl(from var(--indicator-color) h s l / 0);
   }
 }

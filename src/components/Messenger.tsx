@@ -60,7 +60,7 @@ const Messenger = () => {
   // Scrolling
   const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
   const [movedUpView, setMovedUpView] = useState<boolean>(false);
-  const [scrollPosition, setScrollPosition] = useState<number | null>(null);
+
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const messagesDisplay = useRef<HTMLDivElement | null>(null);
 
@@ -132,8 +132,6 @@ const Messenger = () => {
 
     // pos = 0: at the top
     // pos = 1: at the bottom
-
-    setScrollPosition(currentPosition);
 
     if (scrollHeight - scrollTop > 1000) setMovedUpView(true);
     if (scrollHeight - scrollTop <= 1000) setMovedUpView(false);
@@ -526,7 +524,7 @@ const Messenger = () => {
             Send
           </Button>
           {/* BUG sync to how movedUp is set */}
-          {(scrollPosition || 0) < 0.99 ? (
+          {movedUpView ? (
             <button
               type='button'
               className='scroll-down'

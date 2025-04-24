@@ -101,7 +101,7 @@ div.messenger-container {
       width: 100%;
     }
 
-    button.scroll-down {
+    & .indicator-scroll-down {
       --size: 2.5rem;
       position: absolute;
 
@@ -111,20 +111,25 @@ div.messenger-container {
 
       width: var(--size);
       height: var(--size);
-      border: none;
-      background-color: var(--input-bg);
-      backdrop-filter: blur(10px);
-      font-size: larger;
-      font-weight: bolder;
-      border-radius: 5px;
 
-      box-shadow: 3px 3px 7px -4px rgba(0, 0, 0, 0.77);
-      transition: all 0.3s ease-out;
+      & button.scroll-down {
+        border: none;
+        border-radius: 5px;
+        background-color: var(--input-bg);
+        backdrop-filter: blur(10px);
+        opacity: 0.9;
 
-      &:active {
-        transition: none;
-        transform: translateY(2px);
-        box-shadow: 2px 2px 5px -4px rgba(0, 0, 0, 0.77);
+        font-size: larger;
+        font-weight: bolder;
+
+        box-shadow: 3px 3px 7px -4px rgba(0, 0, 0, 0.77);
+        transition: all 0.3s ease-out;
+
+        &:active {
+          transition: none;
+          transform: translateY(2px);
+          box-shadow: 2px 2px 5px -4px rgba(0, 0, 0, 0.77);
+        }
       }
     }
   }

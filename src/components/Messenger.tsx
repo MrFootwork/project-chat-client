@@ -63,7 +63,6 @@ const Messenger = () => {
   const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
 
   // Scrolling
-  const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
   const [movedUpView, setMovedUpView] = useState<boolean>(false);
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -127,6 +126,10 @@ const Messenger = () => {
   // Click Handler to scroll down smoothly
   function onClickScroll() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+
+    currentRoom?.messages.forEach(async m => {
+      await setMessageAsRead(m);
+    });
   }
 
   // Listen and store scroll position on scroll event
@@ -151,11 +154,14 @@ const Messenger = () => {
     return admin?.isAdmin || false;
   }, [currentRoom?.members.length, user?.id]);
 
-  // Remove indicator when at bottom
-  // BUG Need to set messages to being read?
-  useEffect(() => {
-    if (!movedUpView) setHasUnreadMessages(false);
-  }, [movedUpView]);
+  // Count of unread messages
+  const unreadMessagesCount = useMemo(() => {
+    return (
+      currentRoom?.messages.reduce((sum, m) => {
+        return sum + +!m.readers.some(r => r.id === user?.id);
+      }, 0) || 0
+    );
+  }, [currentRoom?.messages]);
 
   /**************************
    * Send messages
@@ -235,20 +241,15 @@ const Messenger = () => {
       setMessageAsRead(message);
   }
 
-  // Receiving messages while moved up
-  // => show indicator
-  useEffect(() => {
-    const sentByMyself = currentRoom?.messages.at(-1)?.author.id === user?.id;
-
-    if (movedUpView && !sentByMyself) setHasUnreadMessages(true);
-  }, [currentRoom?.messages.length]);
-
   // Receiving messages in currentRoom while scroll position is at the bottom
   // => scroll down
   useEffect(() => {
     if (movedUpView || !messagesEndRef.current) return;
 
     messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+
+    if (unreadMessagesCount >= 1)
+      setMessageAsRead(currentRoom!.messages.at(-1) as Message);
   }, [currentRoom?.messages.length]);
 
   /**************************
@@ -542,21 +543,24 @@ const Messenger = () => {
           <Button type='submit' disabled={kickedOut}>
             Send
           </Button>
-          {movedUpView ? (
-            <button
-              type='button'
-              className='scroll-down'
-              onClick={onClickScroll}
+          {movedUpView && (
+            <Indicator
+              className='indicator-scroll-down'
+              position='top-start'
+              offset={2}
+              size={15}
+              label={unreadMessagesCount}
+              disabled={!unreadMessagesCount}
+              processing
             >
-              ↓
-              <IndicatorUnread
-                visible={hasUnreadMessages}
-                position={{ top: '-0.3rem', left: '-0.3rem' }}
-                pulse={true}
-              />
-            </button>
-          ) : (
-            ''
+              <button
+                type='button'
+                className='scroll-down'
+                onClick={onClickScroll}
+              >
+                ↓
+              </button>
+            </Indicator>
           )}
         </form>
       </div>

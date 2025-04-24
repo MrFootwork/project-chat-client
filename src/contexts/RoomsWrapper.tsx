@@ -325,6 +325,9 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
     setStore(s => {
       if (!s.rooms || !user) return s;
 
+      const messageInCurrentRoom = s.selectedRoomID === message.roomId;
+      let updatedRoom = {} as Room;
+
       const updatedRooms = s.rooms.map(room => {
         if (room.id !== message.roomId) return room;
 
@@ -341,19 +344,32 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
           return { ...m, readers: [...m.readers, userAsReader] };
         });
 
+        if (messageInCurrentRoom)
+          updatedRoom = { ...room, messages: [...updatedMessages] };
+
         return { ...room, messages: updatedMessages };
       });
 
-      return { ...s, rooms: updatedRooms };
+      if (messageInCurrentRoom) {
+        return { ...s, rooms: updatedRooms, currentRoom: updatedRoom };
+      } else {
+        return { ...s, rooms: updatedRooms };
+      }
     });
 
     // Persisting message read status
     try {
-      await axios.put(`${API_URL}/api/messages/${message.id}/read`, null, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('chatToken')}`,
-        },
-      });
+      const oldStoreMessageIsRead = store.rooms
+        ?.find(r => r.id === message.roomId)
+        ?.messages.find(m => m.id === message.id)
+        ?.readers.some(r => r.id === user?.id);
+
+      if (!oldStoreMessageIsRead)
+        await axios.put(`${API_URL}/api/messages/${message.id}/read`, null, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('chatToken')}`,
+          },
+        });
     } catch (err) {
       throw err;
     }

@@ -381,12 +381,7 @@ const Messenger = () => {
 
         {/* FIXME hover animation  */}
         <AvatarGroup
-          key={currentRoom?.members
-            .map(m => {
-              // console.log('AvatarGroup: ', `${m.id}-${m.userLeft}`);
-              return `${m.id}-${m.userLeft}`;
-            })
-            .join(',')}
+          key={currentRoom?.members.map(m => `${m.id}-${m.userLeft}`).join(',')}
           spacing='1.5rem'
         >
           {currentRoom?.members
@@ -394,28 +389,26 @@ const Messenger = () => {
             .map(member => {
               return (
                 <TheAvatar key={member.id} user={member} size='3rem'>
-                  {/* FIXME Add online indicator */}
                   <IconSettingsFilled
                     className='admin'
                     display={member.isAdmin ? 'block' : 'none'}
                     size='1rem'
                   />
-                  {/* FIXME Setup member is online state */}
                   <Indicator
-                    color='green'
                     className='online'
-                    display={
+                    color={
                       online[member.id] || member.id === 'chat-bot'
-                        ? 'block'
-                        : 'none'
+                        ? 'green'
+                        : 'grey'
                     }
+                    withBorder
+                    size={14}
                   />
                 </TheAvatar>
               );
             })}
         </AvatarGroup>
 
-        {/* FIXME Add admin indicator */}
         <div className='button-container'>
           <button
             className='button-toggle-ai icon-button'

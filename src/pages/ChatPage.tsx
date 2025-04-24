@@ -13,6 +13,7 @@ import { IconCopyPlus } from '@tabler/icons-react';
 import {
   Button,
   Group,
+  Indicator,
   Modal,
   Stack,
   TextInput,
@@ -23,7 +24,6 @@ import { notifications } from '@mantine/notifications';
 import { useForm } from '@mantine/form';
 
 import Messenger from '../components/Messenger';
-import IndicatorUnread from '../components/IndicatorUnread';
 
 const ChatPage = () => {
   const navigate = useNavigate();
@@ -202,33 +202,35 @@ const ChatPage = () => {
       const isKickedOut = !userInRoom || userInRoom.userLeft;
 
       return (
-        <li key={room.id}>
-          <input
-            checked={isSelectedRoom}
-            type='radio'
-            name='room'
-            id={`room-${room.id}`}
-            onChange={isMobile ? () => handleRoomSelection(room.id) : () => {}}
-            onClick={isMobile ? () => {} : () => handleRoomSelection(room.id)}
-          />
-
-          <label
-            htmlFor={`room-${room.id}`}
-            style={{
-              color: `${isKickedOut ? theme.colors.gray[6] : 'inherit'}`,
-            }}
-          >
-            {room.name}
-            <IndicatorUnread
-              visible={hasUnreadMessage && !isSelectedRoom}
-              position={{
-                top: `${isMobile ? '0.9rem' : '1rem'}`,
-                right: `${isMobile ? '.5rem' : '.5rem'}`,
-              }}
-              content={countUnreadMessages(room)}
+        <Indicator
+          position='middle-end'
+          label={countUnreadMessages(room)}
+          offset={20}
+          size={20}
+          disabled={!hasUnreadMessage || isSelectedRoom}
+        >
+          <li key={room.id}>
+            <input
+              checked={isSelectedRoom}
+              type='radio'
+              name='room'
+              id={`room-${room.id}`}
+              onChange={
+                isMobile ? () => handleRoomSelection(room.id) : () => {}
+              }
+              onClick={isMobile ? () => {} : () => handleRoomSelection(room.id)}
             />
-          </label>
-        </li>
+
+            <label
+              htmlFor={`room-${room.id}`}
+              style={{
+                color: `${isKickedOut ? theme.colors.gray[6] : 'inherit'}`,
+              }}
+            >
+              {room.name}
+            </label>
+          </li>
+        </Indicator>
       );
     });
   };

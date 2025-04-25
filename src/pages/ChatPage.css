@@ -23,7 +23,6 @@
 
   &.mobile {
     display: none;
-    /* transform: translateX(-100%); */
   }
 
   header {

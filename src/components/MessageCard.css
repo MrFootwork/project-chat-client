@@ -20,6 +20,66 @@
     left: -0.5rem;
   }
 
+  /* Options */
+  & .options {
+    display: none;
+
+    position: absolute;
+    top: 0.5rem;
+  }
+
+  &:hover {
+    & .options {
+      display: block;
+      right: 0.5rem;
+    }
+
+    &.its-me .options {
+      left: 0.5rem;
+    }
+  }
+
+  /* Changes for cards of myself */
+  &.its-me {
+    margin: var(--m-base);
+    margin-left: auto;
+    padding: 0.5rem 1rem;
+    padding-right: 3rem;
+
+    & h5.username-label {
+      text-align: right;
+    }
+
+    & p {
+      text-align: right;
+    }
+
+    & .image-container {
+      left: unset;
+      right: -0.25rem;
+    }
+  }
+
+  /* First MessageCard */
+  &.first {
+    margin-top: 1rem;
+    border-top-left-radius: var(--br-card-round);
+    border-top-right-radius: var(--br-card-round);
+  }
+
+  /* Last MessageCard (others)*/
+  &.last {
+    border-bottom-left-radius: var(--br-card-small);
+    border-bottom-right-radius: var(--br-card-round);
+    padding-bottom: 1rem;
+  }
+
+  /* Last MessageCard (me)*/
+  &.its-me.last {
+    border-bottom-left-radius: var(--br-card-round);
+    border-bottom-right-radius: var(--br-card-small);
+  }
+
   /* Text Rendering */
   line-height: 1.4rem;
 
@@ -98,47 +158,6 @@
   & td {
     padding: 0.5rem;
     border: 1px solid #777;
-  }
-
-  /* Changes for cards of myself */
-  &.its-me {
-    margin: var(--m-base);
-    margin-left: auto;
-    padding: 0.5rem 1rem;
-    padding-right: 3rem;
-
-    & h5.username-label {
-      text-align: right;
-    }
-
-    & p {
-      text-align: right;
-    }
-
-    & .image-container {
-      left: unset;
-      right: -0.25rem;
-    }
-  }
-
-  /* First MessageCard */
-  &.first {
-    margin-top: 1rem;
-    border-top-left-radius: var(--br-card-round);
-    border-top-right-radius: var(--br-card-round);
-  }
-
-  /* Last MessageCard (others)*/
-  &.last {
-    border-bottom-left-radius: var(--br-card-small);
-    border-bottom-right-radius: var(--br-card-round);
-    padding-bottom: 1rem;
-  }
-
-  /* Last MessageCard (me)*/
-  &.its-me.last {
-    border-bottom-left-radius: var(--br-card-round);
-    border-bottom-right-radius: var(--br-card-small);
   }
 }
 

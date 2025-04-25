@@ -496,8 +496,6 @@ const Messenger = () => {
                 next: currentRoom?.messages[i + 1] || null,
               };
 
-              // FIXME Message author can edit and delete his own messages
-
               return (
                 <li key={`${message.id}-${currentRoom.messages.length}`}>
                   <MessageCard

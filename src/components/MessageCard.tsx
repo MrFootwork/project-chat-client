@@ -4,6 +4,7 @@ import type { Message } from '../types/message';
 import { useContext, useRef } from 'react';
 import { Loader } from '@mantine/core';
 import { CodeHighlight, InlineCodeHighlight } from '@mantine/code-highlight';
+import { IconEdit, IconFileX } from '@tabler/icons-react';
 import ReactMarkdown, { Components } from 'react-markdown';
 import remarkBreaks from 'remark-breaks';
 import remarkGfm from 'remark-gfm';
@@ -109,7 +110,6 @@ const MessageCard: React.FC<MessageCardProps> = ({
           </h5>
         </>
       )}
-
       {botIsThinking ? (
         <Loader type='dots' color={authorLabelColor} />
       ) : (
@@ -124,6 +124,12 @@ const MessageCard: React.FC<MessageCardProps> = ({
           {currentMessage.content || ''}
         </ReactMarkdown>
       )}
+
+      {/* FIXME Message author can edit and delete his own messages */}
+      <div className='options'>
+        <IconEdit size={20} />
+        <IconFileX size={20} />
+      </div>
     </div>
   );
 };

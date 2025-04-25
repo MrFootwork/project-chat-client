@@ -1,7 +1,7 @@
 import './MessageCard.css';
 import type { Message } from '../types/message';
 
-import { useContext, useRef } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { Loader } from '@mantine/core';
 import { CodeHighlight, InlineCodeHighlight } from '@mantine/code-highlight';
 import { IconEdit, IconFileX } from '@tabler/icons-react';
@@ -21,12 +21,14 @@ interface MessageCardProps {
   };
   baseColor: React.CSSProperties['backgroundColor'];
   authorLabelColor: React.CSSProperties['color'];
+  onEdit?: (message: Message) => void;
 }
 
 const MessageCard: React.FC<MessageCardProps> = ({
   messages,
   baseColor,
   authorLabelColor,
+  onEdit,
 }) => {
   const {
     pre: previousMessage,
@@ -98,10 +100,91 @@ const MessageCard: React.FC<MessageCardProps> = ({
     socket?.emit('delete-message', currentMessage.id);
   };
 
-  // BUG Implement message edit
   const handleMessageEdit = () => {
-    console.log('Edit message', messages.this.id);
+    if (onEdit) onEdit(currentMessage);
   };
+
+  // Generate descriptive date
+  const [descriptiveDate, setDescriptiveDate] = useState(() => {
+    const date = new Date(currentMessage.updatedAt);
+    return calculateDescriptiveDate(date);
+  });
+
+  useEffect(() => {
+    const now = new Date();
+    const date = new Date(currentMessage.updatedAt);
+
+    const timeDifferenceInMs = now.getTime() - date.getTime();
+    let intervalDuration;
+
+    switch (true) {
+      // Within 1 hour check each minute
+      case timeDifferenceInMs < 1000 * 60 * 60:
+        intervalDuration = 1000 * 60;
+        break;
+      // Within 1 day check each hour
+      case timeDifferenceInMs < 1000 * 60 * 60 * 24:
+        intervalDuration = 1000 * 60 * 60;
+        break;
+
+      default:
+        break;
+    }
+
+    let interval = null;
+
+    if (intervalDuration) {
+      interval = setInterval(() => {
+        const date = new Date(currentMessage.updatedAt);
+        setDescriptiveDate(calculateDescriptiveDate(date));
+      }, 60000);
+    }
+
+    return () => {
+      interval && clearInterval(interval);
+    };
+  }, [currentMessage.updatedAt]);
+
+  function calculateDescriptiveDate(date: Date) {
+    const now = new Date();
+
+    const timeDifferenceInMs = now.getTime() - date.getTime();
+    const timeDifferenceInMinutes = Math.floor(
+      timeDifferenceInMs / (1000 * 60)
+    );
+    const timeDifferenceInHours = Math.floor(timeDifferenceInMinutes / 60);
+
+    const timeFormatter = new Intl.DateTimeFormat(undefined, {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    if (timeDifferenceInMinutes < 1) {
+      return `just now`;
+    }
+
+    if (timeDifferenceInMinutes < 60) {
+      return `${timeDifferenceInMinutes} minutes ago`;
+    }
+
+    if (timeDifferenceInHours < 24) {
+      return `${timeDifferenceInHours} hours ago`;
+    }
+
+    const isYesterday =
+      now.getDate() - date.getDate() === 1 &&
+      now.getMonth() === date.getMonth() &&
+      now.getFullYear() === date.getFullYear();
+
+    if (isYesterday) {
+      return `yesterday at ${timeFormatter.format(date)}`;
+    }
+
+    return date.toLocaleString(undefined, {
+      dateStyle: 'short',
+      timeStyle: 'short',
+    });
+  }
 
   return (
     <div
@@ -140,6 +223,11 @@ const MessageCard: React.FC<MessageCardProps> = ({
         </ReactMarkdown>
       )}
 
+      {currentMessage.edited && (
+        <div className='edited-label'>{`edited ${descriptiveDate}`}</div>
+      )}
+
+      {/* BUG Only admins and authors can delete */}
       <div className='options'>
         <button className='icon-button' onClick={handleMessageEdit}>
           <IconEdit size={20} />

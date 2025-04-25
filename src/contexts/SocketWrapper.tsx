@@ -35,7 +35,7 @@ function SocketWrapper({ children }: { children: ReactNode }) {
     createOrUpdateMembers,
     selectedRoomID,
     pushMessageChunks,
-    deleteMessage,
+    updateMessage,
     selectRoom,
     deleteRoom,
   } = useContext(RoomsContext);
@@ -104,16 +104,18 @@ function SocketWrapper({ children }: { children: ReactNode }) {
 
   // Listener for Messages
   useEffect(() => {
-    const handleMessageDelete = (message: Message) => {
-      deleteMessage(message);
+    const handleMessageUpdate = (message: Message) => {
+      updateMessage(message);
     };
 
-    socketServer?.on('deleted-message', handleMessageDelete);
+    socketServer?.on('edited-message', handleMessageUpdate);
+    socketServer?.on('deleted-message', handleMessageUpdate);
 
     return () => {
-      socketServer?.off('deleted-message', handleMessageDelete);
+      socketServer?.off('edited-message', handleMessageUpdate);
+      socketServer?.off('deleted-message', handleMessageUpdate);
     };
-  }, [socketServer?.connected, deleteMessage]);
+  }, [socketServer?.connected, updateMessage]);
 
   // Listener for AI stream
   useEffect(() => {

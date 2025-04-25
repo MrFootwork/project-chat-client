@@ -34,7 +34,7 @@ const defaultStore = {
     messageID: string,
     chunk: string
   ) => {},
-  deleteMessage: (message: Message) => {},
+  updateMessage: (message: Message) => {},
   setMessageAsRead: async (message: Message) => {},
 };
 
@@ -58,7 +58,7 @@ type RoomsContextType = {
     messageID: string,
     chunk: string
   ) => void;
-  deleteMessage: (message: Message) => void;
+  updateMessage: (message: Message) => void;
   setMessageAsRead: (message: Message) => Promise<void>;
 };
 
@@ -322,8 +322,8 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
     }
   }
 
-  // delete message in store
-  function deleteMessage(message: Message) {
+  // Update message in store
+  function updateMessage(message: Message) {
     setStore(s => {
       if (!s.rooms || !user) return s;
 
@@ -336,7 +336,13 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
         const updatedMessages = room.messages.map(m => {
           if (m.id !== message.id) return m;
 
-          return { ...m, deleted: true };
+          return {
+            ...m,
+            deleted: message.deleted,
+            content: message.content,
+            edited: message.edited,
+            updatedAt: message.updatedAt,
+          };
         });
 
         if (messageInCurrentRoom)
@@ -514,7 +520,7 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
         selectRoom,
         pushMessage,
         pushMessageChunks,
-        deleteMessage,
+        updateMessage,
         setMessageAsRead,
       }}
     >

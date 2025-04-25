@@ -61,6 +61,7 @@ const Messenger = () => {
 
   // Input
   const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
+  const [editModeOn, setEditModeOn] = useState(false);
 
   // Scrolling
   const [movedUpView, setMovedUpView] = useState<boolean>(false);
@@ -189,7 +190,15 @@ const Messenger = () => {
 
   /** Trigger form submission instead of a line break */
   function submitFormOnEnter(event: KeyboardEvent) {
-    if (event.key === 'Enter' && !event.shiftKey) {
+    const enterWithoutShift = event.key === 'Enter' && !event.shiftKey;
+
+    if (enterWithoutShift && editModeOn) {
+      event.preventDefault();
+      saveEdit();
+      return;
+    }
+
+    if (enterWithoutShift) {
       event.preventDefault();
       form.onSubmit(sendText)();
     }
@@ -210,6 +219,37 @@ const Messenger = () => {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [currentRoom?.messages.at(-1)?.content]);
+
+  // Edit message
+  const editingMessageID = useRef<string | null>(null);
+
+  function activateEditMode(message: Message) {
+    editingMessageID.current = message.id;
+    form.setFieldValue('text', message.content);
+    textAreaRef.current?.focus();
+    setEditModeOn(true);
+  }
+
+  function cancelEditMode() {
+    setEditModeOn(false);
+    editingMessageID.current = null;
+    form.reset();
+    textAreaRef.current?.focus();
+  }
+
+  function saveEdit() {
+    if (!socket?.connected) {
+      console.warn('No active socket connection to edit messages!');
+      return;
+    }
+
+    socket.emit('edit-message', editingMessageID.current, form.values.text);
+
+    setEditModeOn(false);
+    editingMessageID.current = null;
+    form.reset();
+    textAreaRef.current?.focus();
+  }
 
   /**************************
    * Receive messages
@@ -502,6 +542,7 @@ const Messenger = () => {
                     messages={messagesProp}
                     baseColor={memberCardColorMap[message.author.id]}
                     authorLabelColor={authorLabelColorMap[message.author.id]}
+                    onEdit={activateEditMode}
                   />
                 </li>
               );
@@ -535,9 +576,17 @@ const Messenger = () => {
             disabled={kickedOut}
           />
 
-          <Button type='submit' disabled={kickedOut}>
-            Send
-          </Button>
+          {editModeOn ? (
+            <div className='edit-buttons'>
+              <Button onClick={cancelEditMode}>❌</Button>
+              <Button onClick={saveEdit}>✅</Button>
+            </div>
+          ) : (
+            <Button type='submit' disabled={kickedOut}>
+              Send
+            </Button>
+          )}
+
           {movedUpView && (
             <Indicator
               className='indicator-scroll-down'

@@ -74,7 +74,7 @@ div.messenger-container {
 
   background-color: var(--bg-color-messenger-header);
 
-  form {
+  & form {
     display: grid;
     grid-template-rows: 1fr;
     grid-template-columns: 1fr 5rem;
@@ -99,36 +99,50 @@ div.messenger-container {
       height: 100%;
       width: 100%;
     }
+  }
 
-    & .indicator-scroll-down {
-      --size: 2.5rem;
-      position: absolute;
+  & form:has(.edit-buttons) {
+    grid-template-columns: 1fr 2.5rem;
 
-      /* Keep spacing consistent to padding of input-container */
-      top: calc(-1 * var(--size) - calc(var(--p-top) * 2));
-      right: var(--p-top);
+    & .edit-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
 
-      width: var(--size);
-      height: var(--size);
+      & Button {
+        padding: 0;
+      }
+    }
+  }
 
-      & button.scroll-down {
-        border: none;
-        border-radius: 5px;
-        background-color: var(--input-bg);
-        backdrop-filter: blur(10px);
-        opacity: 0.9;
+  & form .indicator-scroll-down {
+    --size: 2.5rem;
+    position: absolute;
 
-        font-size: larger;
-        font-weight: bolder;
+    /* Keep spacing consistent to padding of input-container */
+    top: calc(-1 * var(--size) - calc(var(--p-top) * 2));
+    right: var(--p-top);
 
-        box-shadow: 3px 3px 7px -4px rgba(0, 0, 0, 0.77);
-        transition: all 0.3s ease-out;
+    width: var(--size);
+    height: var(--size);
 
-        &:active {
-          transition: none;
-          transform: translateY(2px);
-          box-shadow: 2px 2px 5px -4px rgba(0, 0, 0, 0.77);
-        }
+    & button.scroll-down {
+      border: none;
+      border-radius: 5px;
+      background-color: var(--input-bg);
+      backdrop-filter: blur(10px);
+      opacity: 0.9;
+
+      font-size: larger;
+      font-weight: bolder;
+
+      box-shadow: 3px 3px 7px -4px rgba(0, 0, 0, 0.77);
+      transition: all 0.3s ease-out;
+
+      &:active {
+        transition: none;
+        transform: translateY(2px);
+        box-shadow: 2px 2px 5px -4px rgba(0, 0, 0, 0.77);
       }
     }
   }

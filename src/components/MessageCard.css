@@ -35,6 +35,15 @@
     }
   }
 
+  & .edited-label {
+    position: absolute;
+    font-size: small;
+    color: grey;
+
+    bottom: 0;
+    right: 1rem;
+  }
+
   &:hover {
     & .options {
       display: flex;
@@ -73,6 +82,10 @@
     & .image-container {
       left: unset;
       right: -0.25rem;
+    }
+
+    & .edited-label {
+      left: 1rem;
     }
   }
 

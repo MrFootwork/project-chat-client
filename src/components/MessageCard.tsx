@@ -11,6 +11,7 @@ import remarkGfm from 'remark-gfm';
 import TheAvatar from './TheAvatar';
 
 import { AuthContext } from '../contexts/AuthWrapper';
+import { SocketContext } from '../contexts/SocketWrapper';
 
 interface MessageCardProps {
   messages: {
@@ -34,6 +35,7 @@ const MessageCard: React.FC<MessageCardProps> = ({
   } = messages;
 
   const { user } = useContext(AuthContext);
+  const { socket } = useContext(SocketContext);
 
   const itsMe = useRef(user?.id === currentMessage.author.id);
   const isFirst = useRef(
@@ -91,6 +93,16 @@ const MessageCard: React.FC<MessageCardProps> = ({
     </span>
   );
 
+  // Message Options
+  const handleMessageDelete = () => {
+    socket?.emit('delete-message', currentMessage.id);
+  };
+
+  // BUG Implement message edit
+  const handleMessageEdit = () => {
+    console.log('Edit message', messages.this.id);
+  };
+
   return (
     <div
       className={`message-card 
@@ -110,8 +122,11 @@ const MessageCard: React.FC<MessageCardProps> = ({
           </h5>
         </>
       )}
-      {botIsThinking ? (
-        <Loader type='dots' color={authorLabelColor} />
+
+      {botIsThinking && <Loader type='dots' color={authorLabelColor} />}
+
+      {currentMessage.deleted ? (
+        'Message deleted'
       ) : (
         <ReactMarkdown
           components={{
@@ -125,10 +140,13 @@ const MessageCard: React.FC<MessageCardProps> = ({
         </ReactMarkdown>
       )}
 
-      {/* FIXME Message author can edit and delete his own messages */}
       <div className='options'>
-        <IconEdit size={20} />
-        <IconFileX size={20} />
+        <button className='icon-button' onClick={handleMessageEdit}>
+          <IconEdit size={20} />
+        </button>
+        <button className='icon-button' onClick={handleMessageDelete}>
+          <IconFileX size={20} />
+        </button>
       </div>
     </div>
   );

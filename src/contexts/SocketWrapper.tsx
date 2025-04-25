@@ -1,6 +1,7 @@
 import config from '../../config';
-import { Room } from '../types/room';
 import { MessageAuthor, RoomMember, User } from '../types/user';
+import { Room } from '../types/room';
+import { Message } from '../types/message';
 
 import React, { ReactNode, useContext, useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
@@ -34,6 +35,7 @@ function SocketWrapper({ children }: { children: ReactNode }) {
     createOrUpdateMembers,
     selectedRoomID,
     pushMessageChunks,
+    deleteMessage,
     selectRoom,
     deleteRoom,
   } = useContext(RoomsContext);
@@ -99,6 +101,19 @@ function SocketWrapper({ children }: { children: ReactNode }) {
       socketServer.off('user-offline', handleUserOffline);
     };
   }, [socketServer?.connected]);
+
+  // Listener for Messages
+  useEffect(() => {
+    const handleMessageDelete = (message: Message) => {
+      deleteMessage(message);
+    };
+
+    socketServer?.on('deleted-message', handleMessageDelete);
+
+    return () => {
+      socketServer?.off('deleted-message', handleMessageDelete);
+    };
+  }, [socketServer?.connected, deleteMessage]);
 
   // Listener for AI stream
   useEffect(() => {

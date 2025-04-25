@@ -26,16 +26,32 @@
 
     position: absolute;
     top: 0.5rem;
+
+    & .icon-button {
+      &:hover,
+      &:active {
+        background: none;
+      }
+    }
   }
 
   &:hover {
     & .options {
-      display: block;
+      display: flex;
       right: 0.5rem;
+
+      & svg {
+        margin-left: -0.5rem;
+      }
     }
 
     &.its-me .options {
       left: 0.5rem;
+
+      & svg {
+        margin-left: 0;
+        margin-right: -0.5rem;
+      }
     }
   }
 

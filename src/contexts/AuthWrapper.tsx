@@ -1,11 +1,10 @@
 import config from '../../config';
+import { User, UserEdit, UserSignUp } from '../types/user';
+import { ResponseError } from '../types/error';
 
 import React, { useState, useEffect, ReactNode } from 'react';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import { notifications } from '@mantine/notifications';
-
-import { User, UserSignUp } from '../types/user';
-import { ResponseError } from '../types/error';
 
 const API_URL = config.API_URL;
 
@@ -19,12 +18,14 @@ type AuthContextType = {
   token: TokenContext;
   setToken: React.Dispatch<React.SetStateAction<TokenContext>>;
   validateToken: () => Promise<void>;
+  validatePassword: (password: string) => Promise<boolean>;
   login: (credentials: {
     credential: string;
     password: string;
   }) => Promise<void>;
   logout: () => Promise<void>;
   signup: (userData: UserSignUp) => Promise<void>;
+  updateUser: (userData: UserEdit) => Promise<User>;
 };
 
 const AuthContext = React.createContext<AuthContextType>({
@@ -34,9 +35,11 @@ const AuthContext = React.createContext<AuthContextType>({
   token: null,
   setToken: () => {},
   validateToken: async () => {},
+  validatePassword: async () => false,
   login: async () => {},
   logout: async () => {},
   signup: async () => {},
+  updateUser: async () => ({} as User),
 });
 
 function AuthWrapper({ children }: { children: ReactNode }) {
@@ -59,6 +62,27 @@ function AuthWrapper({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  async function validatePassword(password: string): Promise<boolean> {
+    try {
+      const response = await axios.post(
+        `${API_URL}/auth/validate-password`,
+        { password },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('chatToken')}`,
+          },
+        }
+      );
+
+      if (response.status === 200) return true;
+      return false;
+    } catch (error) {
+      if ((error as AxiosError).status === 401) return false;
+      console.log(error);
+      return false;
+    }
+  }
+
   async function logout() {
     // Logout
     window.localStorage.removeItem('chatToken');
@@ -79,6 +103,24 @@ function AuthWrapper({ children }: { children: ReactNode }) {
       console.log('Logged out');
     } catch (error) {
       throw new Error(`Couldn't logout: ${error}`);
+    }
+  }
+
+  async function updateUser(userData: UserEdit) {
+    try {
+      const updatedUser: User = await axios.patch(
+        `${API_URL}/api/users/me`,
+        userData,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('chatToken')}`,
+          },
+        }
+      );
+
+      return updatedUser;
+    } catch (error) {
+      throw error;
     }
   }
 
@@ -189,9 +231,11 @@ function AuthWrapper({ children }: { children: ReactNode }) {
         token,
         setToken,
         validateToken,
+        validatePassword,
         login,
         logout,
         signup,
+        updateUser,
       }}
     >
       {children}

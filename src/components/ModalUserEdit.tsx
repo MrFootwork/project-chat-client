@@ -3,7 +3,7 @@ import { ResponseError } from '../types/error';
 import React, { useContext } from 'react';
 import axios from 'axios';
 
-import { matchesField, useForm } from '@mantine/form';
+import { useForm } from '@mantine/form';
 import {
   Button,
   Group,
@@ -13,6 +13,7 @@ import {
   TextInput,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
+import { useMediaQuery } from '@mantine/hooks';
 
 import { AuthContext } from '../contexts/AuthWrapper';
 
@@ -21,49 +22,77 @@ type ModalSignUpProps = {
 };
 
 const ModalUserCreate: React.FC<ModalSignUpProps> = ({ onClose }) => {
-  const { signup } = useContext(AuthContext);
+  const { updateUser, user, validatePassword } = useContext(AuthContext);
 
-  const formRegister = useForm({
+  if (!user) return;
+
+  // FIXME use global value for mobile breakpoint
+  const isMobile = useMediaQuery('(max-width: 620px)');
+
+  const form = useForm({
     mode: 'uncontrolled',
     initialValues: {
-      name: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
+      name: user.name,
+      email: user.email,
+      avatarUrl: user.avatarUrl,
+      newPassword: '',
+      oldPassword: '',
     },
 
     validate: {
-      name: value => (value.length < 3 ? 'Name too short' : null),
+      name: (value: string) => (value.length < 3 ? 'Name too short' : null),
       email: value => (/^\S+@\S+$/.test(value) ? null : 'Invalid email'),
-      password: value => (value.length < 3 ? 'Password too short' : null),
-      confirmPassword: matchesField('password', 'Passwords do not match.'),
+      avatarUrl: value => {
+        if (!value) return null;
+        return /^(https?:\/\/)[\w.-]+(\.[\w.-]+)+[\/#?]?.*$/.test(value)
+          ? null
+          : 'Invalid URL';
+      },
+      newPassword: (value: string) => {
+        if (!value.length) return null;
+        return value.length < 3 ? 'Password too short' : null;
+      },
     },
   });
 
-  const handleRegister = async (values: typeof formRegister.values) => {
-    const { name, email, password } = values;
-    const requestBody = { name, email, password };
-    formRegister.validate();
+  const handleUpdate = async (values: typeof form.values) => {
+    const { name, email, avatarUrl, newPassword, oldPassword } = values;
+    const requestBody = {
+      name,
+      email,
+      avatarUrl,
+      password: newPassword,
+    };
+    form.validate();
 
     try {
-      await signup(requestBody);
+      const confirmed = await validatePassword(oldPassword);
+
+      if (!confirmed) {
+        form.setFieldError('oldPassword', 'Incorrect current password');
+        return;
+      }
+
+      const updatedUser = await updateUser(requestBody);
+      console.log(`🚀 ~ handleUpdate ~ updatedUser:`, updatedUser);
+
+      // FIXME refresh token & user
 
       onClose();
-      formRegister.reset();
+      form.reset();
 
       // FIXME Send confirmation mail
       notifications.show({
-        title: 'Registration successful',
-        message:
-          'You successfully registered! Check your email for confirmation.',
+        title: 'User update successful',
+        message: 'You successfully updated your profile!',
         color: 'green',
       });
     } catch (error) {
-      console.error('Error during registration:', error);
+      console.error('Error during update:', error);
 
       if (axios.isAxiosError(error)) {
         notifications.show({
-          title: 'Registration failed',
+          title: 'User update failed',
           message: 'The server is down. Please try again later.',
           color: 'red',
         });
@@ -72,7 +101,7 @@ const ModalUserCreate: React.FC<ModalSignUpProps> = ({ onClose }) => {
       }
 
       notifications.show({
-        title: 'Regsitration failed',
+        title: 'Profile update failed',
         message: (error as any).message,
         color: 'red',
       });
@@ -81,14 +110,14 @@ const ModalUserCreate: React.FC<ModalSignUpProps> = ({ onClose }) => {
         (error as ResponseError).code === '409' &&
         (error as ResponseError).details?.target.includes('email')
       ) {
-        formRegister.setFieldError('email', 'Email taken. Try again.');
+        form.setFieldError('email', 'Email taken. Try again.');
       }
 
       if (
         (error as ResponseError).code === '409' &&
         (error as ResponseError).details?.target.includes('name')
       ) {
-        formRegister.setFieldError('name', 'Name taken. Try again.');
+        form.setFieldError('name', 'Name taken. Try again.');
       }
     }
   };
@@ -100,38 +129,46 @@ const ModalUserCreate: React.FC<ModalSignUpProps> = ({ onClose }) => {
       title={`Change Profile Data`}
       yOffset='10rem'
       className='modal-register'
+      fullScreen={isMobile}
     >
-      <form onSubmit={formRegister.onSubmit(handleRegister)}>
+      <form onSubmit={form.onSubmit(handleUpdate)}>
         <Stack mb='lg'>
           <TextInput
             data-autofocus
             label='Username'
             description='This will be your display name'
             placeholder='Your Username'
-            key={formRegister.key('name')}
-            {...formRegister.getInputProps('name')}
-            className={`${
-              formRegister.getInputProps('name').error ? 'error' : ''
-            }`}
+            key={form.key('name')}
+            {...form.getInputProps('name')}
+            className={`${form.getInputProps('name').error ? 'error' : ''}`}
           />
 
           <TextInput
             label='Email'
             placeholder='your@email.com'
-            key={formRegister.key('email')}
-            {...formRegister.getInputProps('email')}
+            key={form.key('email')}
+            {...form.getInputProps('email')}
+            className={`${form.getInputProps('email').error ? 'error' : ''}`}
+          />
+
+          <TextInput
+            label='Avatar'
+            placeholder='Avatar URL'
+            key={form.key('avatarUrl')}
+            {...form.getInputProps('avatarUrl')}
             className={`${
-              formRegister.getInputProps('email').error ? 'error' : ''
+              form.getInputProps('avatarUrl').error ? 'error' : ''
             }`}
           />
 
           <PasswordInput
             label='Password'
             placeholder='Your Password'
-            key={formRegister.key('password')}
-            {...formRegister.getInputProps('password')}
+            description="Leave this empty, if you don't intend to change your password."
+            key={form.key('newPassword')}
+            {...form.getInputProps('newPassword')}
             className={`${
-              formRegister.getInputProps('password').error ? 'error' : ''
+              form.getInputProps('newPassword').error ? 'error' : ''
             }`}
           />
 
@@ -139,10 +176,10 @@ const ModalUserCreate: React.FC<ModalSignUpProps> = ({ onClose }) => {
             withAsterisk
             label='Confirm with current Password'
             placeholder='Your current Password'
-            key={formRegister.key('confirmPassword')}
-            {...formRegister.getInputProps('confirmPassword')}
+            key={form.key('oldPassword')}
+            {...form.getInputProps('oldPassword')}
             className={`${
-              formRegister.getInputProps('confirmPassword').error ? 'error' : ''
+              form.getInputProps('oldPassword').error ? 'error' : ''
             }`}
           />
         </Stack>
@@ -152,7 +189,7 @@ const ModalUserCreate: React.FC<ModalSignUpProps> = ({ onClose }) => {
             <Button onClick={onClose} variant='outline'>
               Cancel
             </Button>
-            <Button type='submit'>Register</Button>
+            <Button type='submit'>Save</Button>
           </Group>
         </div>
       </form>

@@ -20,6 +20,7 @@ type ModalSignUpProps = {
   onClose: () => void;
 };
 
+// BUG make it fuill screen for mobnile users
 const ModalSignUp: React.FC<ModalSignUpProps> = ({ onClose }) => {
   const { signup } = useContext(AuthContext);
 

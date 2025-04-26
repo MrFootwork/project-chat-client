@@ -7,6 +7,7 @@ import config from '../../config';
 import axios from 'axios';
 import {
   KeyboardEvent,
+  useCallback,
   useContext,
   useEffect,
   useMemo,
@@ -23,7 +24,6 @@ import {
   useComputedColorScheme,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { useForm } from '@mantine/form';
 import {
   IconDoorExit,
   IconRobot,
@@ -33,7 +33,6 @@ import {
   IconUsersPlus,
 } from '@tabler/icons-react';
 import MessageCard from './MessageCard';
-import IndicatorUnread from './IndicatorUnread';
 import { SearchableMultiSelect } from './SearchableMultiSelect';
 import TheAvatar from './TheAvatar';
 
@@ -68,6 +67,12 @@ const Messenger = () => {
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const messagesDisplay = useRef<HTMLDivElement | null>(null);
+
+  // Room
+  const kickedOut = useMemo(() => {
+    if (!currentRoom?.members.find(m => m.id === user?.id)) return true;
+    return currentRoom?.members.find(m => m.id === user?.id)?.userLeft;
+  }, [currentRoom?.members.find(m => m.id === user?.id)]);
 
   /**************************
    * Messenger display
@@ -167,42 +172,60 @@ const Messenger = () => {
   /**************************
    * Send messages
    **************************/
-  const form = useForm({
-    mode: 'controlled',
-    initialValues: { text: '' },
-  });
 
-  async function sendText(values: typeof form.values) {
+  async function sendText() {
     if (!socket?.connected) {
       console.warn('No active socket connection to send messages!');
       return;
     }
 
+    const text = textAreaRef.current?.value.trim();
+    if (!text) return;
+
     console.log(
-      `Sending the message: ${currentRoom?.id} | ${currentRoom?.name} | ${values.text}`
+      `Sending the message: ${currentRoom?.id} | ${currentRoom?.name} | ${text}`
     );
 
-    socket.emit('send-message', currentRoom?.id, values.text, { botModel });
+    socket.emit('send-message', currentRoom?.id, text, { botModel });
 
-    form.reset();
+    // Clear the input after sending
+    if (textAreaRef.current) {
+      textAreaRef.current.value = '';
+    }
     textAreaRef.current?.focus();
   }
 
+  const placeholderText = kickedOut
+    ? 'You are no longer a member of this room.'
+    : 'Enter your message here.';
+
   /** Trigger form submission instead of a line break */
-  function submitFormOnEnter(event: KeyboardEvent) {
-    const enterWithoutShift = event.key === 'Enter' && !event.shiftKey;
-
-    if (enterWithoutShift && editModeOn) {
+  const handleKeyPress = useCallback(
+    (event: KeyboardEvent) => {
       event.preventDefault();
-      saveEdit();
-      return;
-    }
 
-    if (enterWithoutShift) {
-      event.preventDefault();
-      form.onSubmit(sendText)();
-    }
-  }
+      const enterWithoutShift = event.key === 'Enter' && !event.shiftKey;
+      const escape = event.key === 'Escape';
+
+      // Cancel editing when pressed Escape
+      if (escape && editModeOn) {
+        cancelEditMode();
+        return;
+      }
+
+      // Save Edit when pressed Enter
+      if (enterWithoutShift && editModeOn) {
+        saveEdit();
+        return;
+      }
+
+      // Send message when pressed Enter
+      if (enterWithoutShift && !editModeOn) {
+        sendText();
+      }
+    },
+    [editModeOn, sendText, cancelEditMode, saveEdit]
+  );
 
   // Sending messages, while out of view
   // => scroll down
@@ -224,8 +247,10 @@ const Messenger = () => {
   const editingMessageID = useRef<string | null>(null);
 
   function activateEditMode(message: Message) {
+    // Temporarily store messageID being edited
     editingMessageID.current = message.id;
-    form.setFieldValue('text', message.content);
+    // Transfer message content to input
+    if (textAreaRef.current) textAreaRef.current.value = message.content;
     textAreaRef.current?.focus();
     setEditModeOn(true);
   }
@@ -233,7 +258,7 @@ const Messenger = () => {
   function cancelEditMode() {
     setEditModeOn(false);
     editingMessageID.current = null;
-    form.reset();
+    if (textAreaRef.current) textAreaRef.current.value = '';
     textAreaRef.current?.focus();
   }
 
@@ -243,11 +268,16 @@ const Messenger = () => {
       return;
     }
 
-    socket.emit('edit-message', editingMessageID.current, form.values.text);
+    const text = textAreaRef.current?.value.trim();
+    if (!text) return;
+
+    socket.emit('edit-message', editingMessageID.current, text);
 
     setEditModeOn(false);
     editingMessageID.current = null;
-    form.reset();
+
+    // Clear the input after saving
+    if (textAreaRef.current) textAreaRef.current.value = '';
     textAreaRef.current?.focus();
   }
 
@@ -294,11 +324,6 @@ const Messenger = () => {
   /**************************
    * Leave Room
    **************************/
-  const kickedOut = useMemo(() => {
-    if (!currentRoom?.members.find(m => m.id === user?.id)) return true;
-    return currentRoom?.members.find(m => m.id === user?.id)?.userLeft;
-  }, [currentRoom?.members.find(m => m.id === user?.id)]);
-
   function handleLeaveRoom() {
     if (!user || !currentRoom || !socket) return;
 
@@ -427,7 +452,7 @@ const Messenger = () => {
   }, [currentRoom?.members]);
 
   useEffect(() => {
-    setAIIsActive(ai => {
+    setAIIsActive(() => {
       if (!aiAsRoomMember) return false;
       return !aiAsRoomMember.userLeft;
     });
@@ -435,6 +460,9 @@ const Messenger = () => {
 
   return (
     <div className='messenger-container'>
+      {/*******************
+       * ROOM HEADER
+       *******************/}
       <header>
         <div>
           <h3>{currentRoom?.name}</h3>
@@ -521,6 +549,9 @@ const Messenger = () => {
         </div>
       </header>
 
+      {/*******************
+       * MESSAGES DISPLAY
+       *******************/}
       <div
         ref={messagesDisplay}
         className='messages-display'
@@ -556,20 +587,22 @@ const Messenger = () => {
         </ol>
       </div>
 
+      {/**************
+       * INPUT
+       **************/}
       <div className='input-container'>
-        <form onSubmit={form.onSubmit(sendText)}>
+        <form
+          onSubmit={e => {
+            e.preventDefault();
+            editModeOn ? saveEdit() : sendText();
+          }}
+        >
           <Textarea
             ref={textAreaRef}
             radius='md'
-            placeholder={
-              kickedOut
-                ? 'You are no longer a member of this room.'
-                : 'Enter your message here.'
-            }
-            key={form.key('text')}
-            {...form.getInputProps('text')}
+            placeholder={placeholderText}
             className='textarea-custom'
-            onKeyDown={e => submitFormOnEnter(e)}
+            onKeyDown={e => handleKeyPress(e)}
             autosize
             minRows={2}
             maxRows={6}
@@ -579,7 +612,7 @@ const Messenger = () => {
           {editModeOn ? (
             <div className='edit-buttons'>
               <Button onClick={cancelEditMode}>❌</Button>
-              <Button onClick={saveEdit}>✅</Button>
+              <Button type='submit'>✅</Button>
             </div>
           ) : (
             <Button type='submit' disabled={kickedOut}>

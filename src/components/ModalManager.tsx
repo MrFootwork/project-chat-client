@@ -1,6 +1,8 @@
-import ModalProfileEdit from './ModalProfileEdit';
-import { useModal } from '../contexts/ModalContext';
+import ModalUserEdit from './ModalUserEdit';
 import ModalRoomCreate from './ModalRoomCreate';
+import ModalUserCreate from './ModalUserCreate';
+
+import { useModal } from '../contexts/ModalContext';
 
 const ModalManager = () => {
   const { activeModal, closeModal } = useModal();
@@ -9,9 +11,8 @@ const ModalManager = () => {
 
   return (
     <>
-      {activeModal === 'editProfile' && (
-        <ModalProfileEdit onClose={closeModal} />
-      )}
+      {activeModal === 'signup' && <ModalUserCreate onClose={closeModal} />}
+      {activeModal === 'editProfile' && <ModalUserEdit onClose={closeModal} />}
       {activeModal === 'createRoom' && <ModalRoomCreate onClose={closeModal} />}
       {/* TODO Add other modals */}
     </>

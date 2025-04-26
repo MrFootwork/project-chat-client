@@ -12,6 +12,7 @@ import TheAvatar from './TheAvatar';
 
 import { AuthContext } from '../contexts/AuthWrapper';
 import { SocketContext } from '../contexts/SocketWrapper';
+import { RoomsContext } from '../contexts/RoomsWrapper';
 
 interface MessageCardProps {
   messages: {
@@ -38,8 +39,14 @@ const MessageCard: React.FC<MessageCardProps> = ({
 
   const { user } = useContext(AuthContext);
   const { socket } = useContext(SocketContext);
+  const { currentRoom } = useContext(RoomsContext);
 
-  const itsMe = useRef(user?.id === currentMessage.author.id);
+  const userIsAdmin = useRef(
+    currentRoom?.members.find(m => m.id === user?.id)!.isAdmin
+  );
+
+  const userIsAuthor = useRef(user?.id === currentMessage.author.id);
+
   const isFirst = useRef(
     !previousMessage || previousMessage.author.id !== currentMessage.author.id
   );
@@ -111,6 +118,15 @@ const MessageCard: React.FC<MessageCardProps> = ({
   });
 
   useEffect(() => {
+    const updateDescriptiveDate = () => {
+      const date = new Date(currentMessage.updatedAt);
+      setDescriptiveDate(calculateDescriptiveDate(date));
+    };
+
+    // Run immediately on the first render
+    updateDescriptiveDate();
+
+    // Determine interval duration
     const now = new Date();
     const date = new Date(currentMessage.updatedAt);
 
@@ -134,10 +150,7 @@ const MessageCard: React.FC<MessageCardProps> = ({
     let interval = null;
 
     if (intervalDuration) {
-      interval = setInterval(() => {
-        const date = new Date(currentMessage.updatedAt);
-        setDescriptiveDate(calculateDescriptiveDate(date));
-      }, 60000);
+      interval = setInterval(updateDescriptiveDate, 60000);
     }
 
     return () => {
@@ -189,7 +202,7 @@ const MessageCard: React.FC<MessageCardProps> = ({
   return (
     <div
       className={`message-card 
-        ${itsMe.current ? ' its-me' : ''} 
+        ${userIsAuthor.current ? ' its-me' : ''} 
         ${isFirst.current ? 'first' : ''}
         ${isLast.current ? 'last' : ''}`}
       style={{ backgroundColor: baseColor }}
@@ -227,12 +240,19 @@ const MessageCard: React.FC<MessageCardProps> = ({
         <div className='edited-label'>{`edited ${descriptiveDate}`}</div>
       )}
 
-      {/* BUG Only admins and authors can delete */}
       <div className='options'>
-        <button className='icon-button' onClick={handleMessageEdit}>
+        <button
+          className='icon-button'
+          onClick={handleMessageEdit}
+          disabled={!(userIsAdmin.current || userIsAuthor.current)}
+        >
           <IconEdit size={20} />
         </button>
-        <button className='icon-button' onClick={handleMessageDelete}>
+        <button
+          className='icon-button'
+          onClick={handleMessageDelete}
+          disabled={!(userIsAdmin.current || userIsAuthor.current)}
+        >
           <IconFileX size={20} />
         </button>
       </div>

@@ -68,8 +68,8 @@ const ProfileMenu = ({ closeMenu }: Props) => {
     );
   };
 
-  function handleProfileEdit() {
-    openModal('profileEdit');
+  function handleEditProfile() {
+    openModal('editProfile');
     closeMenu();
   }
 
@@ -78,7 +78,7 @@ const ProfileMenu = ({ closeMenu }: Props) => {
       <div className='menu'>
         <h5>Settings</h5>
 
-        <button className='item' id='item-edit' onClick={handleProfileEdit}>
+        <button className='item' id='item-edit' onClick={handleEditProfile}>
           <IconUserCog size={18} />
           <label htmlFor='item-edit'>Edit Profile</label>
         </button>

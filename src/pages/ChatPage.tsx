@@ -10,24 +10,16 @@ import { AuthContext } from '../contexts/AuthWrapper';
 import { RoomsContext } from '../contexts/RoomsWrapper';
 
 import { IconCopyPlus } from '@tabler/icons-react';
-import {
-  Button,
-  Group,
-  Indicator,
-  Modal,
-  Stack,
-  TextInput,
-  useMantineTheme,
-} from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
+import { Indicator, useMantineTheme } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { useForm } from '@mantine/form';
 
 import Messenger from '../components/Messenger';
+import { useModal } from '../contexts/ModalContext';
 
 const ChatPage = () => {
   const navigate = useNavigate();
   const theme = useMantineTheme();
+  const { openModal } = useModal();
 
   /**********
    * AUTH
@@ -43,14 +35,8 @@ const ChatPage = () => {
   /**********
    * ROOMS
    **********/
-  const {
-    rooms,
-    createRoom,
-    deleteRoom,
-    fetchRooms,
-    selectRoom,
-    selectedRoomID,
-  } = useContext(RoomsContext);
+  const { rooms, deleteRoom, fetchRooms, selectRoom, selectedRoomID } =
+    useContext(RoomsContext);
 
   // Initial page load
   useEffect(() => {
@@ -108,54 +94,6 @@ const ChatPage = () => {
     }
   }
 
-  // Create new room
-  const [wantToCreateRoom, { open: openRoomCreate, close: closeRoomCreate }] =
-    useDisclosure(false);
-
-  useEffect(() => {
-    if (!wantToCreateRoom) formRoomCreation.reset();
-  }, [wantToCreateRoom]);
-
-  const formRoomCreation = useForm({
-    mode: 'uncontrolled',
-    initialValues: { name: '' },
-    validate: {
-      name: value => (value.length < 3 ? 'Name too short' : null),
-    },
-  });
-
-  async function handleRoomCreation(values: typeof formRoomCreation.values) {
-    try {
-      const newRoom = await createRoom(values.name);
-      console.log(`🚀 ~ handleRoomCreation ~ newRoom:`, newRoom);
-
-      notifications.show({
-        title: 'Room creation',
-        message: 'Room created!',
-      });
-
-      if (newRoom) {
-        selectRoom(newRoom.id);
-        toggleButtonContainer();
-      }
-    } catch (error: unknown) {
-      console.error('Error during room creation:', error);
-
-      if (axios.isAxiosError(error)) {
-        console.error('Axios error details:', error.response?.data);
-      }
-
-      notifications.show({
-        title: 'Room creation failed',
-        message: (error as any).message,
-        color: 'red',
-      });
-    } finally {
-      closeRoomCreate();
-      formRoomCreation.reset();
-    }
-  }
-
   /**********
    * MESSAGES
    **********/
@@ -189,7 +127,8 @@ const ChatPage = () => {
 
         <div
           className='button-create-room icon-button'
-          onClick={openRoomCreate}
+          // onClick={openRoomCreate}
+          onClick={() => openModal('createRoom')}
           title='Create new room'
         >
           <IconCopyPlus />
@@ -282,37 +221,6 @@ const ChatPage = () => {
           )}
         </>
       )}
-
-      <Modal
-        opened={wantToCreateRoom}
-        onClose={closeRoomCreate}
-        title={`Create new room`}
-        yOffset='10rem'
-        className='modal-delete-room'
-      >
-        <form onSubmit={formRoomCreation.onSubmit(handleRoomCreation)}>
-          <Stack mb='lg'>
-            <TextInput
-              withAsterisk
-              label='Room name'
-              placeholder='Choose a nice name for your room'
-              data-autofocus
-              key={formRoomCreation.key('name')}
-              {...formRoomCreation.getInputProps('name')}
-              className={`${
-                formRoomCreation.getInputProps('name').error ? 'error' : ''
-              }`}
-            />
-          </Stack>
-
-          <Group justify='flex-end' mt='sm'>
-            <Button variant='outline' onClick={closeRoomCreate}>
-              Cancel
-            </Button>
-            <Button type='submit'>Create</Button>
-          </Group>
-        </form>
-      </Modal>
     </div>
   );
 };

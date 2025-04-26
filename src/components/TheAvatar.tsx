@@ -6,15 +6,22 @@ type Props = {
   user: MessageAuthor;
   size?: AvatarProps['size'];
   children?: any;
+  enableHoverEffect?: boolean;
 } & Omit<AvatarProps, 'size' | 'src' | 'alt'>;
 
-const TheAvatar = ({ user, size, children, ...rest }: Props) => {
+const TheAvatar = ({
+  user,
+  size,
+  children,
+  enableHoverEffect = false,
+  ...rest
+}: Props) => {
   function userHasAvatar(url: string | null): url is string {
     return !!url && typeof url === 'string' && url !== '';
   }
 
   return (
-    <div className='avatar-wrapper'>
+    <div className={`avatar-wrapper ${enableHoverEffect && 'withHover'}`}>
       {userHasAvatar(user.avatarUrl) ? (
         <Avatar size={size} src={user.avatarUrl} alt={user.name} {...rest} />
       ) : (

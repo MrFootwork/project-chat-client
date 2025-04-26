@@ -479,7 +479,12 @@ const Messenger = () => {
             .filter(m => !m.userLeft)
             .map(member => {
               return (
-                <TheAvatar key={member.id} user={member} size='3rem'>
+                <TheAvatar
+                  key={member.id}
+                  user={member}
+                  size='3rem'
+                  enableHoverEffect={true}
+                >
                   <IconSettingsFilled
                     className='admin'
                     display={member.isAdmin ? 'block' : 'none'}

@@ -202,25 +202,26 @@ const Messenger = () => {
   /** Trigger form submission instead of a line break */
   const handleKeyPress = useCallback(
     (event: KeyboardEvent) => {
-      event.preventDefault();
-
       const enterWithoutShift = event.key === 'Enter' && !event.shiftKey;
       const escape = event.key === 'Escape';
 
       // Cancel editing when pressed Escape
       if (escape && editModeOn) {
+        event.preventDefault();
         cancelEditMode();
         return;
       }
 
       // Save Edit when pressed Enter
       if (enterWithoutShift && editModeOn) {
+        event.preventDefault();
         saveEdit();
         return;
       }
 
       // Send message when pressed Enter
       if (enterWithoutShift && !editModeOn) {
+        event.preventDefault();
         sendText();
       }
     },

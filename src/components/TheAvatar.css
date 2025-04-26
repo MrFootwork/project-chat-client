@@ -1,5 +1,17 @@
 .avatar-wrapper {
   position: relative;
+  transition: all 0.2s ease-in-out;
+
+  &:hover {
+    z-index: 10;
+    margin-right: 2.5rem;
+    transform: scale(1.5);
+    translate: 1rem;
+
+    &:not(:first-child) {
+      margin-left: 0.5rem;
+    }
+  }
 
   & .children {
     position: absolute;

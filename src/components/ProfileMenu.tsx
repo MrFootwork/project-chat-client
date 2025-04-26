@@ -66,6 +66,8 @@ const ProfileMenu = ({ closeMenu }: Props) => {
     );
   };
 
+  // FIXME User can edit his profile
+
   return (
     <div className='profile-menu-container'>
       <div className='menu'>

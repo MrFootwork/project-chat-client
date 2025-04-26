@@ -6,9 +6,9 @@ type Props = {
   user: MessageAuthor;
   size?: AvatarProps['size'];
   children?: any;
-};
+} & Omit<AvatarProps, 'size' | 'src' | 'alt'>;
 
-const TheAvatar = ({ user, size, children }: Props) => {
+const TheAvatar = ({ user, size, children, ...rest }: Props) => {
   function userHasAvatar(url: string | null): url is string {
     return !!url && typeof url === 'string' && url !== '';
   }
@@ -16,7 +16,7 @@ const TheAvatar = ({ user, size, children }: Props) => {
   return (
     <div className='avatar-wrapper'>
       {userHasAvatar(user.avatarUrl) ? (
-        <Avatar size={size} src={user.avatarUrl} alt={user.name} />
+        <Avatar size={size} src={user.avatarUrl} alt={user.name} {...rest} />
       ) : (
         <Avatar
           src={null}
@@ -25,6 +25,7 @@ const TheAvatar = ({ user, size, children }: Props) => {
           alt={user.name}
           color='red'
           variant='filled'
+          {...rest}
         />
       )}
       <div className='children'>{children}</div>

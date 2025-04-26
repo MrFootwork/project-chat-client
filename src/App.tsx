@@ -8,6 +8,7 @@ import AuthPage from './pages/AuthPage';
 import ChatPage from './pages/ChatPage';
 import ProtectedRoutes from './utils/ProtectedRoutes';
 import NavBar from './components/NavBar';
+import ModalManager from './components/ModalManager';
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
 
         <Route path='*' element={<Navigate to='/' />} />
       </Routes>
+      <ModalManager />
     </>
   );
 }

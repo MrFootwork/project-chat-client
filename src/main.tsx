@@ -12,6 +12,7 @@ import { AuthWrapper } from './contexts/AuthWrapper.tsx';
 import { RoomsWrapper } from './contexts/RoomsWrapper.tsx';
 import { SocketWrapper } from './contexts/SocketWrapper.tsx';
 import ThemeWrapper from './contexts/ThemeWrapper.tsx';
+import { ModalProvider } from './contexts/ModalContext.tsx';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -20,7 +21,9 @@ createRoot(document.getElementById('root')!).render(
         <RoomsWrapper>
           <SocketWrapper>
             <ThemeWrapper>
-              <App />
+              <ModalProvider>
+                <App />
+              </ModalProvider>
             </ThemeWrapper>
           </SocketWrapper>
         </RoomsWrapper>

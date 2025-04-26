@@ -470,7 +470,6 @@ const Messenger = () => {
           <p>{membersCountRef.current || ''}</p>
         </div>
 
-        {/* FIXME hover animation  */}
         <AvatarGroup
           key={currentRoom?.members.map(m => `${m.id}-${m.userLeft}`).join(',')}
           spacing='1.5rem'

@@ -1,12 +1,13 @@
 import './ProfileMenu.css';
 
-import { useContext, useState } from 'react';
+import { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Combobox, Input, InputBase, useCombobox } from '@mantine/core';
-import { IconLogout, IconRobot } from '@tabler/icons-react';
+import { IconLogout, IconRobot, IconUserCog } from '@tabler/icons-react';
 
 import { AuthContext } from '../contexts/AuthWrapper';
 import { SocketContext } from '../contexts/SocketWrapper';
+import { useModal } from '../contexts/ModalContext';
 
 type Props = {
   closeMenu: () => void;
@@ -15,6 +16,7 @@ type Props = {
 const ProfileMenu = ({ closeMenu }: Props) => {
   const { user, logout } = useContext(AuthContext);
   const { botModel, setBotModel } = useContext(SocketContext);
+  const { openModal } = useModal();
 
   const navigate = useNavigate();
 
@@ -66,12 +68,20 @@ const ProfileMenu = ({ closeMenu }: Props) => {
     );
   };
 
-  // FIXME User can edit his profile
+  function handleProfileEdit() {
+    openModal('profileEdit');
+    closeMenu();
+  }
 
   return (
     <div className='profile-menu-container'>
       <div className='menu'>
         <h5>Settings</h5>
+
+        <button className='item' id='item-edit' onClick={handleProfileEdit}>
+          <IconUserCog size={18} />
+          <label htmlFor='item-edit'>Edit Profile</label>
+        </button>
 
         <div className='item' id='item-bot'>
           <IconRobot size={18} />

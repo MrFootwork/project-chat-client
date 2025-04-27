@@ -124,8 +124,6 @@ const Messenger = () => {
   // Jump to the bottom on mount & when room has changed
   useEffect(() => {
     if (!messagesDisplay.current) return;
-
-    // console.log('SCROLLING DOWN', selectedRoomID);
     messagesDisplay.current.scrollTop = messagesDisplay.current.scrollHeight;
   }, [currentRoom?.id]);
 
@@ -602,6 +600,7 @@ const Messenger = () => {
             editModeOn ? saveEdit() : sendText();
           }}
         >
+          {/* FIXME bigger fonts */}
           <Textarea
             ref={textAreaRef}
             radius='md'

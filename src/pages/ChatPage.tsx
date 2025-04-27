@@ -208,6 +208,7 @@ const ChatPage = () => {
       {isMobile && (
         <>
           {/* FIXME Slide in and out animation */}
+          {/* BUG Click on current room should close rooms container */}
           {showButtonContainer ? (
             <nav className='rooms-container'>
               {Header()}

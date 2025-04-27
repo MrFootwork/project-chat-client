@@ -65,7 +65,8 @@ export default function ThemeWrapper({ children }: { children: ReactNode }) {
   const [showButtonContainer, setShowButtonContainer] = useState(false);
 
   function toggleButtonContainer() {
-    setShowButtonContainer(prev => !prev);
+    console.log('TOGGLING');
+    setShowButtonContainer(show => !show);
   }
 
   return (

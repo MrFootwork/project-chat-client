@@ -1,5 +1,5 @@
 import './NavBar.css';
-import { MessageAuthor, User } from '../types/user';
+import { User } from '../types/user';
 import config from '../../config';
 
 import { useContext, useEffect, useMemo, useState } from 'react';
@@ -15,13 +15,13 @@ import {
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import {
-  IconLogin,
-  IconLogout,
   IconMoon,
   IconSun,
   IconSunMoon,
   IconUserSearch,
 } from '@tabler/icons-react';
+
+import ProfileMenu from './ProfileMenu';
 import { SearchableMultiSelect } from './SearchableMultiSelect';
 import TheAvatar from './TheAvatar';
 
@@ -29,10 +29,9 @@ import { ThemeContext } from '../contexts/ThemeWrapper';
 import { AuthContext } from '../contexts/AuthWrapper';
 import { RoomsContext } from '../contexts/RoomsWrapper';
 import { SocketContext } from '../contexts/SocketWrapper';
-import ProfileMenu from './ProfileMenu';
 
 const NavBar = () => {
-  const { user, token, logout } = useContext(AuthContext);
+  const { user, token } = useContext(AuthContext);
   const { socket } = useContext(SocketContext);
   const { selectedRoomID } = useContext(RoomsContext);
 
@@ -40,14 +39,9 @@ const NavBar = () => {
   const location = useLocation();
 
   /**********
-   * AUTH
+   * Routing
    *********/
-  const isOnAuthPage = location.pathname.includes('/auth');
-
-  async function authHandler() {
-    if (user) logout();
-    if (!user) navigate('/auth');
-  }
+  const isOnHome = location.pathname === '/';
 
   /******************
    * Theme Handling
@@ -72,6 +66,19 @@ const NavBar = () => {
       return nextTheme;
     });
   }
+
+  /************************
+   * Burger Menu (mobile)
+   ************************/
+  const { isMobile, toggleButtonContainer, showButtonContainer } =
+    useContext(ThemeContext);
+
+  /******************
+   * Profile Menu
+   ******************/
+  const meUser = useMemo(() => user || ({} as User), [user]);
+
+  const [profileMenuOpened, setProfileMenuOpened] = useState(false);
 
   /******************
    * Add Friend
@@ -127,42 +134,13 @@ const NavBar = () => {
       });
   }, [user?.friends, token]);
 
-  /************************
-   * Burger Menu (mobile)
-   ************************/
-  const { isMobile, toggleButtonContainer, showButtonContainer } =
-    useContext(ThemeContext);
-
-  // buttonContainer toggler
-  const [opened, { toggle }] = useDisclosure();
-
-  function toggleMenu() {
-    toggle();
-    toggleButtonContainer();
-  }
-
-  // Correct menu opened state showButtonContainer was changed
-  useEffect(() => {
-    const stateMismatch =
-      (!showButtonContainer && opened) || (showButtonContainer && !opened);
-
-    if (stateMismatch) toggle();
-  }, [showButtonContainer, opened, toggle]);
-
-  /******************
-   * Profile Menu
-   ******************/
-  const meUser = useMemo(() => user || ({} as User), [user]);
-
-  const [profileMenuOpened, setProfileMenuOpened] = useState(false);
-
   return (
     <nav className='navbar-container'>
-      {isMobile ? (
+      {isMobile && !isOnHome ? (
         <Burger
           size={25}
-          opened={opened}
-          onClick={toggleMenu}
+          opened={showButtonContainer}
+          onClick={toggleButtonContainer}
           aria-label='Toggle navigation'
         />
       ) : (
@@ -210,7 +188,7 @@ const NavBar = () => {
         <button
           className='profile-settings'
           onClick={() => {
-            if (user) setProfileMenuOpened(opened => !opened);
+            if (user) setProfileMenuOpened(open => !open);
           }}
         >
           <TheAvatar user={meUser} />

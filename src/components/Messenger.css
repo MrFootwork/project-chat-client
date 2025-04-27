@@ -91,6 +91,7 @@ div.messenger-container {
 
         textarea {
           height: 100%;
+          font-size: 1rem;
         }
       }
     }

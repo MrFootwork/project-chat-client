@@ -600,7 +600,6 @@ const Messenger = () => {
             editModeOn ? saveEdit() : sendText();
           }}
         >
-          {/* FIXME bigger fonts */}
           <Textarea
             ref={textAreaRef}
             radius='md'

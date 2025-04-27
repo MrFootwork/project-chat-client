@@ -16,14 +16,15 @@ type Props = {
 const ProfileMenu = ({ closeMenu }: Props) => {
   const { user, logout } = useContext(AuthContext);
   const { botModel, setBotModel } = useContext(SocketContext);
-  const { openModal } = useModal();
+  const { openModal, closeModal } = useModal();
 
   const navigate = useNavigate();
 
-  async function authHandler() {
+  async function handleLogout() {
     if (user) logout();
     if (!user) navigate('/auth');
     closeMenu();
+    closeModal();
   }
 
   // Combobox for AI model selection
@@ -89,7 +90,7 @@ const ProfileMenu = ({ closeMenu }: Props) => {
           {ComboBoxAIModel()}
         </div>
 
-        <button className='item' id='item-logout' onClick={authHandler}>
+        <button className='item' id='item-logout' onClick={handleLogout}>
           <IconLogout size={18} />
           <label htmlFor='item-logout'>Logout</label>
         </button>

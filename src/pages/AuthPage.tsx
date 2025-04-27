@@ -35,6 +35,7 @@ const AuthPage = () => {
     try {
       await login(values);
 
+      // BUG Don't cover navbar => show at bottom?
       notifications.show({
         title: 'Login successful',
         message: 'You successfully logged in! 🎉',

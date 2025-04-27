@@ -164,10 +164,8 @@ const ChatPage = () => {
               type='radio'
               name='room'
               id={`room-${room.id}`}
-              onChange={
-                isMobile ? () => handleRoomSelection(room.id) : () => {}
-              }
-              onClick={isMobile ? () => {} : () => handleRoomSelection(room.id)}
+              onClick={() => handleRoomSelection(room.id)}
+              readOnly // onChange introduces undesirable behavior => needs readonly if no onChange is provided
             />
 
             <label
@@ -208,7 +206,6 @@ const ChatPage = () => {
       {isMobile && (
         <>
           {/* FIXME Slide in and out animation */}
-          {/* BUG Click on current room should close rooms container */}
           {showButtonContainer ? (
             <nav className='rooms-container'>
               {Header()}

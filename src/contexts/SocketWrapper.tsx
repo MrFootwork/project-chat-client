@@ -270,6 +270,24 @@ function SocketWrapper({ children }: { children: ReactNode }) {
     const socketServerURL = config.API_URL;
     const socket = io(socketServerURL, { auth: { token } });
 
+    // State to track if the error notification has been shown
+    let notificationShown = false;
+
+    // Handle connection errors
+    socket.on('connect_error', error => {
+      console.error('Socket connection failed:', error.message);
+
+      if (!notificationShown) {
+        notifications.show({
+          title: 'Connection Error',
+          message: 'Failed to connect to the server. Please try again later.',
+          color: 'red',
+          autoClose: false,
+        });
+        notificationShown = true;
+      }
+    });
+
     setSocket(socket);
 
     return socket;

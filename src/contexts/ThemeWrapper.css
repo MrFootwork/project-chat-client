@@ -1,0 +1,4 @@
+/* Multiple notifications were too far from each other */
+.mantine-Notifications-notification:not(:first-child) {
+  margin-top: 8px;
+}

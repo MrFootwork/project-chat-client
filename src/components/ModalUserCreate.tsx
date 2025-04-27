@@ -15,14 +15,15 @@ import {
 import { notifications } from '@mantine/notifications';
 
 import { AuthContext } from '../contexts/AuthWrapper';
+import { ThemeContext } from '../contexts/ThemeWrapper';
 
 type ModalSignUpProps = {
   onClose: () => void;
 };
 
-// BUG make it fuill screen for mobnile users
 const ModalSignUp: React.FC<ModalSignUpProps> = ({ onClose }) => {
   const { signup } = useContext(AuthContext);
+  const { isMobile } = useContext(ThemeContext);
 
   const formRegister = useForm({
     mode: 'uncontrolled',
@@ -101,6 +102,7 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onClose }) => {
       title={`Register for an Account`}
       yOffset='10rem'
       className='modal-register'
+      fullScreen={isMobile}
     >
       <form onSubmit={formRegister.onSubmit(handleRegister)}>
         <Stack mb='lg'>

@@ -42,6 +42,7 @@ const NavBar = () => {
    * Routing
    *********/
   const isOnHome = location.pathname === '/';
+  const isOnAuth = location.pathname === '/auth';
 
   /******************
    * Theme Handling
@@ -136,7 +137,7 @@ const NavBar = () => {
 
   return (
     <nav className='navbar-container'>
-      {isMobile && !isOnHome ? (
+      {isMobile && !isOnHome && !isOnAuth ? (
         <Burger
           size={25}
           opened={showButtonContainer}

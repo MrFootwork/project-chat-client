@@ -108,7 +108,7 @@ function AuthWrapper({ children }: { children: ReactNode }) {
 
   async function updateUser(userData: UserEdit) {
     try {
-      const updatedUser: User = await axios.patch(
+      const { data: updatedUser } = await axios.patch(
         `${API_URL}/api/users/me`,
         userData,
         {
@@ -117,8 +117,9 @@ function AuthWrapper({ children }: { children: ReactNode }) {
           },
         }
       );
+      console.log(`🚀 ~ updateUser ~ updatedUser:`, updatedUser);
 
-      return updatedUser;
+      return updatedUser as User;
     } catch (error) {
       throw error;
     }

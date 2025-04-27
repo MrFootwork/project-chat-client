@@ -38,6 +38,7 @@ const AuthPage = () => {
       notifications.show({
         title: 'Login successful',
         message: 'You successfully logged in! 🎉',
+        color: 'green',
       });
     } catch (error: unknown) {
       console.error('Error during login:', error);

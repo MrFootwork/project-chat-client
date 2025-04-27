@@ -22,7 +22,7 @@ type ModalSignUpProps = {
 };
 
 const ModalUserCreate: React.FC<ModalSignUpProps> = props => {
-  const { updateUser, user, validatePassword } = useContext(AuthContext);
+  const { login, updateUser, user, validatePassword } = useContext(AuthContext);
 
   if (!user) return;
 
@@ -71,9 +71,11 @@ const ModalUserCreate: React.FC<ModalSignUpProps> = props => {
       }
 
       const updatedUser = await updateUser(requestBody);
-      console.log(`🚀 ~ handleUpdate ~ updatedUser:`, updatedUser);
 
-      // FIXME refresh token & user
+      await login({
+        credential: updatedUser.name,
+        password: newPassword || oldPassword,
+      });
 
       props.onClose();
       form.reset();

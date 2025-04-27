@@ -15,15 +15,14 @@ import {
 import { notifications } from '@mantine/notifications';
 
 import { AuthContext } from '../contexts/AuthWrapper';
-import { ThemeContext } from '../contexts/ThemeWrapper';
 
 type ModalSignUpProps = {
   onClose: () => void;
+  fullscreen: boolean;
 };
 
-const ModalSignUp: React.FC<ModalSignUpProps> = ({ onClose }) => {
+const ModalSignUp: React.FC<ModalSignUpProps> = props => {
   const { signup } = useContext(AuthContext);
-  const { isMobile } = useContext(ThemeContext);
 
   const formRegister = useForm({
     mode: 'uncontrolled',
@@ -50,7 +49,7 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onClose }) => {
     try {
       await signup(requestBody);
 
-      onClose();
+      props.onClose();
       formRegister.reset();
 
       // FIXME Send confirmation mail
@@ -98,11 +97,11 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onClose }) => {
   return (
     <Modal
       opened={true}
-      onClose={onClose}
+      onClose={props.onClose}
       title={`Register for an Account`}
       yOffset='10rem'
       className='modal-register'
-      fullScreen={isMobile}
+      fullScreen={props.fullscreen}
     >
       <form onSubmit={formRegister.onSubmit(handleRegister)}>
         <Stack mb='lg'>
@@ -155,7 +154,7 @@ const ModalSignUp: React.FC<ModalSignUpProps> = ({ onClose }) => {
 
         <div className='button-container'>
           <Group justify='flex-end' mt='sm'>
-            <Button onClick={onClose} variant='outline'>
+            <Button onClick={props.onClose} variant='outline'>
               Cancel
             </Button>
             <Button type='submit'>Register</Button>

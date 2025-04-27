@@ -40,6 +40,7 @@ const theme = createTheme({
   colors: { primaryColor },
 });
 
+// FIXME use global value for mobile breakpoint
 // breakpoint for mobile is 620px
 const BREAKPOINT_MOBILE = 620;
 

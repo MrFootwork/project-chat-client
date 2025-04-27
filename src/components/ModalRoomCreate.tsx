@@ -9,9 +9,10 @@ import { ThemeContext } from '../contexts/ThemeWrapper';
 
 type ModalProfileEditProps = {
   onClose: () => void;
+  fullscreen: boolean;
 };
 
-const ModalProfileEdit: React.FC<ModalProfileEditProps> = ({ onClose }) => {
+const ModalProfileEdit: React.FC<ModalProfileEditProps> = props => {
   const { createRoom, selectRoom } = useContext(RoomsContext);
   const { toggleButtonContainer } = useContext(ThemeContext);
 
@@ -49,7 +50,7 @@ const ModalProfileEdit: React.FC<ModalProfileEditProps> = ({ onClose }) => {
         color: 'red',
       });
     } finally {
-      onClose();
+      props.onClose();
       formRoomCreation.reset();
     }
   }
@@ -57,10 +58,11 @@ const ModalProfileEdit: React.FC<ModalProfileEditProps> = ({ onClose }) => {
   return (
     <Modal
       opened={true}
-      onClose={onClose}
+      onClose={props.onClose}
       title={`Create new room`}
       yOffset='10rem'
       className='modal-delete-room'
+      fullScreen={props.fullscreen}
     >
       <form onSubmit={formRoomCreation.onSubmit(handleRoomCreation)}>
         <Stack mb='lg'>
@@ -78,7 +80,7 @@ const ModalProfileEdit: React.FC<ModalProfileEditProps> = ({ onClose }) => {
         </Stack>
 
         <Group justify='flex-end' mt='sm'>
-          <Button variant='outline' onClick={onClose}>
+          <Button variant='outline' onClick={props.onClose}>
             Cancel
           </Button>
           <Button type='submit'>Create</Button>

@@ -13,21 +13,18 @@ import {
   TextInput,
 } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
-import { useMediaQuery } from '@mantine/hooks';
 
 import { AuthContext } from '../contexts/AuthWrapper';
 
 type ModalSignUpProps = {
   onClose: () => void;
+  fullscreen: boolean;
 };
 
-const ModalUserCreate: React.FC<ModalSignUpProps> = ({ onClose }) => {
+const ModalUserCreate: React.FC<ModalSignUpProps> = props => {
   const { updateUser, user, validatePassword } = useContext(AuthContext);
 
   if (!user) return;
-
-  // FIXME use global value for mobile breakpoint
-  const isMobile = useMediaQuery('(max-width: 620px)');
 
   const form = useForm({
     mode: 'uncontrolled',
@@ -78,7 +75,7 @@ const ModalUserCreate: React.FC<ModalSignUpProps> = ({ onClose }) => {
 
       // FIXME refresh token & user
 
-      onClose();
+      props.onClose();
       form.reset();
 
       // FIXME Send confirmation mail
@@ -125,11 +122,11 @@ const ModalUserCreate: React.FC<ModalSignUpProps> = ({ onClose }) => {
   return (
     <Modal
       opened={true}
-      onClose={onClose}
+      onClose={props.onClose}
       title={`Change Profile Data`}
       yOffset='10rem'
       className='modal-register'
-      fullScreen={isMobile}
+      fullScreen={props.fullscreen}
     >
       <form onSubmit={form.onSubmit(handleUpdate)}>
         <Stack mb='lg'>
@@ -186,7 +183,7 @@ const ModalUserCreate: React.FC<ModalSignUpProps> = ({ onClose }) => {
 
         <div className='button-container'>
           <Group justify='flex-end' mt='sm'>
-            <Button onClick={onClose} variant='outline'>
+            <Button onClick={props.onClose} variant='outline'>
               Cancel
             </Button>
             <Button type='submit'>Save</Button>

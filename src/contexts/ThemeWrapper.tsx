@@ -75,7 +75,12 @@ export default function ThemeWrapper({ children }: { children: ReactNode }) {
       value={{ isMobile, showButtonContainer, toggleButtonContainer }}
     >
       <MantineProvider defaultColorScheme='auto' theme={theme}>
-        <Notifications limit={10} autoClose={4000} position='top-right' />
+        <Notifications
+          limit={10}
+          autoClose={4000}
+          position='bottom-right'
+          styles={{ root: { marginBottom: '4rem' } }}
+        />
         {children}
       </MantineProvider>
     </ThemeContext.Provider>

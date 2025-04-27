@@ -14,10 +14,10 @@ import {
   useRef,
   useState,
 } from 'react';
+
 import {
   AvatarGroup,
   Button,
-  Group,
   Indicator,
   Modal,
   Textarea,
@@ -33,12 +33,12 @@ import {
   IconUsersPlus,
 } from '@tabler/icons-react';
 import MessageCard from './MessageCard';
-import { SearchableMultiSelect } from './SearchableMultiSelect';
 import TheAvatar from './TheAvatar';
 
 import { SocketContext } from '../contexts/SocketWrapper';
 import { AuthContext } from '../contexts/AuthWrapper';
 import { RoomsContext } from '../contexts/RoomsWrapper';
+import { useModal } from '../contexts/ModalContext';
 
 const { API_URL } = config;
 
@@ -51,7 +51,6 @@ const Messenger = () => {
   const {
     rooms,
     currentRoom,
-    selectRoom,
     createRoom,
     deleteRoom,
     pushMessage,
@@ -69,6 +68,8 @@ const Messenger = () => {
   const messagesDisplay = useRef<HTMLDivElement | null>(null);
 
   // Room
+  const { openModal } = useModal();
+
   const kickedOut = useMemo(() => {
     if (!currentRoom?.members.find(m => m.id === user?.id)) return true;
     return currentRoom?.members.find(m => m.id === user?.id)?.userLeft;
@@ -170,7 +171,6 @@ const Messenger = () => {
   /**************************
    * Send messages
    **************************/
-
   async function sendText() {
     if (!socket?.connected) {
       console.warn('No active socket connection to send messages!');
@@ -378,47 +378,6 @@ const Messenger = () => {
   /**************************
    * Modal Add Member
    **************************/
-  // Add member modal
-  const [
-    wantToAddMember,
-    { open: openModalAddMember, close: closeModalAddMember },
-  ] = useDisclosure(false);
-
-  function getSelectedFriends(room: Room | undefined | null) {
-    return room?.members.map(m => m.id).filter(id => id !== user?.id) || [];
-  }
-  const defaultRoomMembers = useRef(() => getSelectedFriends(currentRoom));
-
-  const [selectedFriends, setSelectedFriends] = useState<string[]>(
-    defaultRoomMembers.current
-  );
-
-  // Add member handler
-  async function handleMemberInvitations() {
-    console.log('Adding member to room...', selectedFriends);
-
-    if (!socket || socket?.disconnected || !currentRoom?.id) {
-      console.error('Socket not connected!');
-      return;
-    }
-
-    // Emit invitations
-    socket.emit('invite-to-room', currentRoom.id, selectedFriends);
-
-    try {
-      // Update room members
-      const updatedRoom = (await selectRoom(currentRoom.id)) || ({} as Room);
-      const currentMembers = getSelectedFriends(updatedRoom);
-
-      setSelectedFriends(currentMembers);
-    } catch (error) {
-      console.error('Error during invitation:', error);
-    }
-
-    // Clean up
-    closeModalAddMember();
-  }
-
   // Update member count for current room
   useEffect(() => {
     if (!currentRoom?.members) return;
@@ -515,11 +474,7 @@ const Messenger = () => {
           </button>
           <button
             className='button-add-member icon-button'
-            onClick={() => {
-              setTimeout(() => {
-                openModalAddMember();
-              }, 200);
-            }}
+            onClick={() => openModal('addRoomMembers')}
             title={
               isAdmin
                 ? 'Add members to this room'
@@ -644,37 +599,6 @@ const Messenger = () => {
           )}
         </form>
       </div>
-
-      {/* Add member Modal */}
-      {wantToAddMember ? (
-        <Modal
-          opened={wantToAddMember}
-          onClose={closeModalAddMember}
-          title={`Add members to room ${currentRoom?.name}`}
-          yOffset='10rem'
-          className='modal-add-member'
-        >
-          <div className='button-container'>
-            <SearchableMultiSelect
-              selectionList={[...selectedFriends]}
-              setSelectionList={setSelectedFriends}
-              optionsList={user?.friends || []}
-              optionTarget='friend'
-            />
-
-            <Group justify='flex-end'>
-              <Button onClick={closeModalAddMember} variant='outline'>
-                Cancel
-              </Button>
-              <Button onClick={handleMemberInvitations} variant='filled'>
-                Add
-              </Button>
-            </Group>
-          </div>
-        </Modal>
-      ) : (
-        ''
-      )}
 
       {/* Delete Modal */}
       {wantToDelete ? (

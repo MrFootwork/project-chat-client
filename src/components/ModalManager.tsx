@@ -1,9 +1,11 @@
+import { useContext } from 'react';
+
+import ModalUserCreate from './ModalUserCreate';
 import ModalUserEdit from './ModalUserEdit';
 import ModalRoomCreate from './ModalRoomCreate';
-import ModalUserCreate from './ModalUserCreate';
+import ModalRoomMemberAdd from './ModalRoomMemberAdd';
 
 import { useModal } from '../contexts/ModalContext';
-import { useContext } from 'react';
 import { ThemeContext } from '../contexts/ThemeWrapper';
 
 const ModalManager = () => {
@@ -24,6 +26,10 @@ const ModalManager = () => {
 
       {activeModal === 'createRoom' && (
         <ModalRoomCreate onClose={closeModal} fullscreen={isMobile} />
+      )}
+
+      {activeModal === 'addRoomMembers' && (
+        <ModalRoomMemberAdd onClose={closeModal} fullscreen={isMobile} />
       )}
       {/* TODO Add other modals */}
     </>

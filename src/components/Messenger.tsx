@@ -20,6 +20,7 @@ import {
   Button,
   Indicator,
   Modal,
+  Skeleton,
   Textarea,
   useComputedColorScheme,
 } from '@mantine/core';
@@ -50,6 +51,7 @@ const Messenger = () => {
   const { socket, botModel, online } = useContext(SocketContext);
   const {
     rooms,
+    isLoading,
     currentRoom,
     createRoom,
     deleteRoom,
@@ -120,7 +122,7 @@ const Messenger = () => {
   }, [memberCardColorMap]);
 
   // Members count and display message
-  const membersCountRef = useRef<string | null>(null);
+  const [memberCountText, setMemberCountText] = useState<string | null>(null);
 
   // Jump to the bottom on mount & when room has changed
   useEffect(() => {
@@ -384,8 +386,8 @@ const Messenger = () => {
 
     const activeMembers = currentRoom.members.filter(m => !m.userLeft);
 
-    if (activeMembers.length === 1) membersCountRef.current = '1 Member';
-    else membersCountRef.current = `${activeMembers.length} Members`;
+    if (activeMembers.length === 1) setMemberCountText('1 Member');
+    else setMemberCountText(`${activeMembers.length} Members`);
   }, [currentRoom?.members]);
 
   /**************************
@@ -423,43 +425,61 @@ const Messenger = () => {
        *******************/}
       <header>
         <div>
-          <h3>{currentRoom?.name}</h3>
-          <p>{membersCountRef.current || ''}</p>
+          {isLoading ? (
+            <>
+              <Skeleton height={20} width='70%' radius='xl' />
+              <Skeleton height={16} mt={10} width='40%' radius='xl' />
+            </>
+          ) : (
+            <>
+              <h3>{currentRoom?.name}</h3>
+              <p>{memberCountText || ''}</p>
+            </>
+          )}
         </div>
 
-        <AvatarGroup
-          key={currentRoom?.members.map(m => `${m.id}-${m.userLeft}`).join(',')}
-          spacing='1.5rem'
-        >
-          {currentRoom?.members
-            .filter(m => !m.userLeft)
-            .map(member => {
-              return (
-                <TheAvatar
-                  key={member.id}
-                  user={member}
-                  size='3rem'
-                  enableHoverEffect={true}
-                >
-                  <IconSettingsFilled
-                    className='admin'
-                    display={member.isAdmin ? 'block' : 'none'}
-                    size='1rem'
-                  />
-                  <Indicator
-                    className='online'
-                    color={
-                      online[member.id] || member.id === 'chat-bot'
-                        ? 'green'
-                        : 'grey'
-                    }
-                    withBorder
-                    size={14}
-                  />
-                </TheAvatar>
-              );
-            })}
-        </AvatarGroup>
+        {isLoading ? (
+          <div className='skeleton-wrapper'>
+            <Skeleton height={50} circle />
+            <Skeleton height={50} ml={-30} circle />
+          </div>
+        ) : (
+          <AvatarGroup
+            key={currentRoom?.members
+              .map(m => `${m.id}-${m.userLeft}`)
+              .join(',')}
+            spacing='1.5rem'
+          >
+            {currentRoom?.members
+              .filter(m => !m.userLeft)
+              .map(member => {
+                return (
+                  <TheAvatar
+                    key={member.id}
+                    user={member}
+                    size='3rem'
+                    enableHoverEffect={true}
+                  >
+                    <IconSettingsFilled
+                      className='admin'
+                      display={member.isAdmin ? 'block' : 'none'}
+                      size='1rem'
+                    />
+                    <Indicator
+                      className='online'
+                      color={
+                        online[member.id] || member.id === 'chat-bot'
+                          ? 'green'
+                          : 'grey'
+                      }
+                      withBorder
+                      size={14}
+                    />
+                  </TheAvatar>
+                );
+              })}
+          </AvatarGroup>
+        )}
 
         <div className='button-container'>
           <button

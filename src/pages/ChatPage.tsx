@@ -65,13 +65,9 @@ const ChatPage = () => {
 
   async function handleRoomSelection(roomID: string) {
     try {
-      await selectRoom(roomID);
+      if (showButtonContainer) toggleButtonContainer();
 
-      if (showButtonContainer) {
-        setTimeout(() => {
-          toggleButtonContainer();
-        }, 500);
-      }
+      await selectRoom(roomID);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         console.warn('Axios error details:', error.response?.data);

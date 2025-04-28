@@ -36,6 +36,12 @@ div.messenger-container {
   }
 }
 
+/* Skeleton */
+div.messenger-container header .skeleton-wrapper {
+  display: flex;
+  align-items: center;
+}
+
 .modal-add-member {
   & .button-container {
     display: flex;

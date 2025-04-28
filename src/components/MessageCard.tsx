@@ -2,7 +2,7 @@ import './MessageCard.css';
 import type { Message } from '../types/message';
 
 import { useContext, useEffect, useRef, useState } from 'react';
-import { Loader } from '@mantine/core';
+import { Loader, Skeleton } from '@mantine/core';
 import { CodeHighlight, InlineCodeHighlight } from '@mantine/code-highlight';
 import { IconEdit, IconFileX } from '@tabler/icons-react';
 import ReactMarkdown, { Components } from 'react-markdown';
@@ -39,7 +39,7 @@ const MessageCard: React.FC<MessageCardProps> = ({
 
   const { user } = useContext(AuthContext);
   const { socket } = useContext(SocketContext);
-  const { currentRoom } = useContext(RoomsContext);
+  const { isLoading, currentRoom } = useContext(RoomsContext);
 
   const userIsAdmin = useRef(
     currentRoom?.members.find(m => m.id === user?.id)!.isAdmin
@@ -210,31 +210,37 @@ const MessageCard: React.FC<MessageCardProps> = ({
       {isFirst.current && (
         <>
           <div className='image-container'>
-            <TheAvatar user={messages.this.author} size={'2.8rem'} />
+            <Skeleton visible={isLoading} circle>
+              <TheAvatar user={messages.this.author} size={'2.8rem'} />
+            </Skeleton>
           </div>
 
           <h5 className='username-label' style={{ color: authorLabelColor }}>
-            {currentMessage.author.name}
+            <Skeleton visible={isLoading}>
+              {currentMessage.author.name}
+            </Skeleton>
           </h5>
         </>
       )}
 
-      {botIsThinking && <Loader type='dots' color={authorLabelColor} />}
+      <Skeleton visible={isLoading}>
+        {botIsThinking && <Loader type='dots' color={authorLabelColor} />}
 
-      {currentMessage.deleted ? (
-        'Message deleted'
-      ) : (
-        <ReactMarkdown
-          components={{
-            code: renderCode,
-            table: renderTable,
-            img: renderImage,
-          }}
-          remarkPlugins={[remarkBreaks, remarkGfm]}
-        >
-          {currentMessage.content || ''}
-        </ReactMarkdown>
-      )}
+        {currentMessage.deleted ? (
+          'Message deleted'
+        ) : (
+          <ReactMarkdown
+            components={{
+              code: renderCode,
+              table: renderTable,
+              img: renderImage,
+            }}
+            remarkPlugins={[remarkBreaks, remarkGfm]}
+          >
+            {currentMessage.content || ''}
+          </ReactMarkdown>
+        )}
+      </Skeleton>
 
       {currentMessage.edited && (
         <div className='edited-label'>{`edited ${descriptiveDate}`}</div>

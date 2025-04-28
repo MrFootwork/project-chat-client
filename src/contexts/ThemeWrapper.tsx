@@ -68,7 +68,6 @@ export default function ThemeWrapper({ children }: { children: ReactNode }) {
   const [showButtonContainer, setShowButtonContainer] = useState(false);
 
   function toggleButtonContainer() {
-    console.log('TOGGLING');
     setShowButtonContainer(show => !show);
   }
 
@@ -81,7 +80,7 @@ export default function ThemeWrapper({ children }: { children: ReactNode }) {
           limit={10}
           autoClose={4000}
           position='bottom-right'
-          styles={{ root: { marginBottom: '4rem' } }}
+          styles={{ root: { marginBottom: '5rem' } }}
         />
         {children}
       </MantineProvider>

@@ -12,6 +12,7 @@ const { API_URL } = config;
 
 const defaultStore = {
   rooms: null,
+  isLoading: false,
   createRoom: async (roomName: string) => {
     throw new Error('createNewRoom is not implemented in defaultStore');
   },
@@ -40,6 +41,7 @@ const defaultStore = {
 
 type RoomsContextType = {
   rooms: Room[] | null;
+  isLoading: boolean;
   createRoom: (roomName: string) => Promise<Room | undefined>;
   deleteRoom: (roomID: string | undefined) => void;
   fetchRooms: () => Promise<Room[]>;
@@ -67,6 +69,7 @@ const RoomsContext = React.createContext<RoomsContextType>(defaultStore);
 function RoomsWrapper({ children }: { children: ReactNode }) {
   const [store, setStore] = useState<RoomsContextType>(defaultStore);
   const { logout, user } = useContext(AuthContext);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Reset to default, if user logs out
   useEffect(() => {
@@ -283,6 +286,7 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
    */
   async function selectRoom(roomID: string) {
     console.log('selectRoom called with roomID:', roomID);
+    setIsLoading(true);
 
     const localToken = localStorage.getItem('chatToken');
 
@@ -315,6 +319,8 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
           currentRoom: updatedRoom,
         };
       });
+
+      setIsLoading(false);
 
       return updatedRoom;
     } catch (err) {
@@ -511,6 +517,7 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
     <RoomsContext.Provider
       value={{
         ...store,
+        isLoading,
         createRoom,
         deleteRoom,
         fetchRooms,

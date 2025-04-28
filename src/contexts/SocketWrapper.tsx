@@ -275,7 +275,7 @@ function SocketWrapper({ children }: { children: ReactNode }) {
 
     // Handle connection errors
     socket.on('connect_error', error => {
-      console.error('Socket connection failed:', error.message);
+      console.error('Socket connection failed:', error);
 
       if (!notificationShown) {
         notifications.show({

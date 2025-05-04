@@ -52,6 +52,8 @@ const Messenger = () => {
   const {
     rooms,
     isLoading,
+    fetchNextPage,
+    hasMore,
     currentRoom,
     createRoom,
     deleteRoom,
@@ -65,6 +67,7 @@ const Messenger = () => {
 
   // Scrolling
   const [movedUpView, setMovedUpView] = useState<boolean>(false);
+  const [reachedTop, setReachedTop] = useState<boolean>(false);
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const messagesDisplay = useRef<HTMLDivElement | null>(null);
@@ -124,6 +127,54 @@ const Messenger = () => {
   // Members count and display message
   const [memberCountText, setMemberCountText] = useState<string | null>(null);
 
+  // Reach top of messages => load next page
+  const [page, setPage] = useState(1);
+  const [nextPageLoaded, setNextPageLoaded] = useState(false);
+  const previousScrollHeightRef = useRef(0);
+
+  useEffect(() => {
+    const messagesContainer = messagesDisplay.current;
+
+    const timeout = setTimeout(() => {
+      if (
+        messagesContainer &&
+        reachedTop &&
+        !isLoading &&
+        currentRoom?.messages.length &&
+        !nextPageLoaded
+      ) {
+        previousScrollHeightRef.current =
+          messagesDisplay.current?.scrollHeight || 0;
+
+        const loadMoreMessages = async () => {
+          const nextPage = page + 1;
+
+          await fetchNextPage(nextPage);
+          setPage(nextPage);
+          setNextPageLoaded(true);
+        };
+
+        if (hasMore) loadMoreMessages();
+      }
+    }, 400);
+
+    return () => clearTimeout(timeout); // Cleanup timeout
+  }, [reachedTop, isLoading, currentRoom?.id, page, nextPageLoaded]);
+
+  // Scroll effect after next page is loaded
+  useEffect(() => {
+    if (nextPageLoaded) {
+      // scroll down a bit
+      if (messagesDisplay.current) {
+        messagesDisplay.current.scrollTop =
+          messagesDisplay.current.scrollHeight -
+          previousScrollHeightRef.current;
+      }
+
+      setNextPageLoaded(false);
+    }
+  }, [nextPageLoaded, messagesDisplay.current]);
+
   // Jump to the bottom on mount & when room has changed
   useEffect(() => {
     if (!messagesDisplay.current) return;
@@ -150,6 +201,9 @@ const Messenger = () => {
     // pos = 0: at the top
     // pos = 1: at the bottom
 
+    if (scrollTop === 0) setReachedTop(true);
+    if (scrollTop > 0) setReachedTop(false);
+
     if (scrollHeight - scrollTop > 1000) setMovedUpView(true);
     if (scrollHeight - scrollTop <= 1000) setMovedUpView(false);
   }
@@ -173,6 +227,8 @@ const Messenger = () => {
   /**************************
    * Send messages
    **************************/
+  const [sendTextEffects, setSendTextEffects] = useState(false);
+
   async function sendText() {
     if (!socket?.connected) {
       console.warn('No active socket connection to send messages!');
@@ -187,6 +243,8 @@ const Messenger = () => {
     );
 
     socket.emit('send-message', currentRoom?.id, text, { botModel });
+
+    setSendTextEffects(true);
 
     // Clear the input after sending
     if (textAreaRef.current) {
@@ -228,21 +286,16 @@ const Messenger = () => {
     [editModeOn, sendText, cancelEditMode, saveEdit]
   );
 
-  // Sending messages, while out of view
+  // Sending messages
   // => scroll down
   useEffect(() => {
     const sentByMyself = currentRoom?.messages.at(-1)?.author.id === user?.id;
-    if (movedUpView && sentByMyself) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [currentRoom?.messages.length]);
 
-  // Scroll down while receiving AI stream
-  useEffect(() => {
-    if (!movedUpView) {
+    if (sendTextEffects && sentByMyself) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      setSendTextEffects(false);
     }
-  }, [currentRoom?.messages.at(-1)?.content]);
+  }, [currentRoom?.messages.length, sendTextEffects]);
 
   // Edit message
   const editingMessageID = useRef<string | null>(null);
@@ -285,6 +338,8 @@ const Messenger = () => {
   /**************************
    * Receive messages
    **************************/
+  const [receiveMessageEffects, setReceiveMessageEffects] = useState(false);
+
   // TODO Move this listner to the socket context
   // Setup socket listener for incoming messages
   useEffect(() => {
@@ -305,6 +360,7 @@ const Messenger = () => {
 
   /** Handles how received messages are managed. */
   async function handleReceiveMessage(message: Message) {
+    setReceiveMessageEffects(true);
     pushMessage(message);
 
     if (currentRoom?.id === message.roomId && !movedUpView)
@@ -314,13 +370,16 @@ const Messenger = () => {
   // Receiving messages in currentRoom while scroll position is at the bottom
   // => scroll down
   useEffect(() => {
-    if (movedUpView || !messagesEndRef.current) return;
+    if (movedUpView || !messagesEndRef.current || !receiveMessageEffects)
+      return;
 
     messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
 
+    setReceiveMessageEffects(false);
+
     if (unreadMessagesCount >= 1)
       setMessageAsRead(currentRoom!.messages.at(-1) as Message);
-  }, [currentRoom?.messages.length]);
+  }, [currentRoom?.messages.length, movedUpView, receiveMessageEffects]);
 
   /**************************
    * Leave Room

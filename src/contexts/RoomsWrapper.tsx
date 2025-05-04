@@ -27,6 +27,10 @@ const defaultStore = {
   selectRoom: async (roomID: string) => {
     throw new Error('selectRoom is not implemented in defaultStore');
   },
+  fetchNextPage: async (page: number) => {
+    throw new Error('selectRoom is not implemented in defaultStore');
+  },
+  hasMore: false,
   selectedRoomID: null,
   currentRoom: null,
   pushMessage: async (message: Message) => {},
@@ -52,6 +56,8 @@ type RoomsContextType = {
   ) => void;
   createOrUpdateMembers: (addedMembers: RoomMember[], room: Room) => void;
   selectRoom: (roomID: string) => Promise<Room | undefined>;
+  fetchNextPage: (page: number) => Promise<void>;
+  hasMore: boolean;
   selectedRoomID: string | null;
   currentRoom: Room | null;
   pushMessage: (message: Message) => Promise<void>;
@@ -70,6 +76,7 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
   const [store, setStore] = useState<RoomsContextType>(defaultStore);
   const { logout, user } = useContext(AuthContext);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
 
   // Reset to default, if user logs out
   useEffect(() => {
@@ -321,10 +328,74 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
       });
 
       setIsLoading(false);
+      setHasMore(true);
 
       return updatedRoom;
     } catch (err) {
       throw err;
+    }
+  }
+
+  /**
+   * Fetches the next page of messages for the currently selected room.
+   *
+   * @param page - The page number to fetch.
+   * @returns A promise that resolves to `true` if there is more data to fetch, or `false` if there is no more data.
+   */
+  async function fetchNextPage(page: number) {
+    if (!hasMore) return;
+
+    const roomID = store.selectedRoomID;
+    const localToken = localStorage.getItem('chatToken');
+
+    try {
+      const { data: updatedRoom } = await axios.get<Room>(
+        `${API_URL}/api/rooms/${roomID}?page=${page}`,
+        {
+          headers: { Authorization: `Bearer ${localToken}` },
+        }
+      );
+
+      const updatedMessages = updatedRoom.messages;
+
+      if (!updatedMessages.length) {
+        setHasMore(false);
+        return;
+      }
+
+      setIsLoading(true);
+
+      setStore(s => {
+        if (!s.rooms) return s;
+
+        const updatedCurrentRoom = {
+          ...s.currentRoom!,
+          messages: [...updatedMessages, ...(s.currentRoom!.messages || [])],
+        };
+
+        const updatedRooms = s.rooms.map(room => {
+          if (room.id === updatedRoom.id) {
+            return {
+              ...room,
+              messages: [...updatedMessages, ...room.messages],
+            };
+          }
+
+          return room;
+        });
+
+        if (!updatedRooms) return s;
+
+        return {
+          ...s,
+          rooms: updatedRooms,
+          currentRoom: updatedCurrentRoom,
+        };
+      });
+    } catch (err) {
+      throw err;
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -525,6 +596,8 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
         updateRoomMemberStatus,
         createOrUpdateMembers,
         selectRoom,
+        fetchNextPage,
+        hasMore,
         pushMessage,
         pushMessageChunks,
         updateMessage,

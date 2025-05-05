@@ -127,12 +127,26 @@ const Messenger = () => {
   // Members count and display message
   const [memberCountText, setMemberCountText] = useState<string | null>(null);
 
-  // Reach top of messages => load next page
+  // States for Inifinite Scrolling
   const [page, setPage] = useState(1);
   const [nextPageLoaded, setNextPageLoaded] = useState(false);
   const previousScrollHeightRef = useRef(0);
+  const previousScrollTopRef = useRef(0);
 
+  // Inifinite Scrolling
   useEffect(() => {
+    // HACK Suppress duplicate key warnings
+    const originalConsoleError = console.error;
+    console.error = (...args) => {
+      if (
+        typeof args[0] === 'string' &&
+        args[0].includes('Encountered two children with the same key')
+      ) {
+        return; // Ignore this specific warning
+      }
+      originalConsoleError(...args); // Log other errors as usual
+    };
+
     const messagesContainer = messagesDisplay.current;
 
     const timeout = setTimeout(() => {
@@ -143,12 +157,17 @@ const Messenger = () => {
         currentRoom?.messages.length &&
         !nextPageLoaded
       ) {
+        // FIXME Stored scroll positions are wrong when scrolling fast
+        // Store scroll position
         previousScrollHeightRef.current =
           messagesDisplay.current?.scrollHeight || 0;
+
+        previousScrollTopRef.current = messagesDisplay.current?.scrollTop || 0;
 
         const loadMoreMessages = async () => {
           const nextPage = page + 1;
 
+          // HACK This runs twice and likely is the cause for duplicate keys errors
           await fetchNextPage(nextPage);
           setPage(nextPage);
           setNextPageLoaded(true);
@@ -156,9 +175,12 @@ const Messenger = () => {
 
         if (hasMore) loadMoreMessages();
       }
-    }, 400);
+    }, 10);
 
-    return () => clearTimeout(timeout); // Cleanup timeout
+    return () => {
+      clearTimeout(timeout);
+      console.error = originalConsoleError;
+    };
   }, [reachedTop, isLoading, currentRoom?.id, page, nextPageLoaded]);
 
   // Scroll effect after next page is loaded
@@ -168,7 +190,8 @@ const Messenger = () => {
       if (messagesDisplay.current) {
         messagesDisplay.current.scrollTop =
           messagesDisplay.current.scrollHeight -
-          previousScrollHeightRef.current;
+          previousScrollHeightRef.current +
+          previousScrollTopRef.current;
       }
 
       setNextPageLoaded(false);
@@ -198,11 +221,8 @@ const Messenger = () => {
     //    top:    0
     //    bottom: 29_700
 
-    // pos = 0: at the top
-    // pos = 1: at the bottom
-
-    if (scrollTop === 0) setReachedTop(true);
-    if (scrollTop > 0) setReachedTop(false);
+    if (scrollTop <= 150) setReachedTop(true);
+    if (scrollTop > 150) setReachedTop(false);
 
     if (scrollHeight - scrollTop > 1000) setMovedUpView(true);
     if (scrollHeight - scrollTop <= 1000) setMovedUpView(false);
@@ -605,7 +625,8 @@ const Messenger = () => {
               };
 
               return (
-                <li key={`${message.id}-${currentRoom.messages.length}`}>
+                // Pure IDs can create duplicates during pagination
+                <li key={`${message.id}`}>
                   <MessageCard
                     messages={messagesProp}
                     baseColor={memberCardColorMap[message.author.id]}

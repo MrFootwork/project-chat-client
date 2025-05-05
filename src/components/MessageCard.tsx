@@ -1,7 +1,7 @@
 import './MessageCard.css';
 import type { Message } from '../types/message';
 
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Loader, Skeleton } from '@mantine/core';
 import { CodeHighlight, InlineCodeHighlight } from '@mantine/code-highlight';
 import { IconEdit, IconFileX } from '@tabler/icons-react';
@@ -47,12 +47,15 @@ const MessageCard: React.FC<MessageCardProps> = ({
 
   const userIsAuthor = useRef(user?.id === currentMessage.author.id);
 
-  const isFirst = useRef(
-    !previousMessage || previousMessage.author.id !== currentMessage.author.id
-  );
-  const isLast = useRef(
-    !nextMessage || nextMessage.author.id !== currentMessage.author.id
-  );
+  const isFirst = useMemo(() => {
+    return (
+      !previousMessage || previousMessage.author.id !== currentMessage.author.id
+    );
+  }, [previousMessage, currentMessage.author.id]);
+
+  const isLast = useMemo(() => {
+    return !nextMessage || nextMessage.author.id !== currentMessage.author.id;
+  }, [nextMessage, currentMessage.author.id]);
 
   const botIsThinking =
     currentMessage.author.id === 'chat-bot' && !currentMessage.content;
@@ -203,11 +206,11 @@ const MessageCard: React.FC<MessageCardProps> = ({
     <div
       className={`message-card 
         ${userIsAuthor.current ? ' its-me' : ''} 
-        ${isFirst.current ? 'first' : ''}
-        ${isLast.current ? 'last' : ''}`}
+        ${isFirst ? 'first' : ''}
+        ${isLast ? 'last' : ''}`}
       style={{ backgroundColor: baseColor }}
     >
-      {isFirst.current && (
+      {isFirst && (
         <>
           <div className='image-container'>
             <Skeleton visible={isLoading} circle>

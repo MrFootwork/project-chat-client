@@ -135,18 +135,6 @@ const Messenger = () => {
 
   // Inifinite Scrolling
   useEffect(() => {
-    // HACK Suppress duplicate key warnings
-    const originalConsoleError = console.error;
-    console.error = (...args) => {
-      if (
-        typeof args[0] === 'string' &&
-        args[0].includes('Encountered two children with the same key')
-      ) {
-        return; // Ignore this specific warning
-      }
-      originalConsoleError(...args); // Log other errors as usual
-    };
-
     const messagesContainer = messagesDisplay.current;
 
     const timeout = setTimeout(() => {
@@ -167,7 +155,6 @@ const Messenger = () => {
         const loadMoreMessages = async () => {
           const nextPage = page + 1;
 
-          // HACK This runs twice and likely is the cause for duplicate keys errors
           await fetchNextPage(nextPage);
           setPage(nextPage);
           setNextPageLoaded(true);
@@ -177,10 +164,7 @@ const Messenger = () => {
       }
     }, 10);
 
-    return () => {
-      clearTimeout(timeout);
-      console.error = originalConsoleError;
-    };
+    return () => clearTimeout(timeout);
   }, [reachedTop, isLoading, currentRoom?.id, page, nextPageLoaded]);
 
   // Scroll effect after next page is loaded

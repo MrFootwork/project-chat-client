@@ -370,14 +370,28 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
 
         const updatedCurrentRoom = {
           ...s.currentRoom!,
-          messages: [...updatedMessages, ...(s.currentRoom!.messages || [])],
+          messages: [
+            ...new Map(
+              [...updatedMessages, ...s.currentRoom!.messages].map(msg => [
+                msg.id,
+                msg,
+              ])
+            ).values(),
+          ],
         };
 
         const updatedRooms = s.rooms.map(room => {
           if (room.id === updatedRoom.id) {
             return {
               ...room,
-              messages: [...updatedMessages, ...room.messages],
+              messages: [
+                ...new Map(
+                  [...updatedMessages, ...room.messages].map(msg => [
+                    msg.id,
+                    msg,
+                  ])
+                ).values(),
+              ],
             };
           }
 

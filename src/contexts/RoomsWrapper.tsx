@@ -27,7 +27,18 @@ const defaultStore = {
   selectRoom: async (roomID: string) => {
     throw new Error('selectRoom is not implemented in defaultStore');
   },
-  fetchNextPage: async (page: number) => {
+  fetchNextPage: async (
+    page: number,
+    {
+      scrollHeight,
+      scrollTop,
+      display,
+    }: {
+      scrollHeight: React.RefObject<number>;
+      scrollTop: React.RefObject<number>;
+      display: React.RefObject<HTMLDivElement | null>;
+    }
+  ) => {
     throw new Error('selectRoom is not implemented in defaultStore');
   },
   hasMore: false,
@@ -56,7 +67,18 @@ type RoomsContextType = {
   ) => void;
   createOrUpdateMembers: (addedMembers: RoomMember[], room: Room) => void;
   selectRoom: (roomID: string) => Promise<Room | undefined>;
-  fetchNextPage: (page: number) => Promise<void>;
+  fetchNextPage: (
+    page: number,
+    {
+      scrollHeight,
+      scrollTop,
+      display,
+    }: {
+      scrollHeight: React.RefObject<number>;
+      scrollTop: React.RefObject<number>;
+      display: React.RefObject<HTMLDivElement | null>;
+    }
+  ) => Promise<void>;
   hasMore: boolean;
   selectedRoomID: string | null;
   currentRoom: Room | null;
@@ -342,7 +364,18 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
    * @param page - The page number to fetch.
    * @returns A promise that resolves to `true` if there is more data to fetch, or `false` if there is no more data.
    */
-  async function fetchNextPage(page: number) {
+  async function fetchNextPage(
+    page: number,
+    {
+      scrollHeight,
+      scrollTop,
+      display,
+    }: {
+      scrollHeight: React.RefObject<number>;
+      scrollTop: React.RefObject<number>;
+      display: React.RefObject<HTMLDivElement | null>;
+    }
+  ) {
     if (!hasMore) return;
 
     const roomID = store.selectedRoomID;
@@ -358,6 +391,11 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
 
       const updatedMessages = updatedRoom.messages;
 
+      // Store scroll position
+      scrollHeight.current = display.current?.scrollHeight || 0;
+      scrollTop.current = display.current?.scrollTop || 0;
+
+      // Next page is empty
       if (!updatedMessages.length) {
         setHasMore(false);
         return;
@@ -368,34 +406,20 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
       setStore(s => {
         if (!s.rooms) return s;
 
+        const mergedMessages = [...updatedMessages, ...s.currentRoom!.messages];
+
+        const deduplicatedMessages = [
+          ...new Map(mergedMessages.map(msg => [msg.id, msg])).values(),
+        ];
+
         const updatedCurrentRoom = {
           ...s.currentRoom!,
-          messages: [
-            ...new Map(
-              [...updatedMessages, ...s.currentRoom!.messages].map(msg => [
-                msg.id,
-                msg,
-              ])
-            ).values(),
-          ],
+          messages: deduplicatedMessages,
         };
 
         const updatedRooms = s.rooms.map(room => {
-          if (room.id === updatedRoom.id) {
-            return {
-              ...room,
-              messages: [
-                ...new Map(
-                  [...updatedMessages, ...room.messages].map(msg => [
-                    msg.id,
-                    msg,
-                  ])
-                ).values(),
-              ],
-            };
-          }
-
-          return room;
+          if (room.id !== updatedRoom.id) return room;
+          return { ...room, messages: deduplicatedMessages };
         });
 
         if (!updatedRooms) return s;

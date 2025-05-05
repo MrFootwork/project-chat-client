@@ -145,17 +145,15 @@ const Messenger = () => {
         currentRoom?.messages.length &&
         !nextPageLoaded
       ) {
-        // FIXME Stored scroll positions are wrong when scrolling fast
-        // Store scroll position
-        previousScrollHeightRef.current =
-          messagesDisplay.current?.scrollHeight || 0;
-
-        previousScrollTopRef.current = messagesDisplay.current?.scrollTop || 0;
-
         const loadMoreMessages = async () => {
           const nextPage = page + 1;
 
-          await fetchNextPage(nextPage);
+          await fetchNextPage(nextPage, {
+            scrollHeight: previousScrollHeightRef,
+            scrollTop: previousScrollTopRef,
+            display: messagesDisplay,
+          });
+
           setPage(nextPage);
           setNextPageLoaded(true);
         };
@@ -170,7 +168,7 @@ const Messenger = () => {
   // Scroll effect after next page is loaded
   useEffect(() => {
     if (nextPageLoaded) {
-      // scroll down a bit
+      // scroll back to previous position before next page load
       if (messagesDisplay.current) {
         messagesDisplay.current.scrollTop =
           messagesDisplay.current.scrollHeight -

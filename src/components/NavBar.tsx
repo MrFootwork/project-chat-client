@@ -14,7 +14,9 @@ import {
   useMantineColorScheme,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
+import { notifications } from '@mantine/notifications';
 import {
+  IconBellFilled,
   IconMoon,
   IconSun,
   IconSunMoon,
@@ -135,6 +137,62 @@ const NavBar = () => {
       });
   }, [user?.friends, token]);
 
+  // Subscribe to push notifications
+  async function handleSubscribe() {
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
+      console.log('PERMISSION: ', Notification.permission);
+
+      if (Notification.permission === 'default') {
+        // Request permission when the user clicks the button
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+          // Retry subscription logic here
+          handleSubscribe();
+        } else {
+          console.error('Notification permission denied.');
+        }
+      } else if (Notification.permission === 'granted') {
+        navigator.serviceWorker.ready.then(registration => {
+          registration.pushManager
+            .subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: config.VAPID_PUBLIC_KEY,
+            })
+            .then(async subscription => {
+              try {
+                const authHeader = {
+                  Authorization: `Bearer ${localStorage.getItem('chatToken')}`,
+                };
+
+                const { data, status } = await axios.post(
+                  `${config.API_URL}/api/messages/subscribe`,
+                  subscription,
+                  { headers: authHeader }
+                );
+
+                if (status === 201)
+                  notifications.show({
+                    title: data.message,
+                    message: 'You will receive push notifications from now on.',
+                    color: 'green',
+                  });
+              } catch (error) {
+                throw error;
+              }
+            })
+            .catch(error => {
+              console.error('Push subscription failed:', error);
+            });
+        });
+      } else {
+        console.error('Notification permission denied.');
+        // FIXME Provide info for user how to allow notifications
+      }
+    } else {
+      console.error('Push notifications are not supported in this browser.');
+    }
+  }
+
   return (
     <nav className='navbar-container'>
       {isMobile && !isOnHome && !isOnAuth ? (
@@ -162,6 +220,10 @@ const NavBar = () => {
       )}
 
       <div className='button-container'>
+        <button className='button-push icon-button' onClick={handleSubscribe}>
+          <IconBellFilled />
+        </button>
+
         {user?.friends && (
           <button
             onClick={openModalAddFriend}

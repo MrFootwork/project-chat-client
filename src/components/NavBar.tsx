@@ -17,6 +17,7 @@ import { useDisclosure } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import {
   IconBellFilled,
+  IconBellRingingFilled,
   IconMoon,
   IconSun,
   IconSunMoon,
@@ -192,6 +193,50 @@ const NavBar = () => {
       console.error('Push notifications are not supported in this browser.');
     }
   }
+  // Notify all subscribers
+  async function handleNotify() {
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
+      navigator.serviceWorker.ready.then(async registration => {
+        try {
+          // Check if the user is already subscribed
+          const existingSubscription =
+            await registration.pushManager.getSubscription();
+
+          if (existingSubscription) {
+            // Send the subscription data to the server
+            const authHeader = {
+              Authorization: `Bearer ${localStorage.getItem('chatToken')}`,
+            };
+
+            const { data, status } = await axios.post(
+              `${config.API_URL}/api/messages/notify`,
+              { subscription: existingSubscription },
+              { headers: authHeader }
+            );
+
+            if (status === 200) {
+              notifications.show({
+                title: 'Notification Sent',
+                message: data.message,
+                color: 'green',
+              });
+            }
+          } else {
+            console.error('No existing subscription found.');
+            notifications.show({
+              title: 'Error',
+              message: 'You are not subscribed to notifications.',
+              color: 'red',
+            });
+          }
+        } catch (error) {
+          console.error('Error handling notification:', error);
+        }
+      });
+    } else {
+      console.error('Push notifications are not supported in this browser.');
+    }
+  }
 
   return (
     <nav className='navbar-container'>
@@ -220,6 +265,10 @@ const NavBar = () => {
       )}
 
       <div className='button-container'>
+        <button className='button-push icon-button' onClick={handleNotify}>
+          <IconBellRingingFilled />
+        </button>
+
         <button className='button-push icon-button' onClick={handleSubscribe}>
           <IconBellFilled />
         </button>

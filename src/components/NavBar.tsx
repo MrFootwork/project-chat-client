@@ -184,6 +184,10 @@ const NavBar = () => {
             .catch(error => {
               console.error('Push subscription failed:', error);
             });
+
+          registration.pushManager.getSubscription().then(subscription => {
+            console.log('Push Subscription:', subscription);
+          });
         });
       } else {
         console.error('Notification permission denied.');

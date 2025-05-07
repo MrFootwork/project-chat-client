@@ -36,12 +36,16 @@ createRoot(document.getElementById('root')!).render(
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker
-      .register('/service-worker.js')
+      .register('/service-worker.js', {
+        scope: '/',
+        type: 'module',
+      })
       .then(registration => {
         console.log(
           'Service Worker registered with scope:',
           registration.scope
         );
+        registration.active?.postMessage({ apiUrl: window.location.origin });
       })
       .catch(error => {
         console.error('Service Worker registration failed:', error);

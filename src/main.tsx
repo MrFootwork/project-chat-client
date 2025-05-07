@@ -45,7 +45,6 @@ if ('serviceWorker' in navigator) {
           'Service Worker registered with scope:',
           registration.scope
         );
-        registration.active?.postMessage({ apiUrl: window.location.origin });
       })
       .catch(error => {
         console.error('Service Worker registration failed:', error);

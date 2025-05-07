@@ -12,15 +12,6 @@ self.addEventListener('install', event => {
   );
 });
 
-let apiUrl = '';
-
-self.addEventListener('message', event => {
-  if (event.data && event.data.apiUrl) {
-    apiUrl = event.data.apiUrl;
-    console.log('API URL received in Service Worker:', apiUrl);
-  }
-});
-
 self.addEventListener('activate', event => {
   console.log('Service Worker activating...');
 });
@@ -57,20 +48,18 @@ self.addEventListener('push', event => {
 // Handle Notification Clicks
 self.addEventListener('notificationclick', event => {
   event.notification.close();
-  const url = event.notification.data?.url || '/';
+  const targetURL = event.notification.data?.url || '/';
 
   event.waitUntil(
     clients.matchAll({ type: 'window' }).then(clientList => {
       for (const client of clientList) {
-        const targetURL = `${apiUrl}/${url}`;
-
         if (client.url === targetURL && 'focus' in client) {
           return client.focus();
         }
       }
 
       if (clients.openWindow) {
-        return clients.openWindow(url);
+        return clients.openWindow(targetURL);
       }
     })
   );

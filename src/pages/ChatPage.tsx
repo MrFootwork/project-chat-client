@@ -52,6 +52,7 @@ const ChatPage = () => {
       const firstRoomID = rooms[0]?.id || '';
       const RoomIDFromURL = roomID || '';
 
+      // BUG First Room doesn't load on first page load
       selectRoom(RoomIDFromURL).catch(error => {
         if (axios.isAxiosError(error)) {
           if (error.response?.status === 404) {

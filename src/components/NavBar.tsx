@@ -197,6 +197,7 @@ const NavBar = () => {
       console.error('Push notifications are not supported in this browser.');
     }
   }
+
   // Notify all subscribers
   async function handleNotify() {
     if ('serviceWorker' in navigator && 'PushManager' in window) {
@@ -212,9 +213,13 @@ const NavBar = () => {
               Authorization: `Bearer ${localStorage.getItem('chatToken')}`,
             };
 
+            const [_, roomID, ...rest] = location.pathname
+              .split('/')
+              .filter(s => s !== '');
+
             const { data, status } = await axios.post(
               `${config.API_URL}/api/messages/notify`,
-              { subscription: existingSubscription },
+              { subscription: existingSubscription, roomID },
               { headers: authHeader }
             );
 

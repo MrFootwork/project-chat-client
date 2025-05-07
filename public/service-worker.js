@@ -17,11 +17,11 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request).then(response => {
-      return response || fetch(event.request);
-    })
-  );
+  // event.respondWith(
+  //   caches.match(event.request).then(response => {
+  //     return response || fetch(event.request);
+  //   })
+  // );
 });
 
 // Push Notification
@@ -51,16 +51,23 @@ self.addEventListener('notificationclick', event => {
   const targetURL = event.notification.data?.url || '/';
 
   event.waitUntil(
-    clients.matchAll({ type: 'window' }).then(clientList => {
-      for (const client of clientList) {
-        if (client.url === targetURL && 'focus' in client) {
-          return client.focus();
-        }
-      }
+    clients
+      .matchAll({ type: 'window', includeUncontrolled: true })
+      .then(clientList => {
+        const targetDomain = new URL(targetURL).origin;
 
-      if (clients.openWindow) {
-        return clients.openWindow(targetURL);
-      }
-    })
+        for (const client of clientList) {
+          const clientDomain = new URL(client.url).origin;
+
+          if (clientDomain === targetDomain && 'focus' in client) {
+            return client.navigate(targetURL).then(() => client.focus());
+          }
+        }
+
+        clients.openWindow(targetURL);
+      })
+      .catch(err => {
+        console.error('Error handling notification click:', err);
+      })
   );
 });

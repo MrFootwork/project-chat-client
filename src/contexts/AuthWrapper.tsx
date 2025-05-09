@@ -117,10 +117,10 @@ function AuthWrapper({ children }: { children: ReactNode }) {
         console.warn(
           `Server responded unexpectedly to logout request: ${response}`
         );
-
-      console.log('Logged out');
     } catch (error) {
       throw new Error(`Couldn't logout: ${error}`);
+    } finally {
+      navigate('/auth');
     }
   }
 

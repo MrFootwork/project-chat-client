@@ -45,6 +45,7 @@ self.addEventListener('push', event => {
   );
 });
 
+// BUG Mobile: works in browser, not if PWA is installed
 // Handle Notification Clicks
 self.addEventListener('notificationclick', event => {
   event.notification.close();

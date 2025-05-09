@@ -221,6 +221,7 @@ const ChatPage = () => {
       {/*************
        * Mobile
        ************/}
+      {/* BUG Weird top space on page load until first message is sent */}
       {isMobile && (
         <>
           {/* FIXME Slide in and out animation */}

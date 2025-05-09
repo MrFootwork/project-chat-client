@@ -96,12 +96,16 @@ const RoomsContext = React.createContext<RoomsContextType>(defaultStore);
 
 function RoomsWrapper({ children }: { children: ReactNode }) {
   const [store, setStore] = useState<RoomsContextType>(defaultStore);
-  const { logout, user } = useContext(AuthContext);
+  const { logout, user, token } = useContext(AuthContext);
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
 
   // Reset to default, if user logs out
   useEffect(() => {
+    // HACK Guard against: navigate() in ChatPage would trigger a logout...
+    // Don't reset the store, if user is still logged in
+    if (user && token) return;
+
     setStore(s => ({
       ...s,
       rooms: null,
@@ -353,8 +357,11 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
       setHasMore(true);
 
       return updatedRoom;
-    } catch (err) {
-      throw err;
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+      setHasMore(false);
     }
   }
 

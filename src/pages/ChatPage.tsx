@@ -2,7 +2,7 @@ import './ChatPage.css';
 import { Room } from '../types/room';
 
 import { useContext, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 
 import { ThemeContext } from '../contexts/ThemeWrapper';
@@ -17,31 +17,27 @@ import Messenger from '../components/Messenger';
 import { useModal } from '../contexts/ModalContext';
 
 const ChatPage = () => {
-  const navigate = useNavigate();
   const theme = useMantineTheme();
   const { openModal } = useModal();
+  const navigate = useNavigate();
 
   /**********
    * AUTH
    **********/
-  const { user, token, validateToken } = useContext(AuthContext);
-
-  useEffect(() => {
-    if (user && token) return;
-    validateToken();
-    if (!user) navigate('/');
-  }, []);
+  const { user } = useContext(AuthContext);
 
   /**********
    * ROOMS
    **********/
+  const { roomID } = useParams();
+
   const { rooms, deleteRoom, fetchRooms, selectRoom, selectedRoomID } =
     useContext(RoomsContext);
 
-  // Initial page load
+  // Initial page load with logged in user
   useEffect(() => {
     console.log('Loading from ChatPage...');
-    fetchRooms();
+    if (user) fetchRooms();
     // HACK Need to refetch after adding friends because adding friends causes to lose rooms state
   }, [user]);
 
@@ -52,7 +48,30 @@ const ChatPage = () => {
   useEffect(() => {
     if (rooms?.length && !firstRoomFetchedInitially.current) {
       console.log('Fetch selected room on ChatPage...', rooms?.length);
-      selectRoom(rooms[0]?.id || '');
+
+      const firstRoomID = rooms[0]?.id || '';
+      const RoomIDFromURL = roomID || '';
+
+      selectRoom(RoomIDFromURL).catch(error => {
+        if (axios.isAxiosError(error)) {
+          if (error.response?.status === 404) {
+            console.error(error);
+
+            notifications.show({
+              title: `Room doesn't exist`,
+              message: `Room ${RoomIDFromURL} doesn't exist.`,
+              color: 'red',
+            });
+
+            selectRoom(firstRoomID);
+          } else {
+            console.warn('Axios error occurred:', error.message);
+          }
+        }
+      });
+
+      navigate(`/chat/${RoomIDFromURL}`, { replace: true });
+
       // Only run once after initial load
       // Otherwise, it would also run, when new rooms are added
       firstRoomFetchedInitially.current = true;
@@ -67,7 +86,9 @@ const ChatPage = () => {
     try {
       if (showButtonContainer) toggleButtonContainer();
 
+      // BUG Navigating back should also load the current roomID
       await selectRoom(roomID);
+      navigate(`/chat/${roomID}`);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         console.warn('Axios error details:', error.response?.data);

@@ -5,6 +5,7 @@ import { ResponseError } from '../types/error';
 import React, { useState, useEffect, ReactNode } from 'react';
 import axios, { AxiosError } from 'axios';
 import { notifications } from '@mantine/notifications';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const API_URL = config.API_URL;
 
@@ -47,7 +48,16 @@ function AuthWrapper({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<TokenContext>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const isChatRoute = location.pathname.split('/')[1] === 'chat';
+
+  // Validate token on page load on chat route
   useEffect(() => {
+    // Check only on the protected chat route
+    if (!isChatRoute) return;
+
     // This runs twice in development mode, but not in production
     validateToken().catch(error => {
       console.error(error);
@@ -59,6 +69,14 @@ function AuthWrapper({ children }: { children: ReactNode }) {
           color: 'red',
           autoClose: false,
         });
+
+      notifications.show({
+        title: 'No Token found',
+        message: 'Please login to chat!',
+        color: 'orange',
+      });
+
+      navigate('/auth');
     });
   }, []);
 
@@ -195,6 +213,7 @@ function AuthWrapper({ children }: { children: ReactNode }) {
   }
 
   async function validateToken() {
+    setLoading(true);
     const token = window.localStorage.getItem('chatToken');
 
     if (!token) throw new Error('No token found in local storage.');
@@ -205,6 +224,8 @@ function AuthWrapper({ children }: { children: ReactNode }) {
       await _storeUserData(token);
     } catch (error) {
       throw error;
+    } finally {
+      setLoading(false);
     }
   }
 

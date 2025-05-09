@@ -22,6 +22,7 @@ function App() {
         {/* This redirects to /auth if not logged in */}
         <Route element={<ProtectedRoutes />}>
           <Route path='/chat' element={<ChatPage />} />
+          <Route path='/chat/:roomID' element={<ChatPage />} />
         </Route>
 
         <Route path='*' element={<Navigate to='/' />} />

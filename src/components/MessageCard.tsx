@@ -61,7 +61,7 @@ const MessageCard: React.FC<MessageCardProps> = ({
   const { isLoading, currentRoom } = useContext(RoomsContext);
 
   const userIsAdmin = useRef(
-    currentRoom?.members.find(m => m.id === user?.id)!.isAdmin
+    currentRoom?.members.find(m => m.id === user?.id)?.isAdmin || false
   );
 
   const userIsAuthor = useRef(user?.id === currentMessage.author.id);

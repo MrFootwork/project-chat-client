@@ -1,5 +1,5 @@
 div.messenger-container {
-  height: 100%;
+  height: calc(100dvh - var(--navbar-height));
 
   display: grid;
   grid-template-rows: 5rem 1fr auto;

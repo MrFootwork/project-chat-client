@@ -1,13 +1,6 @@
 .chat-page-container {
   display: flex;
-  height: calc(100dvh - var(--navbar-height));
-}
-
-@media (max-width: 620px) {
-  .chat-page-container {
-    height: calc(100dvh);
-    padding-top: var(--navbar-height);
-  }
+  max-height: 100dvh;
 }
 
 .rooms-container {

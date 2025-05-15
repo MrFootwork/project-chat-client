@@ -30,16 +30,16 @@ const ChatPage = () => {
    * ROOMS
    **********/
   const { roomID } = useParams();
+  const navigationType = useNavigationType();
 
   const { rooms, deleteRoom, fetchRooms, selectRoom, selectedRoomID } =
     useContext(RoomsContext);
 
   // Initial page load with logged in user
   useEffect(() => {
-    console.log('Loading from ChatPage...');
-    if (user) fetchRooms();
+    if (user?.id) fetchRooms();
     // HACK Need to refetch after adding friends because adding friends causes to lose rooms state
-  }, [user]);
+  }, [user?.id]);
 
   const firstRoomFetchedInitially = useRef(false);
 
@@ -47,8 +47,6 @@ const ChatPage = () => {
   // Needs this effect to access the rooms from before
   useEffect(() => {
     if (rooms?.length && !firstRoomFetchedInitially.current) {
-      console.log('Fetch selected room on ChatPage...', rooms?.length);
-
       const firstRoomID = rooms[0]?.id || '';
       const RoomIDFromURL = roomID || firstRoomID;
 
@@ -78,14 +76,26 @@ const ChatPage = () => {
     }
   }, [rooms && rooms.length]);
 
-  const navigationType = useNavigationType();
+  // Track last synced room to guard against re-renders from asynchronous state changes
+  const lastPopRoomID = useRef<string | null>(null);
 
-  // BUG Fix wrong browser history during navigation
-  // e.g. after "back" new room selection doesn't work once, but after 2nd try
-  // Load next/previous room, when navigating back or forward
+  // Load previous room, when navigating back
   useEffect(() => {
-    if (navigationType === 'POP' && roomID && roomID !== selectedRoomID) {
+    if (!firstRoomFetchedInitially.current) return;
+
+    if (
+      navigationType === 'POP' &&
+      roomID &&
+      roomID !== selectedRoomID &&
+      lastPopRoomID.current !== roomID
+    ) {
+      lastPopRoomID.current = roomID;
       selectRoom(roomID);
+    }
+
+    // Reset the ref if navigation is not POP
+    if (navigationType !== 'POP') {
+      lastPopRoomID.current = null;
     }
   }, [navigationType, roomID, selectedRoomID, selectRoom]);
 
@@ -98,7 +108,8 @@ const ChatPage = () => {
       if (showButtonContainer) toggleButtonContainer();
 
       await selectRoom(roomID);
-      navigate(`/chat/${roomID}`);
+
+      if (roomID !== selectedRoomID) navigate(`/chat/${roomID}`);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         console.warn('Axios error details:', error.response?.data);

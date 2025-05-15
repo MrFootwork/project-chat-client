@@ -50,9 +50,8 @@ const ChatPage = () => {
       console.log('Fetch selected room on ChatPage...', rooms?.length);
 
       const firstRoomID = rooms[0]?.id || '';
-      const RoomIDFromURL = roomID || '';
+      const RoomIDFromURL = roomID || firstRoomID;
 
-      // BUG First Room doesn't load on first page load
       selectRoom(RoomIDFromURL).catch(error => {
         if (axios.isAxiosError(error)) {
           if (error.response?.status === 404) {
@@ -221,7 +220,6 @@ const ChatPage = () => {
       {/*************
        * Mobile
        ************/}
-      {/* BUG Weird top space on page load until first message is sent */}
       {isMobile && (
         <>
           {/* FIXME Slide in and out animation */}

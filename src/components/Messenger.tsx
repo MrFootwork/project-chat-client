@@ -137,6 +137,7 @@ const Messenger = () => {
   useEffect(() => {
     const messagesContainer = messagesDisplay.current;
 
+    // BUG is not triggered anymore?
     const timeout = setTimeout(() => {
       if (
         messagesContainer &&

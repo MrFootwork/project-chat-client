@@ -36,6 +36,7 @@ self.addEventListener('push', event => {
     data: {
       url: data.url || '/', // Add a URL to open when the notification is clicked
     },
+    requireInteraction: true, // Trying to force heads-up (banner) notification on PWA
   };
 
   event.waitUntil(
@@ -46,6 +47,7 @@ self.addEventListener('push', event => {
 });
 
 // BUG Mobile: works in browser, not if PWA is installed
+// => not fixable: Android/Chrome can't handle notificationclick, no workarounds
 // Handle Notification Clicks
 self.addEventListener('notificationclick', event => {
   event.notification.close();

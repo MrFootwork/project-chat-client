@@ -1,9 +1,15 @@
 import './MessageCard.css';
 import type { Message } from '../types/message';
 
-import { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  Suspense,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Loader, Skeleton } from '@mantine/core';
-import { CodeHighlight, InlineCodeHighlight } from '@mantine/code-highlight';
 import { IconEdit, IconFileX } from '@tabler/icons-react';
 import ReactMarkdown, { Components } from 'react-markdown';
 import remarkBreaks from 'remark-breaks';
@@ -13,6 +19,19 @@ import TheAvatar from './TheAvatar';
 import { AuthContext } from '../contexts/AuthWrapper';
 import { SocketContext } from '../contexts/SocketWrapper';
 import { RoomsContext } from '../contexts/RoomsWrapper';
+
+// Lazy load highlight.js
+const CodeHighlight = React.lazy(() =>
+  import('@mantine/code-highlight').then(mod => ({
+    default: mod.CodeHighlight,
+  }))
+);
+
+const InlineCodeHighlight = React.lazy(() =>
+  import('@mantine/code-highlight').then(mod => ({
+    default: mod.InlineCodeHighlight,
+  }))
+);
 
 interface MessageCardProps {
   messages: {
@@ -74,20 +93,24 @@ const MessageCard: React.FC<MessageCardProps> = ({
     const language = className?.replace('language-', '') || 'txt';
     const codeString = String(children).trim();
 
-    return isCodeBlock ? (
-      <CodeHighlight
-        code={codeString}
-        language={language}
-        style={{ borderRadius: '5px' }}
-        {...(props as React.HTMLAttributes<HTMLDivElement>)}
-      />
-    ) : (
-      <InlineCodeHighlight
-        code={codeString}
-        language={language}
-        style={{ borderRadius: '5px' }}
-        {...(props as React.HTMLAttributes<HTMLDivElement>)}
-      />
+    return (
+      <Suspense fallback={<span>Loading Code Block…</span>}>
+        {isCodeBlock ? (
+          <CodeHighlight
+            code={codeString}
+            language={language}
+            style={{ borderRadius: '5px' }}
+            {...(props as React.HTMLAttributes<HTMLDivElement>)}
+          />
+        ) : (
+          <InlineCodeHighlight
+            code={codeString}
+            language={language}
+            style={{ borderRadius: '5px' }}
+            {...(props as React.HTMLAttributes<HTMLDivElement>)}
+          />
+        )}
+      </Suspense>
     );
   };
 

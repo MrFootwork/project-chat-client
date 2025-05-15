@@ -353,15 +353,14 @@ function RoomsWrapper({ children }: { children: ReactNode }) {
         };
       });
 
-      setIsLoading(false);
       setHasMore(true);
 
       return updatedRoom;
     } catch (error) {
+      setHasMore(false);
       throw error;
     } finally {
       setIsLoading(false);
-      setHasMore(false);
     }
   }
 

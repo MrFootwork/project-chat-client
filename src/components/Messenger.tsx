@@ -127,17 +127,16 @@ const Messenger = () => {
   // Members count and display message
   const [memberCountText, setMemberCountText] = useState<string | null>(null);
 
-  // States for Inifinite Scrolling
+  // States for Infinite Scrolling
   const [page, setPage] = useState(1);
   const [nextPageLoaded, setNextPageLoaded] = useState(false);
   const previousScrollHeightRef = useRef(0);
   const previousScrollTopRef = useRef(0);
 
-  // Inifinite Scrolling
+  // Infinite Scrolling
   useEffect(() => {
     const messagesContainer = messagesDisplay.current;
 
-    // BUG is not triggered anymore?
     const timeout = setTimeout(() => {
       if (
         messagesContainer &&
@@ -204,8 +203,12 @@ const Messenger = () => {
     //    top:    0
     //    bottom: 29_700
 
-    if (scrollTop <= 150) setReachedTop(true);
-    if (scrollTop > 150) setReachedTop(false);
+    // TODO Rooms with very short message displays sometimes can't load next page
+    // Threshhold of scrollTop to indicate next page load
+    const TOP_THRESHHOLD = 400;
+
+    if (scrollTop <= TOP_THRESHHOLD) setReachedTop(true);
+    if (scrollTop > TOP_THRESHHOLD) setReachedTop(false);
 
     if (scrollHeight - scrollTop > 1000) setMovedUpView(true);
     if (scrollHeight - scrollTop <= 1000) setMovedUpView(false);

@@ -2,7 +2,7 @@ import './ChatPage.css';
 import { Room } from '../types/room';
 
 import { useContext, useEffect, useRef } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useNavigationType, useParams } from 'react-router-dom';
 import axios from 'axios';
 
 import { ThemeContext } from '../contexts/ThemeWrapper';
@@ -78,6 +78,17 @@ const ChatPage = () => {
     }
   }, [rooms && rooms.length]);
 
+  const navigationType = useNavigationType();
+
+  // BUG Fix wrong browser history during navigation
+  // e.g. after "back" new room selection doesn't work once, but after 2nd try
+  // Load next/previous room, when navigating back or forward
+  useEffect(() => {
+    if (navigationType === 'POP' && roomID && roomID !== selectedRoomID) {
+      selectRoom(roomID);
+    }
+  }, [navigationType, roomID, selectedRoomID, selectRoom]);
+
   // Fetch selected room messages
   const { isMobile, showButtonContainer, toggleButtonContainer } =
     useContext(ThemeContext);
@@ -86,7 +97,6 @@ const ChatPage = () => {
     try {
       if (showButtonContainer) toggleButtonContainer();
 
-      // BUG Navigating back should also load the current roomID
       await selectRoom(roomID);
       navigate(`/chat/${roomID}`);
     } catch (error) {
